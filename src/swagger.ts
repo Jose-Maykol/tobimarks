@@ -1,4 +1,4 @@
-import swaggerJSDoc from 'swagger-jsdoc'
+import swaggerJSDoc from 'swagger-jsdoc';
 
 const options: swaggerJSDoc.Options = {
   definition: {
@@ -13,11 +13,10 @@ const options: swaggerJSDoc.Options = {
         url: 'http://localhost:3000',
         description: 'Development server',
       },
-    ]
+    ],
   },
-  
-    apis: [],
- 
-}
 
-export const swaggerSpec = swaggerJSDoc(options)
+  apis: [],
+};
+
+export const swaggerSpec = swaggerJSDoc(options);

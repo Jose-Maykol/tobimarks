@@ -1,5 +1,6 @@
-import express, { type Request, type Response } from 'express'
 import { apiReference } from '@scalar/express-api-reference'
+import express, { type Request, type Response } from 'express'
+
 import { scalarConfig } from './scalar'
 
 const app = express()

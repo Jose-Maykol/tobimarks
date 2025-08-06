@@ -1,4 +1,5 @@
 import { type ApiReferenceConfiguration } from '@scalar/express-api-reference'
+
 import { swaggerSpec } from './swagger'
 
 export const scalarConfig: ApiReferenceConfiguration = {
