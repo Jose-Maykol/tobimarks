@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express, { type Request, type Response } from 'express'
 import rateLimit from 'express-rate-limit'
+import helmet from 'helmet';
 import morgan from 'morgan'
 
 import { scalarConfig } from './scalar'
@@ -30,6 +31,7 @@ const limiter = rateLimit({
 
 app.use(limiter)
 
+app.use(helmet());
 app.use(cookieParser())
 app.use(morgan('dev'))
 app.use(express.json())
