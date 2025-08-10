@@ -3,26 +3,26 @@ import { type ApiReferenceConfiguration } from '@scalar/express-api-reference'
 import { swaggerSpec } from './swagger'
 
 export const scalarConfig: ApiReferenceConfiguration = {
-  spec: {
-    content: swaggerSpec,
-  },
-  
-  theme: 'deepSpace',
-  layout: 'modern',
-  darkMode: false,
-  
-  showSidebar: true,
-  hideDownloadButton: false,
-  hideTestRequestButton: false,
-  hideDarkModeToggle: true,
-  hideModels: false,
-  
-  metaData: {
-    title: 'Tobimarks API Documentation',
-    description: 'Comprehensive API documentation for the Tobimarks application',
-    ogDescription: 'Tobimarks API - Complete reference guide',
-    ogTitle: 'Tobimarks API Docs',
-  },
+	spec: {
+		content: swaggerSpec
+	},
+
+	theme: 'deepSpace',
+	layout: 'modern',
+	darkMode: false,
+
+	showSidebar: true,
+	hideDownloadButton: false,
+	hideTestRequestButton: false,
+	hideDarkModeToggle: true,
+	hideModels: false,
+
+	metaData: {
+		title: 'Tobimarks API Documentation',
+		description: 'Comprehensive API documentation for the Tobimarks application',
+		ogDescription: 'Tobimarks API - Complete reference guide',
+		ogTitle: 'Tobimarks API Docs'
+	}
 }
 
 /* export const getScalarConfig = (env: 'development' | 'staging' | 'production' = 'development'): ApiReferenceConfiguration => {

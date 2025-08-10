@@ -42,8 +42,8 @@ export default [
         },
       ],
       'quotes': ['error', 'single'],
-      /* 'semi': ['error', 'never'],
-      'prettier/prettier': 'error', */
+      'semi': ['error', 'never'],
+      'prettier/prettier': 'error',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },

@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express, { type Request, type Response } from 'express'
 import rateLimit from 'express-rate-limit'
-import helmet from 'helmet';
+import helmet from 'helmet'
 import morgan from 'morgan'
 
 import { scalarConfig } from './scalar'
@@ -15,23 +15,23 @@ const RATE_LIMIT_MAX_REQUESTS: number = 100
 const RATE_LIMIT_MESSAGE: string = 'Too many requests, please try again later.'
 
 app.use(
-  cors({
-    origin: 'http://localhost:8080',
-    credentials: true,
-  })
+	cors({
+		origin: 'http://localhost:8080',
+		credentials: true
+	})
 )
 
 const limiter = rateLimit({
-  windowMs: RATE_LIMIT_WINDOW_MS,
-  max: RATE_LIMIT_MAX_REQUESTS,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: RATE_LIMIT_MESSAGE,
+	windowMs: RATE_LIMIT_WINDOW_MS,
+	max: RATE_LIMIT_MAX_REQUESTS,
+	standardHeaders: true,
+	legacyHeaders: false,
+	message: RATE_LIMIT_MESSAGE
 })
 
 app.use(limiter)
 
-app.use(helmet());
+app.use(helmet())
 app.use(cookieParser())
 app.use(morgan('dev'))
 app.use(express.json())
@@ -39,7 +39,7 @@ app.use(express.json())
 app.use('/api-docs', apiReference(scalarConfig))
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Tobimarks API')
+	res.send('Tobimarks API')
 })
 
 export { app }
