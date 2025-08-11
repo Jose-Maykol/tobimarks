@@ -1,32 +1,67 @@
-import { DatabasePool } from './database'
+import { inject } from 'tsyringe'
+
+import { type IDatabase } from './database'
+import { TOKENS } from '../di/tokens'
 import type { Transaction } from '../types/database.type'
 
 export interface IUnitOfWork {
 	// users: IUserRepository;
+	begin(): Promise<void>
 	commit(): Promise<void>
 	rollback(): Promise<void>
 }
 
 export class UnitOfWork implements IUnitOfWork {
-	private transaction: Transaction
+	private transaction: Transaction | null = null
+	private isTransactionActive = false
 	// public readonly users: IUserRepository;
 
-	constructor(transaction: Transaction) {
-		this.transaction = transaction
-		// this.users = new UserRepository(transaction);
+	constructor(
+		@inject(TOKENS.DATABASE) private readonly database: IDatabase
+		/* @inject('IUserRepository') public readonly users: IUserRepository,
+    @inject('IOrderRepository') public readonly orders: IOrderRepository */
+	) {}
+
+	async begin(): Promise<void> {
+		if (this.isTransactionActive) {
+			throw new Error('Transaction already started')
+		}
+
+		this.transaction = await this.database.beginTransaction()
+		this.isTransactionActive = true
+
+		// Configurar la transacción en todos los repositorios
+		/* this.users.setTransaction(this.transaction) */
 	}
 
 	async commit(): Promise<void> {
-		await this.transaction.commit()
+		if (!this.isTransactionActive || !this.transaction) {
+			throw new Error('No active transaction to commit')
+		}
+
+		try {
+			await this.transaction.commit()
+		} finally {
+			this.cleanup()
+		}
 	}
 
 	async rollback(): Promise<void> {
-		await this.transaction.rollback()
+		if (!this.isTransactionActive || !this.transaction) {
+			throw new Error('No active transaction to rollback')
+		}
+
+		try {
+			await this.transaction.rollback()
+		} finally {
+			this.cleanup()
+		}
 	}
 
-	static async begin(): Promise<UnitOfWork> {
-		const db = DatabasePool.getInstance()
-		const transaction = await db.beginTransaction()
-		return new UnitOfWork(transaction)
+	private cleanup(): void {
+		this.transaction = null
+		this.isTransactionActive = false
+
+		/* this.users.setTransaction(null as any) */
 	}
 }

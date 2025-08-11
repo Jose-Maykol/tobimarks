@@ -1,43 +1,45 @@
 import { Pool } from 'pg'
+import { injectable, singleton } from 'tsyringe'
 
-import { env } from '../config/env'
+import { databaseConfig } from '../config/database.config'
 import type { DatabaseConnection, Transaction } from '../types/database.type'
 
-export class DatabasePool {
-	private static instance: DatabasePool
+export interface IDatabase {
+	getConnection(): Promise<DatabaseConnection>
+	beginTransaction(): Promise<Transaction>
+	close(): Promise<void>
+}
+
+@singleton()
+@injectable()
+export class Database implements IDatabase {
 	private pool: Pool
 
-	private constructor() {
-		this.pool = new Pool({
-			host: env.DB_HOST,
-			port: env.DB_PORT,
-			database: env.DB_NAME,
-			user: env.DB_USER,
-			password: env.DB_PASSWORD,
-			max: 20,
-			idleTimeoutMillis: 30000,
-			connectionTimeoutMillis: 2000
+	constructor() {
+		this.pool = new Pool(databaseConfig)
+
+		this.pool.on('error', (err) => {
+			console.error('Unexpected error on idle client', err)
 		})
 	}
 
-	public static getInstance(): DatabasePool {
-		if (!DatabasePool.instance) {
-			DatabasePool.instance = new DatabasePool()
-		}
-		return DatabasePool.instance
-	}
-
-	public async getConnection(): Promise<DatabaseConnection> {
+	async getConnection(): Promise<DatabaseConnection> {
 		const client = await this.pool.connect()
 		return {
 			query: client.query.bind(client),
-			release: client.release.bind(client)
+			release: () => client.release()
 		}
 	}
 
-	public async beginTransaction(): Promise<Transaction> {
+	async beginTransaction(): Promise<Transaction> {
 		const client = await this.pool.connect()
-		await client.query('BEGIN')
+
+		try {
+			await client.query('BEGIN')
+		} catch (error) {
+			client.release()
+			throw error
+		}
 
 		return {
 			query: client.query.bind(client),
@@ -55,7 +57,11 @@ export class DatabasePool {
 					client.release()
 				}
 			},
-			release: client.release.bind(client)
+			release: () => client.release()
 		}
+	}
+
+	async close(): Promise<void> {
+		await this.pool.end()
 	}
 }
