@@ -23,7 +23,9 @@
     "http-status-codes": "^2.3.0",
     "morgan": "^1.10.1",
     "pg": "^8.16.3",
+    "reflect-metadata": "^0.2.2",
     "swagger-jsdoc": "^6.2.8",
+    "tsyringe": "^4.10.0",
     "valibot": "^1.1.0"
   },
   "devDependencies": {
