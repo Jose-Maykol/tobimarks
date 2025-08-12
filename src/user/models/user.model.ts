@@ -10,3 +10,5 @@ export interface User {
 	isActive: boolean
 	//settings: Record<string, unknown>
 }
+
+export type CreateUserDto = Pick<User, 'googleId' | 'email' | 'displayName' | 'avatarUrl'>

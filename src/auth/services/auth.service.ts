@@ -1,13 +1,20 @@
 import { OAuth2Client } from 'google-auth-library'
-import { injectable } from 'tsyringe'
+import { injectable, inject } from 'tsyringe'
+
+import type { TokenService } from './token.service'
 
 import { env } from '@/core/config/env.config'
+import { TOKEN_SERVICE, USER_SERVICE } from '@/user/di/tokens'
+import type { UserService } from '@/user/services/user.service'
 
 @injectable()
 export class AuthService {
 	private readonly googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID)
 
-	constructor() {}
+	constructor(
+		@inject(USER_SERVICE) private readonly userService: UserService,
+		@inject(TOKEN_SERVICE) private readonly tokenService: TokenService
+	) {}
 
 	async authenticateWithGoogle(idToken: string) {
 		const ticket = await this.googleClient.verifyIdToken({
@@ -19,10 +26,22 @@ export class AuthService {
 
 		const { sub: googleId, email, name, picture } = payload
 
-		//TODO: Save in repository
-		//TODO: Create JWT tokens
+		let user = await this.userService.findByGoogleId(googleId)
 
-		return { accessToken: 'xxx', refreshToken: 'yyy' }
+		if (user === null) {
+			user = await this.userService.create({
+				googleId,
+				email: email ?? 'unknown@email.com',
+				displayName: name ?? 'Unknown',
+				avatarUrl: picture ?? null
+			})
+		}
+
+		const accessToken = await this.tokenService.generateAccessToken({ userId: user.id })
+		const refreshToken = await this.tokenService.generateRefreshToken()
+		//TODO: Save refresh token
+
+		return { accessToken, refreshToken }
 	}
 
 	async refreshAccessToken(refreshToken: string) {
