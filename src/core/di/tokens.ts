@@ -1,4 +1,4 @@
 export const TOKENS = {
-	DATABASE: Symbol.for('IDatabase'),
+	DATABASE_CONTEXT: Symbol.for('IDatabaseContext'),
 	UNIT_OF_WORK: Symbol.for('IUnitOfWork')
 } as const

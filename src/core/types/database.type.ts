@@ -3,6 +3,11 @@ export interface DatabaseConnection {
 	release(): void
 }
 
+export interface DatabaseResponse<T> {
+	rows: T[]
+	rowCount: number
+}
+
 export interface Transaction extends DatabaseConnection {
 	commit(): Promise<void>
 	rollback(): Promise<void>

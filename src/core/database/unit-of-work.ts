@@ -1,8 +1,9 @@
-import { inject } from 'tsyringe'
+import type { PoolClient } from 'pg'
+import { inject, injectable } from 'tsyringe'
 
-import { type IDatabase } from './database'
+import { type IDatabaseContext } from './database-context'
 import { TOKENS } from '../di/tokens'
-import type { Transaction } from '../types/database.type'
+import type { DatabaseResponse } from '../types/database.type'
 
 export interface IUnitOfWork {
 	// users: IUserRepository;
@@ -11,57 +12,62 @@ export interface IUnitOfWork {
 	rollback(): Promise<void>
 }
 
+@injectable()
 export class UnitOfWork implements IUnitOfWork {
-	private transaction: Transaction | null = null
-	private isTransactionActive = false
-	// public readonly users: IUserRepository;
+	public client: PoolClient | null = null
+	private _transactionStarted: boolean = false
+	private _disposed: boolean = false
 
-	constructor(
-		@inject(TOKENS.DATABASE) private readonly database: IDatabase
-		/* @inject('IUserRepository') public readonly users: IUserRepository,
-    @inject('IOrderRepository') public readonly orders: IOrderRepository */
-	) {}
+	constructor(@inject(TOKENS.DATABASE_CONTEXT) private dbContext: IDatabaseContext) {}
+
+	private async ensureClient(): Promise<void> {
+		if (!this.client && !this._disposed) {
+			this.client = await this.dbContext.getClient()
+		}
+	}
 
 	async begin(): Promise<void> {
-		if (this.isTransactionActive) {
-			throw new Error('Transaction already started')
+		await this.ensureClient()
+		if (this.client && !this._transactionStarted) {
+			await this.client.query('BEGIN')
+			this._transactionStarted = true
 		}
-
-		this.transaction = await this.database.beginTransaction()
-		this.isTransactionActive = true
-
-		// Configurar la transacción en todos los repositorios
-		/* this.users.setTransaction(this.transaction) */
 	}
 
 	async commit(): Promise<void> {
-		if (!this.isTransactionActive || !this.transaction) {
-			throw new Error('No active transaction to commit')
-		}
-
-		try {
-			await this.transaction.commit()
-		} finally {
-			this.cleanup()
+		if (this.client && this._transactionStarted) {
+			await this.client.query('COMMIT')
+			this._transactionStarted = false
+			await this.dispose()
 		}
 	}
 
 	async rollback(): Promise<void> {
-		if (!this.isTransactionActive || !this.transaction) {
-			throw new Error('No active transaction to rollback')
-		}
-
-		try {
-			await this.transaction.rollback()
-		} finally {
-			this.cleanup()
+		if (this.client && this._transactionStarted) {
+			await this.client.query('ROLLBACK')
+			this._transactionStarted = false
+			await this.dispose()
 		}
 	}
 
-	private cleanup(): void {
-		this.transaction = null
-		this.isTransactionActive = false
+	async query<T>(text: string, params?: unknown[]): Promise<DatabaseResponse<T>> {
+		await this.ensureClient()
+		const result = await this.client!.query(text, params)
+		return result as unknown as DatabaseResponse<T>
+	}
 
-		/* this.users.setTransaction(null as any) */
+	async dispose(): Promise<void> {
+		if (this._disposed) return
+
+		if (this._transactionStarted) {
+			await this.rollback()
+		}
+
+		if (this.client) {
+			this.client.release()
+			this.client = null
+		}
+
+		this._disposed = true
 	}
 }

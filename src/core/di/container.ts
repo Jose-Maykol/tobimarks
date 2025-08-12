@@ -1,7 +1,7 @@
 import { container } from 'tsyringe'
 
 import { TOKENS } from './tokens'
-import { Database, type IDatabase } from '../database/database'
+import { Database, type IDatabase } from '../database/database-context'
 import { UnitOfWork, type IUnitOfWork } from '../database/unit-of-work'
 
 export const registerCoreDependencies = () => {
