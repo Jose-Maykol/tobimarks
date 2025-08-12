@@ -13,6 +13,10 @@ export interface EnvVariables {
 	DB_NAME: string
 	DB_USER: string
 	DB_PASSWORD: string
+	GOOGLE_CLIENT_ID: string
+	GOOGLE_CLIENT_SECRET: string
+	JWT_SECRET: string
+	JWT_EXPIRES_IN: string
 }
 
 const envSchema = v.object({
@@ -23,12 +27,18 @@ const envSchema = v.object({
 		'3000'
 	),
 
-	//Database
+	// Database
 	DB_HOST: v.pipe(v.string(), v.minLength(1, 'DB_HOST es requerido')),
 	DB_PORT: v.optional(v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1)), '5432'),
 	DB_NAME: v.pipe(v.string(), v.minLength(1, 'DB_NAME es requerido')),
 	DB_USER: v.pipe(v.string(), v.minLength(1, 'DB_USER es requerido')),
-	DB_PASSWORD: v.pipe(v.string(), v.minLength(1, 'DB_PASSWORD es requerido'))
+	DB_PASSWORD: v.pipe(v.string(), v.minLength(1, 'DB_PASSWORD es requerido')),
+	// Google
+	GOOGLE_CLIENT_ID: v.pipe(v.string(), v.minLength(1, 'GOOGLE_CLIENT_ID es requerido')),
+	GOOGLE_CLIENT_SECRET: v.pipe(v.string(), v.minLength(1, 'GOOGLE_CLIENT_SECRET es requerido')),
+	// JWT
+	JWT_SECRET: v.pipe(v.string(), v.minLength(1, 'JWT_SECRET es requerido')),
+	JWT_EXPIRES_IN: v.pipe(v.string(), v.minLength(1, 'JWT_EXPIRES_IN es requerido'))
 })
 
 const validateEnv = (): EnvVariables => {
