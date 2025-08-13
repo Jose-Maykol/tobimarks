@@ -6,9 +6,11 @@ import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 import morgan from 'morgan'
 
+import { authRouter } from './auth/routes/auth.routes'
 import { scalarConfig } from './scalar'
 
 const app = express()
+const apiRouter = express.Router()
 
 const RATE_LIMIT_WINDOW_MS: number = 15 * 60 * 1000
 const RATE_LIMIT_MAX_REQUESTS: number = 100
@@ -41,5 +43,9 @@ app.use('/api-docs', apiReference(scalarConfig))
 app.get('/', (req: Request, res: Response) => {
 	res.send('Tobimarks API')
 })
+
+apiRouter.use('/auth', authRouter)
+
+app.use('/api', apiRouter)
 
 export { app }

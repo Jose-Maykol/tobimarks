@@ -1,12 +1,13 @@
 import type { Request, Response, NextFunction } from 'express'
 import { injectable, inject } from 'tsyringe'
 
+import { AUTH_SERVICE } from '../di/tokens'
 import { AuthService } from '../services/auth.service'
 import type { GoogleAuthInput } from '../types/auth.types'
 
 @injectable()
 export class AuthController {
-	constructor(@inject('AuthService') private readonly authService: AuthService) {}
+	constructor(@inject(AUTH_SERVICE) private readonly authService: AuthService) {}
 
 	/**
 	 * Handles Google authentication.

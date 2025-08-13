@@ -3,6 +3,8 @@ import { inject, injectable } from 'tsyringe'
 import type { IDatabaseContext } from '../../core/database/database-context'
 import type { User, CreateUserDto } from '../models/user.model'
 
+import { DATABASE_CONTEXT } from '@/core/di/tokens'
+
 export interface IUserRepository {
 	findByGoogleId(googleId: string): Promise<User | null>
 	create(params: CreateUserDto): Promise<User>
@@ -10,7 +12,7 @@ export interface IUserRepository {
 
 @injectable()
 export class UserRepository implements IUserRepository {
-	constructor(@inject('DatabaseContext') private readonly dbContext: IDatabaseContext) {}
+	constructor(@inject(DATABASE_CONTEXT) private readonly dbContext: IDatabaseContext) {}
 
 	async findByGoogleId(googleId: string): Promise<User | null> {
 		const query = `

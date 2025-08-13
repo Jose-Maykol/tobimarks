@@ -17,3 +17,5 @@ router.post(
 )
 router.post('/refresh', authController.refreshToken.bind(authController))
 router.post('/logout', authController.logout.bind(authController))
+
+export const authRouter = router
