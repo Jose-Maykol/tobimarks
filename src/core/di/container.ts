@@ -1,10 +1,10 @@
 import { container } from 'tsyringe'
 
-import { TOKENS } from './tokens'
-import { Database, type IDatabase } from '../database/database-context'
+import { DATABASE_CONTEXT, UNIT_OF_WORK } from './tokens'
+import { DatabaseContext, type IDatabaseContext } from '../database/database-context'
 import { UnitOfWork, type IUnitOfWork } from '../database/unit-of-work'
 
 export const registerCoreDependencies = () => {
-	container.registerSingleton<IDatabase>(TOKENS.DATABASE, Database)
-	container.registerSingleton<IUnitOfWork>(TOKENS.UNIT_OF_WORK, UnitOfWork)
+	container.registerSingleton<IDatabaseContext>(DATABASE_CONTEXT, DatabaseContext)
+	container.registerSingleton<IUnitOfWork>(UNIT_OF_WORK, UnitOfWork)
 }

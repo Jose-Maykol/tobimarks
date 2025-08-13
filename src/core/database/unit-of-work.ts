@@ -2,7 +2,7 @@ import type { PoolClient } from 'pg'
 import { inject, injectable } from 'tsyringe'
 
 import { type IDatabaseContext } from './database-context'
-import { TOKENS } from '../di/tokens'
+import { DATABASE_CONTEXT } from '../di/tokens'
 import type { DatabaseResponse } from '../types/database.type'
 
 export interface IUnitOfWork {
@@ -18,7 +18,7 @@ export class UnitOfWork implements IUnitOfWork {
 	private _transactionStarted: boolean = false
 	private _disposed: boolean = false
 
-	constructor(@inject(TOKENS.DATABASE_CONTEXT) private dbContext: IDatabaseContext) {}
+	constructor(@inject(DATABASE_CONTEXT) private dbContext: IDatabaseContext) {}
 
 	private async ensureClient(): Promise<void> {
 		if (!this.client && !this._disposed) {
