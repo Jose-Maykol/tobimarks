@@ -15,7 +15,7 @@ export class TokenService {
 	 */
 	async generateAccessToken(payload: object): Promise<string> {
 		const options: jwt.SignOptions = {
-			expiresIn: parseInt(env.JWT_EXPIRES_IN, 10)
+			expiresIn: env.JWT_EXPIRES_IN
 		}
 
 		return jwt.sign(payload, env.JWT_SECRET, options)

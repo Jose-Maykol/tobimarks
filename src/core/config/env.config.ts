@@ -16,7 +16,7 @@ export interface EnvVariables {
 	GOOGLE_CLIENT_ID: string
 	GOOGLE_CLIENT_SECRET: string
 	JWT_SECRET: string
-	JWT_EXPIRES_IN: string
+	JWT_EXPIRES_IN: number
 }
 
 const envSchema = v.object({
@@ -26,7 +26,6 @@ const envSchema = v.object({
 		v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1000), v.maxValue(65535)),
 		'3000'
 	),
-
 	// Database
 	DB_HOST: v.pipe(v.string(), v.minLength(1, 'DB_HOST es requerido')),
 	DB_PORT: v.optional(v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1)), '5432'),
@@ -38,7 +37,13 @@ const envSchema = v.object({
 	GOOGLE_CLIENT_SECRET: v.pipe(v.string(), v.minLength(1, 'GOOGLE_CLIENT_SECRET es requerido')),
 	// JWT
 	JWT_SECRET: v.pipe(v.string(), v.minLength(1, 'JWT_SECRET es requerido')),
-	JWT_EXPIRES_IN: v.pipe(v.string(), v.minLength(1, 'JWT_EXPIRES_IN es requerido'))
+	JWT_EXPIRES_IN: v.pipe(
+		v.string(),
+		v.minLength(1, 'JWT_EXPIRES_IN es requerido'),
+		v.transform(Number),
+		v.number(),
+		v.minValue(1, 'JWT_EXPIRES_IN debe ser un valor numérico mayor a 0')
+	)
 })
 
 const validateEnv = (): EnvVariables => {
