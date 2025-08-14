@@ -21,18 +21,32 @@ export class AuthService {
 			idToken,
 			audience: env.GOOGLE_CLIENT_ID
 		})
+
 		const payload = ticket.getPayload()
 		if (!payload) throw new Error('Invalid ID token')
 
 		const { sub: googleId, email, name, picture } = payload
+
+		if (!email) {
+			throw new Error('Email not provided by Google')
+		}
+
+		if (!name) {
+			throw new Error('Name not provided by Google')
+		}
+
+		console.log('Google ID:', googleId)
+		console.log('Email:', email)
+		console.log('Name:', name)
+		console.log('Picture:', picture)
 
 		let user = await this.userService.findByGoogleId(googleId)
 
 		if (user === null) {
 			user = await this.userService.create({
 				googleId,
-				email: email ?? 'unknown@email.com',
-				displayName: name ?? 'Unknown',
+				email: email,
+				displayName: name,
 				avatarUrl: picture ?? null
 			})
 		}
