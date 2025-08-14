@@ -2,7 +2,7 @@ import { randomBytes, createHash, timingSafeEqual } from 'crypto'
 import jwt from 'jsonwebtoken'
 import { injectable } from 'tsyringe'
 
-import { env } from '../../core/config/env.config'
+import { env } from '@/core/config/env.config'
 
 @injectable()
 export class TokenService {

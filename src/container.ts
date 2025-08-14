@@ -1,6 +1,6 @@
-import { registerAuthDependencies } from './auth/di/container'
 import { registerCoreDependencies } from './core/di/container'
-import { registerUserDependencies } from './user/di/container'
+import { registerAuthDependencies } from './modules/auth/di/container'
+import { registerUserDependencies } from './modules/user/di/container'
 
 export const configureContainer = () => {
 	registerCoreDependencies()

@@ -1,8 +1,8 @@
 import { inject, injectable } from 'tsyringe'
 
-import type { IDatabaseContext } from '../../core/database/database-context'
 import type { User, CreateUserDto } from '../models/user.model'
 
+import type { IDatabaseContext } from '@/core/database/database-context'
 import { DATABASE_CONTEXT } from '@/core/di/tokens'
 
 export interface IUserRepository {

@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 import morgan from 'morgan'
 
-import { authRouter } from './auth/routes/auth.routes'
+import { authRouter } from './modules/auth/routes/auth.routes'
 import { scalarConfig } from './scalar'
 
 const app = express()

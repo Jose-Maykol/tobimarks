@@ -4,8 +4,8 @@ import { injectable, inject } from 'tsyringe'
 import type { TokenService } from './token.service'
 
 import { env } from '@/core/config/env.config'
-import { TOKEN_SERVICE, USER_SERVICE } from '@/user/di/tokens'
-import type { UserService } from '@/user/services/user.service'
+import { TOKEN_SERVICE, USER_SERVICE } from '@/modules/user/di/tokens'
+import type { UserService } from '@/modules/user/services/user.service'
 
 @injectable()
 export class AuthService {

@@ -5,7 +5,7 @@ import { AuthController } from '../controllers/auth.controller'
 import { AuthService } from '../services/auth.service'
 import { TokenService } from '../services/token.service'
 
-import { TOKEN_SERVICE } from '@/user/di/tokens'
+import { TOKEN_SERVICE } from '@/modules/user/di/tokens'
 
 export const registerAuthDependencies = () => {
 	container.register(AUTH_SERVICE, { useClass: AuthService })
