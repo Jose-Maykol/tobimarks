@@ -1,5 +1,5 @@
 import { randomBytes, createHash, timingSafeEqual } from 'crypto'
-import * as jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 import { injectable } from 'tsyringe'
 
 import { env } from '../../core/config/env.config'
@@ -9,9 +9,9 @@ export class TokenService {
 	constructor() {}
 
 	/**
-	 * Generates a JWT access token.
-	 * @param payload - The payload to include in the JWT.
-	 * @returns A promise that resolves to the generated JWT access token.
+	 * Generate a JWT access token with the provided payload.
+	 * @param payload - Object containing claims to include in the JWT.
+	 * @returns Promise that resolves to a signed JWT access token as a string.
 	 */
 	async generateAccessToken(payload: object): Promise<string> {
 		const options: jwt.SignOptions = {
@@ -22,9 +22,9 @@ export class TokenService {
 	}
 
 	/**
-	 * Validates a JWT access token.
-	 * @param token - The JWT access token to validate.
-	 * @returns A promise that resolves to the decoded payload or an error message.
+	 * Validate a JWT access token and return its decoded payload.
+	 * @param token - JWT access token to validate.
+	 * @returns Promise that resolves to the decoded payload if valid, or an error message string if invalid.
 	 */
 	async validateAccessToken(token: string): Promise<jwt.JwtPayload | string> {
 		try {
@@ -35,29 +35,27 @@ export class TokenService {
 	}
 
 	/**
-	 * Generates an opaque refresh token.
-	 * @returns A promise that resolves to the generated refresh token.
-	 * @description Generates a cryptographically secure random token of 64 bytes (128 characters in hex).
+	 * Generate a cryptographically secure opaque refresh token.
+	 * @returns Promise that resolves to a random refresh token string.
 	 */
 	async generateRefreshToken(): Promise<string> {
-		return randomBytes(64).toString('hex')
+		return randomBytes(64).toString('base64url')
 	}
 
 	/**
-	 * Hashes a refresh token using SHA-256.
-	 * @param token - The refresh token to hash.
-	 * @returns A promise that resolves to the hashed refresh token.
+	 * Hash a refresh token using SHA-256 and encode as base64url.
+	 * @param token - Plain refresh token string to hash.
+	 * @returns Promise that resolves to the hashed token string.
 	 */
 	async hashRefreshToken(token: string): Promise<string> {
-		return createHash('sha256').update(token).digest('hex')
+		return createHash('sha256').update(token).digest('base64url')
 	}
 
 	/**
-	 * Validates a refresh token against its hashed version.
-	 * @param token - The plain refresh token to validate.
-	 * @param hashedToken - The hashed version to compare against.
-	 * @returns A promise that resolves to true if the token is valid, false otherwise.
-	 * @description Uses a timing-safe comparison to prevent timing attacks.
+	 * Validate a refresh token by comparing its hash to a stored hash using a timing-safe comparison.
+	 * @param token - Plain refresh token string to validate.
+	 * @param hashedToken - Previously stored hashed token string.
+	 * @returns Promise that resolves to true if the token is valid, false otherwise.
 	 */
 	async validateRefreshToken(token: string, hashedToken: string): Promise<boolean> {
 		const tokenHash = await this.hashRefreshToken(token)
