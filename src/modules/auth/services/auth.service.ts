@@ -22,6 +22,8 @@ export class AuthService {
 			audience: env.GOOGLE_CLIENT_ID
 		})
 
+		console.log('Google ID Token verified:', idToken)
+
 		const payload = ticket.getPayload()
 		if (!payload) throw new Error('Invalid ID token')
 

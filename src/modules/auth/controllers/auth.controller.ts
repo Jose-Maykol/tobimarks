@@ -1,9 +1,12 @@
 import type { Request, Response, NextFunction } from 'express'
+import { StatusCodes } from 'http-status-codes'
 import { injectable, inject } from 'tsyringe'
 
 import { AUTH_SERVICE } from '../di/tokens'
 import { AuthService } from '../services/auth.service'
 import type { GoogleAuthInput } from '../types/auth.types'
+
+import { ApiResponseBuilder } from '@/common/utils/api-response'
 
 @injectable()
 export class AuthController {
@@ -23,8 +26,28 @@ export class AuthController {
 		try {
 			const { idToken } = req.body
 			const tokens = await this.authService.authenticateWithGoogle(idToken)
-			res.status(200).json(tokens)
+			res.status(StatusCodes.OK).json(
+				ApiResponseBuilder.success({
+					accessToken: tokens.accessToken,
+					refreshToken: tokens.refreshToken
+				})
+			)
 		} catch (err) {
+			const message =
+				typeof err === 'object' && err !== null && 'message' in err
+					? String((err as { message: string }).message)
+					: ''
+			if (message.includes('Invalid token signature')) {
+				res
+					.status(StatusCodes.UNAUTHORIZED)
+					.json(
+						ApiResponseBuilder.error(
+							'Invalid Google token signature. Please try again with a valid token.',
+							'INVALID_TOKEN_SIGNATURE'
+						)
+					)
+				return
+			}
 			console.error('Error during Google authentication:', err)
 			next(err)
 		}
