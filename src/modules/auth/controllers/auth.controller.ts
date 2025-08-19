@@ -3,6 +3,11 @@ import { StatusCodes } from 'http-status-codes'
 import { injectable, inject } from 'tsyringe'
 
 import { AUTH_SERVICE } from '../di/tokens'
+import {
+	GoogleAuthException,
+	GoogleEmailMissingException,
+	GoogleNameMissingException
+} from '../exceptions/auth.exceptions'
 import { AuthService } from '../services/auth.service'
 import type { GoogleAuthInput } from '../types/auth.types'
 
@@ -34,10 +39,24 @@ export class AuthController {
 				})
 			)
 		} catch (err) {
+			if (err instanceof GoogleAuthException) {
+				res.status(StatusCodes.UNAUTHORIZED).json(ApiResponseBuilder.error(err.message, err.code))
+				return
+			}
+			if (err instanceof GoogleEmailMissingException) {
+				res.status(StatusCodes.BAD_REQUEST).json(ApiResponseBuilder.error(err.message, err.code))
+				return
+			}
+			if (err instanceof GoogleNameMissingException) {
+				res.status(StatusCodes.BAD_REQUEST).json(ApiResponseBuilder.error(err.message, err.code))
+				return
+			}
+			//TODO: IMPROVE THIS
 			const message =
 				typeof err === 'object' && err !== null && 'message' in err
 					? String((err as { message: string }).message)
 					: ''
+			console.log(typeof err)
 			if (message.includes('Invalid token signature')) {
 				res
 					.status(StatusCodes.UNAUTHORIZED)
