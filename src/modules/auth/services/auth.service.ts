@@ -22,9 +22,8 @@ export class AuthService {
 			audience: env.GOOGLE_CLIENT_ID
 		})
 
-		console.log('Google ID Token verified:', idToken)
-
 		const payload = ticket.getPayload()
+
 		if (!payload) throw new Error('Invalid ID token')
 
 		const { sub: googleId, email, name, picture } = payload
@@ -37,11 +36,6 @@ export class AuthService {
 			throw new Error('Name not provided by Google')
 		}
 
-		console.log('Google ID:', googleId)
-		console.log('Email:', email)
-		console.log('Name:', name)
-		console.log('Picture:', picture)
-
 		let user = await this.userService.findByGoogleId(googleId)
 
 		if (user === null) {
@@ -53,8 +47,12 @@ export class AuthService {
 			})
 		}
 
-		const accessToken = await this.tokenService.generateAccessToken({ userId: user.id })
+		const accessToken = await this.tokenService.generateAccessToken({
+			sub: user.id,
+			email: user.email
+		})
 		const refreshToken = await this.tokenService.generateRefreshToken()
+
 		//TODO: Save refresh token
 
 		return { accessToken, refreshToken }

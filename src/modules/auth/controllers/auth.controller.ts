@@ -48,7 +48,6 @@ export class AuthController {
 					)
 				return
 			}
-			console.error('Error during Google authentication:', err)
 			next(err)
 		}
 	}
