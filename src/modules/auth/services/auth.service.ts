@@ -2,6 +2,11 @@ import { OAuth2Client } from 'google-auth-library'
 import { injectable, inject } from 'tsyringe'
 
 import type { TokenService } from './token.service'
+import {
+	GoogleAuthException,
+	GoogleEmailMissingException,
+	GoogleNameMissingException
+} from '../exceptions/auth.exceptions'
 
 import { env } from '@/core/config/env.config'
 import { TOKEN_SERVICE, USER_SERVICE } from '@/modules/user/di/tokens'
@@ -24,16 +29,17 @@ export class AuthService {
 
 		const payload = ticket.getPayload()
 
-		if (!payload) throw new Error('Invalid ID token')
+		if (!payload) {
+			throw new GoogleAuthException()
+		}
 
 		const { sub: googleId, email, name, picture } = payload
 
 		if (!email) {
-			throw new Error('Email not provided by Google')
+			throw new GoogleEmailMissingException()
 		}
-
 		if (!name) {
-			throw new Error('Name not provided by Google')
+			throw new GoogleNameMissingException()
 		}
 
 		let user = await this.userService.findByGoogleId(googleId)

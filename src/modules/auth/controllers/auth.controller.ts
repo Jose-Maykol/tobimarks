@@ -6,6 +6,7 @@ import { AUTH_SERVICE } from '../di/tokens'
 import { AuthService } from '../services/auth.service'
 import type { GoogleAuthInput } from '../types/auth.types'
 
+import { AuthErrorCode } from '@/common/errors/auth.errors'
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
 @injectable()
@@ -43,7 +44,7 @@ export class AuthController {
 					.json(
 						ApiResponseBuilder.error(
 							'Invalid Google token signature. Please try again with a valid token.',
-							'INVALID_TOKEN_SIGNATURE'
+							AuthErrorCode.INVALID_GOOGLE_TOKEN_SIGNATURE
 						)
 					)
 				return
