@@ -5,7 +5,6 @@ CREATE TABLE categories (
     slug VARCHAR(100) NOT NULL,
     description TEXT,
     color VARCHAR(7), -- Hex color code
-    icon VARCHAR(50), -- Icon identifier
     parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
     sort_order INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
