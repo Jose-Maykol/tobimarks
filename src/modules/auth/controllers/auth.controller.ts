@@ -14,15 +14,19 @@ import type { GoogleAuthInput } from '../types/auth.types'
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
+/**
+ * Controller for handling authentication-related HTTP requests.
+ */
 @injectable()
 export class AuthController {
 	constructor(@inject(AUTH_SERVICE) private readonly authService: AuthService) {}
 
 	/**
-	 * Handles Google authentication.
-	 * @param req - The HTTP request object.
-	 * @param res - The HTTP response object.
-	 * @param next - The next middleware function.
+	 * Handles Google authentication by verifying the ID token and returning tokens.
+	 *
+	 * @param req - The HTTP request object containing the Google ID token in the body.
+	 * @param res - The HTTP response object to send the tokens.
+	 * @param next - The next middleware function to handle errors.
 	 */
 	async googleAuth(
 		req: Request<Record<string, never>, Record<string, never>, GoogleAuthInput>,
@@ -51,22 +55,6 @@ export class AuthController {
 				res.status(StatusCodes.BAD_REQUEST).json(ApiResponseBuilder.error(err.message, err.code))
 				return
 			}
-			/* //TODO: IMPROVE THIS, CREATE GOOGLE AUTH SERVICE ERRORS
-			const message =
-				typeof err === 'object' && err !== null && 'message' in err
-					? String((err as { message: string }).message)
-					: ''
-			if (message.includes('Invalid token signature')) {
-				res
-					.status(StatusCodes.UNAUTHORIZED)
-					.json(
-						ApiResponseBuilder.error(
-							'Invalid Google token signature. Please try again with a valid token.',
-							AuthErrorCode.INVALID_GOOGLE_TOKEN_SIGNATURE
-						)
-					)
-				return
-			} */
 			if (err instanceof InvalidGoogleTokenSignatureException) {
 				res.status(StatusCodes.UNAUTHORIZED).json(ApiResponseBuilder.error(err.message, err.code))
 				return
@@ -76,20 +64,22 @@ export class AuthController {
 	}
 
 	/**
-	 * Refreshes the authentication token.
-	 * @param req - The HTTP request object.
-	 * @param res - The HTTP response object.
-	 * @param next - The next middleware function.
+	 * Refreshes the authentication token using a refresh token.
+	 *
+	 * @param req - The HTTP request object containing the refresh token.
+	 * @param res - The HTTP response object to send the new access token.
+	 * @param next - The next middleware function to handle errors.
 	 */
 	async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
 		// Implementation for refreshing token
 	}
 
 	/**
-	 * Logs out the user.
-	 * @param req - The HTTP request object.
-	 * @param res - The HTTP response object.
-	 * @param next - The next middleware function.
+	 * Logs out the user by invalidating the refresh token.
+	 *
+	 * @param req - The HTTP request object containing the refresh token.
+	 * @param res - The HTTP response object to confirm logout.
+	 * @param next - The next middleware function to handle errors.
 	 */
 	async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
 		// Implementation for logging out

@@ -9,3 +9,10 @@ export interface AccessTokenPayload extends jwt.JwtPayload {
 	sub: string
 	email: string
 }
+
+export interface GoogleAuthPayload {
+	googleId: string
+	email: string
+	name: string
+	picture: string | undefined
+}
