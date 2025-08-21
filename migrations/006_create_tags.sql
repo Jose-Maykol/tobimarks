@@ -1,5 +1,5 @@
 CREATE TABLE tags (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(50) NOT NULL,
     slug VARCHAR(50) NOT NULL,

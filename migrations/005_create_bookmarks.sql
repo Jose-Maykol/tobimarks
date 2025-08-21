@@ -1,5 +1,5 @@
 CREATE TABLE bookmarks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     website_id UUID NOT NULL REFERENCES websites(id),
     category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
