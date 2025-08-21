@@ -5,6 +5,6 @@ export class BaseException extends Error {
 		super(message)
 		this.code = code
 		this.name = this.constructor.name
-		Object.setPrototypeOf(this, BaseException.prototype)
+		Object.setPrototypeOf(this, new.target.prototype)
 	}
 }

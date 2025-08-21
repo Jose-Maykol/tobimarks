@@ -1,53 +1,29 @@
-import { OAuth2Client } from 'google-auth-library'
 import { injectable, inject } from 'tsyringe'
 
+import { GoogleAuthService } from './google-auth.service'
 import type { TokenService } from './token.service'
-import {
-	GoogleAuthException,
-	GoogleEmailMissingException,
-	GoogleNameMissingException
-} from '../exceptions/auth.exceptions'
+import { GOOGLE_AUTH_SERVICE, TOKEN_SERVICE } from '../di/tokens'
 
-import { env } from '@/core/config/env.config'
-import { TOKEN_SERVICE, USER_SERVICE } from '@/modules/user/di/tokens'
+import { USER_SERVICE } from '@/modules/user/di/tokens'
 import type { UserService } from '@/modules/user/services/user.service'
 
 @injectable()
 export class AuthService {
-	private readonly googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID)
-
 	constructor(
+		@inject(GOOGLE_AUTH_SERVICE) private readonly googleAuthService: GoogleAuthService,
 		@inject(USER_SERVICE) private readonly userService: UserService,
 		@inject(TOKEN_SERVICE) private readonly tokenService: TokenService
 	) {}
 
 	async authenticateWithGoogle(idToken: string) {
-		const ticket = await this.googleClient.verifyIdToken({
-			idToken,
-			audience: env.GOOGLE_CLIENT_ID
-		})
-
-		const payload = ticket.getPayload()
-
-		if (!payload) {
-			throw new GoogleAuthException()
-		}
-
-		const { sub: googleId, email, name, picture } = payload
-
-		if (!email) {
-			throw new GoogleEmailMissingException()
-		}
-		if (!name) {
-			throw new GoogleNameMissingException()
-		}
+		const { googleId, email, name, picture } = await this.googleAuthService.verifyIdToken(idToken)
 
 		let user = await this.userService.findByGoogleId(googleId)
 
 		if (user === null) {
 			user = await this.userService.create({
 				googleId,
-				email: email,
+				email,
 				displayName: name,
 				avatarUrl: picture ?? null
 			})

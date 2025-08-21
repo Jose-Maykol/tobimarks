@@ -6,12 +6,12 @@ import { AUTH_SERVICE } from '../di/tokens'
 import {
 	GoogleAuthException,
 	GoogleEmailMissingException,
-	GoogleNameMissingException
+	GoogleNameMissingException,
+	InvalidGoogleTokenSignatureException
 } from '../exceptions/auth.exceptions'
 import { AuthService } from '../services/auth.service'
 import type { GoogleAuthInput } from '../types/auth.types'
 
-import { AuthErrorCode } from '@/common/errors/auth.errors'
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
 @injectable()
@@ -51,12 +51,11 @@ export class AuthController {
 				res.status(StatusCodes.BAD_REQUEST).json(ApiResponseBuilder.error(err.message, err.code))
 				return
 			}
-			//TODO: IMPROVE THIS
+			/* //TODO: IMPROVE THIS, CREATE GOOGLE AUTH SERVICE ERRORS
 			const message =
 				typeof err === 'object' && err !== null && 'message' in err
 					? String((err as { message: string }).message)
 					: ''
-			console.log(typeof err)
 			if (message.includes('Invalid token signature')) {
 				res
 					.status(StatusCodes.UNAUTHORIZED)
@@ -66,6 +65,10 @@ export class AuthController {
 							AuthErrorCode.INVALID_GOOGLE_TOKEN_SIGNATURE
 						)
 					)
+				return
+			} */
+			if (err instanceof InvalidGoogleTokenSignatureException) {
+				res.status(StatusCodes.UNAUTHORIZED).json(ApiResponseBuilder.error(err.message, err.code))
 				return
 			}
 			next(err)
