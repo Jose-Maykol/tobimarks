@@ -1,0 +1,6 @@
+export const BOOKMARK_CONTROLLER = Symbol.for('BookmarkController')
+export const BOOKMARK_SERVICE = Symbol.for('BookmarkService')
+export const BOOKMARK_REPOSITORY = Symbol.for('IBookmarkRepository')
+export const WEBSITE_CONTROLLER = Symbol.for('WebsiteController')
+export const WEBSITE_SERVICE = Symbol.for('WebsiteService')
+export const WEBSITE_REPOSITORY = Symbol.for('IWebsiteRepository')
