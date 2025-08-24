@@ -15,7 +15,9 @@ export class BookmarkController {
 		next: NextFunction
 	) {
 		try {
-			const bookmark = await this.bookmarkService.create(req.body)
+			const user = req.user
+			const body = req.body
+			const bookmark = await this.bookmarkService.create(user, body)
 			return res.status(201).json(bookmark)
 		} catch (error) {
 			next(error)

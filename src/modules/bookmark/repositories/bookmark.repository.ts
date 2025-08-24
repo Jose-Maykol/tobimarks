@@ -37,13 +37,25 @@ export class BookmarkRepository implements IBookmarkRepository {
       WHERE id = $1
     `
 		const result = await this.dbContext.query<Bookmark>(query, [id])
-		return result.rows[0] ?? null
+		return result.rows[0] || null
 	}
 
 	async create(params: CreateBookmarkDto): Promise<Bookmark> {
 		const query = `
-      INSERT INTO bookmarks (user_id, website_id, category_id, url, title, meta_title, meta_description, og_image_url, is_favorite, is_archived)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      INSERT INTO bookmarks (
+        user_id, 
+        website_id, 
+        category_id, 
+        url, 
+        title, 
+        description, 
+        og_title, 
+        og_description, 
+        og_image_url, 
+        is_favorite, 
+        is_archived
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING 
         id, 
         user_id AS "userId", 
@@ -51,8 +63,9 @@ export class BookmarkRepository implements IBookmarkRepository {
         category_id AS "categoryId", 
         url, 
         title, 
-        meta_title AS "metaTitle", 
-        meta_description AS "metaDescription", 
+        description, 
+        og_title AS "ogTitle", 
+        og_description AS "ogDescription", 
         og_image_url AS "ogImageUrl", 
         is_favorite AS "isFavorite", 
         is_archived AS "isArchived", 
@@ -65,14 +78,15 @@ export class BookmarkRepository implements IBookmarkRepository {
 		const values = [
 			params.userId,
 			params.websiteId,
-			params.categoryId ?? null,
-			params.url,
-			params.title,
-			params.metaTitle ?? null,
-			params.metaDescription ?? null,
-			params.ogImageUrl ?? null,
-			params.isFavorite ?? false,
-			params.isArchived ?? false
+			params.categoryId || null,
+			params.url || null,
+			params.title || null,
+			params.description || null,
+			params.ogTitle || null,
+			params.ogDescription || null,
+			params.ogImageUrl || null,
+			params.isFavorite || false,
+			params.isArchived || false
 		]
 		const result = await this.dbContext.query<Bookmark>(query, values)
 		if (!result.rows[0]) {

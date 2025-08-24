@@ -10,7 +10,7 @@ import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
 declare module 'express' {
 	interface Request {
-		user?: AccessTokenPayload
+		user: AccessTokenPayload
 	}
 }
 
