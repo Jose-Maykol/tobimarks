@@ -5,10 +5,11 @@ CREATE TABLE bookmarks (
     category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
 
     url TEXT NOT NULL,
-    title VARCHAR(500) NOT NULL,
-
-    meta_title VARCHAR(500),
-    meta_description TEXT,
+    title VARCHAR(500),
+    description TEXT,
+    
+    og_title VARCHAR(500),
+    og_description TEXT,
     og_image_url TEXT,
 
     is_favorite BOOLEAN DEFAULT false,

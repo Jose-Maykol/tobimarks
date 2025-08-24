@@ -4,9 +4,10 @@ export interface Bookmark {
 	websiteId: string
 	categoryId: string | null
 	url: string
-	title: string
-	metaTitle: string | null
-	metaDescription: string | null
+	title: string | null
+	description: string | null
+	ogTitle: string | null
+	ogDescription: string | null
 	ogImageUrl: string | null
 	isFavorite: boolean
 	isArchived: boolean
@@ -24,8 +25,9 @@ export type CreateBookmarkDto = Pick<
 	| 'categoryId'
 	| 'url'
 	| 'title'
-	| 'metaTitle'
-	| 'metaDescription'
+	| 'description'
+	| 'ogTitle'
+	| 'ogDescription'
 	| 'ogImageUrl'
 	| 'isFavorite'
 	| 'isArchived'
