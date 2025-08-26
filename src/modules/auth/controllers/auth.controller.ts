@@ -10,7 +10,7 @@ import {
 	InvalidGoogleTokenSignatureException
 } from '../exceptions/auth.exceptions'
 import { AuthService } from '../services/auth.service'
-import type { GoogleAuthInput } from '../types/auth.types'
+import type { GoogleAuthRequestBody } from '../types/auth.types'
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
@@ -29,7 +29,7 @@ export class AuthController {
 	 * @param next - The next middleware function to handle errors.
 	 */
 	async googleAuth(
-		req: Request<Record<string, never>, Record<string, never>, GoogleAuthInput>,
+		req: Request<Record<string, never>, Record<string, never>, GoogleAuthRequestBody>,
 		res: Response,
 		next: NextFunction
 	): Promise<void> {
