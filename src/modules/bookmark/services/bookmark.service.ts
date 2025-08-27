@@ -1,9 +1,8 @@
-import axios from 'axios'
-import * as cheerio from 'cheerio'
 import { parse } from 'tldts'
 import { inject, injectable } from 'tsyringe'
 
-import { BOOKMARK_REPOSITORY, WEBSITE_REPOSITORY } from '../di/token'
+import type { MetadataExtractorService } from './metadata-extractor.service'
+import { BOOKMARK_REPOSITORY, METADATA_EXTRACTOR_SERVICE, WEBSITE_REPOSITORY } from '../di/token'
 import type { CreateBookmarkDto } from '../models/bookmark.model'
 import type { IBookmarkRepository } from '../repositories/bookmark.repository'
 import type { IWebsiteRepository } from '../repositories/websites.repository'
@@ -15,6 +14,7 @@ import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 export class BookmarkService {
 	constructor(
 		@inject(BOOKMARK_REPOSITORY) private bookmarkRepository: IBookmarkRepository,
+		@inject(METADATA_EXTRACTOR_SERVICE) private metadataExtractor: MetadataExtractorService,
 		@inject(WEBSITE_REPOSITORY) private websiteRepository: IWebsiteRepository
 	) {}
 
@@ -29,20 +29,9 @@ export class BookmarkService {
 	async create(user: AccessTokenPayload, data: CreateBookmarkRequestBody) {
 		const urlBookmark = data.url
 
-		const { data: html } = await axios.get(urlBookmark, {
-			headers: {
-				'User-Agent':
-					'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36'
-			}
-		})
-		const $ = cheerio.load(html)
+		const metadata = await this.metadataExtractor.extractFromUrl(urlBookmark)
 
-		const title = $('title').text()
-		const description = $('meta[name="description"]').attr('content')
-		const ogTitle = $('meta[property="og:title"]').attr('content')
-		const ogImage = $('meta[property="og:image"]').attr('content')
-		const ogDescription = $('meta[property="og:description"]').attr('content')
-		const faviconUrl = $('link[rel="icon"]').attr('href')
+		const { title, description, ogTitle, ogImageUrl, ogDescription, faviconUrl } = metadata
 
 		const website = await this.findOrCreateWebsite(urlBookmark, faviconUrl)
 
@@ -55,7 +44,7 @@ export class BookmarkService {
 			description: description || null,
 			ogTitle: ogTitle || null,
 			ogDescription: ogDescription || null,
-			ogImageUrl: ogImage || null,
+			ogImageUrl: ogImageUrl || null,
 			isFavorite: false,
 			isArchived: false
 		}
@@ -71,7 +60,7 @@ export class BookmarkService {
 	 * @param faviconUrl - The favicon URL of the website, if available.
 	 * @returns The found or newly created website.
 	 */
-	async findOrCreateWebsite(url: string, faviconUrl: string | undefined) {
+	private async findOrCreateWebsite(url: string, faviconUrl: string | null) {
 		const urlParse = parse(url)
 		const domain = urlParse.domain as string
 		const domainWithoutSuffix = urlParse.domainWithoutSuffix as string
@@ -82,7 +71,7 @@ export class BookmarkService {
 			const newWebsite = await this.websiteRepository.create({
 				domain,
 				name: domainWithoutSuffix,
-				faviconUrl: faviconUrl || null
+				faviconUrl: faviconUrl
 			})
 			return newWebsite
 		}
