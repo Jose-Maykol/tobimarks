@@ -1,4 +1,5 @@
-import type { Request, Response, NextFunction } from 'express'
+import type { Response, NextFunction, RequestHandler } from 'express'
+import type { Request as ExpressRequest } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { container } from 'tsyringe'
 
@@ -10,15 +11,16 @@ import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
 declare module 'express' {
 	interface Request {
-		user: AccessTokenPayload
+		user?: AccessTokenPayload
 	}
 }
 
-export const authMiddleware = async (
-	req: Request,
+export const authMiddleware: RequestHandler = async (
+	req: ExpressRequest,
 	res: Response,
 	next: NextFunction
-): Promise<void> => {
+) => {
+	/* const authReq = req as AuthRequest */
 	const authHeader: string | undefined = req.headers.authorization
 
 	if (!authHeader) {
