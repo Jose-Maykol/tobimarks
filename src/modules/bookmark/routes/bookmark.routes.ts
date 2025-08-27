@@ -21,4 +21,6 @@ router.post(
 	bookmarkController.create.bind(bookmarkController)
 )
 
+router.get('/', bookmarkController.get.bind(bookmarkController))
+
 export const bookmarkRoutes = router

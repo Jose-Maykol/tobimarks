@@ -35,7 +35,16 @@ export class BookmarkController {
 			const user = req.user!
 			const body = req.body
 			const bookmark = await this.bookmarkService.create(user, body)
-			return res.status(201).json(bookmark)
+			return res.status(StatusCodes.OK).json(
+				ApiResponseBuilder.success({
+					bookmark: {
+						id: bookmark.id,
+						url: bookmark.url,
+						title: bookmark.title,
+						description: bookmark.description
+					}
+				})
+			)
 		} catch (error) {
 			if (error instanceof UrlForbiddenException) {
 				res.status(StatusCodes.FORBIDDEN).json(ApiResponseBuilder.error(error.message, error.code))
@@ -53,6 +62,29 @@ export class BookmarkController {
 					.status(StatusCodes.INTERNAL_SERVER_ERROR)
 					.json(ApiResponseBuilder.error(error.message, error.code))
 			}
+			next(error)
+		}
+	}
+
+	async get(
+		req: Request<Record<string, never>, Record<string, never>, Record<string, never>>,
+		res: Response,
+		next: NextFunction
+	) {
+		try {
+			const user = req.user!
+			const bookmark = await this.bookmarkService.get(user)
+			return res.status(StatusCodes.OK).json(
+				ApiResponseBuilder.success({
+					bookmarks: bookmark.map((b) => ({
+						id: b.id,
+						url: b.url,
+						title: b.title,
+						description: b.description
+					}))
+				})
+			)
+		} catch (error) {
 			next(error)
 		}
 	}

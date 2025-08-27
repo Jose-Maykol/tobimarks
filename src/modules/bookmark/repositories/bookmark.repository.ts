@@ -7,38 +7,13 @@ import { DATABASE_CONTEXT } from '@/core/di/tokens'
 
 export interface IBookmarkRepository {
 	findById(id: string): Promise<Bookmark | null>
+	findByUserId(userId: string): Promise<Bookmark[]>
 	create(params: CreateBookmarkDto): Promise<Bookmark>
 }
 
 @injectable()
 export class BookmarkRepository implements IBookmarkRepository {
 	constructor(@inject(DATABASE_CONTEXT) private readonly dbContext: IDatabaseContext) {}
-
-	async findById(id: string): Promise<Bookmark | null> {
-		const query = `
-      SELECT 
-        id, 
-        user_id AS "userId", 
-        website_id AS "websiteId", 
-        category_id AS "categoryId", 
-        url, 
-        title, 
-        meta_title AS "metaTitle", 
-        meta_description AS "metaDescription", 
-        og_image_url AS "ogImageUrl", 
-        is_favorite AS "isFavorite", 
-        is_archived AS "isArchived", 
-        created_at AS "createdAt", 
-        updated_at AS "updatedAt", 
-        last_accessed_at AS "lastAccessedAt", 
-        access_count AS "accessCount", 
-        search_vector AS "searchVector"
-      FROM bookmarks
-      WHERE id = $1
-    `
-		const result = await this.dbContext.query<Bookmark>(query, [id])
-		return result.rows[0] || null
-	}
 
 	async create(params: CreateBookmarkDto): Promise<Bookmark> {
 		const query = `
@@ -93,5 +68,58 @@ export class BookmarkRepository implements IBookmarkRepository {
 			throw new Error('Failed to create bookmark')
 		}
 		return result.rows[0]
+	}
+
+	async findById(id: string): Promise<Bookmark | null> {
+		const query = `
+      SELECT 
+        id, 
+        user_id AS "userId", 
+        website_id AS "websiteId", 
+        category_id AS "categoryId", 
+        url, 
+        title, 
+        og_title AS "ogTitle", 
+        og_description AS "ogDescription", 
+        og_image_url AS "ogImageUrl", 
+        is_favorite AS "isFavorite", 
+        is_archived AS "isArchived", 
+        created_at AS "createdAt", 
+        updated_at AS "updatedAt", 
+        last_accessed_at AS "lastAccessedAt", 
+        access_count AS "accessCount", 
+        search_vector AS "searchVector"
+      FROM bookmarks
+      WHERE id = $1
+    `
+		const result = await this.dbContext.query<Bookmark>(query, [id])
+		return result.rows[0] || null
+	}
+
+	async findByUserId(userId: string): Promise<Bookmark[]> {
+		const query = `
+      SELECT 
+        id, 
+        user_id AS "userId", 
+        website_id AS "websiteId", 
+        category_id AS "categoryId", 
+        url, 
+        title, 
+        og_title AS "ogTitle", 
+        og_description AS "ogDescription", 
+        og_image_url AS "ogImageUrl", 
+        is_favorite AS "isFavorite", 
+        is_archived AS "isArchived", 
+        created_at AS "createdAt", 
+        updated_at AS "updatedAt", 
+        last_accessed_at AS "lastAccessedAt", 
+        access_count AS "accessCount", 
+        search_vector AS "searchVector"
+      FROM bookmarks
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+    `
+		const result = await this.dbContext.query<Bookmark>(query, [userId])
+		return result.rows
 	}
 }

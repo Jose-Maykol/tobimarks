@@ -78,4 +78,9 @@ export class BookmarkService {
 
 		return website
 	}
+
+	async get(user: AccessTokenPayload) {
+		const bookmarks = await this.bookmarkRepository.findByUserId(user.sub)
+		return bookmarks
+	}
 }
