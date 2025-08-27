@@ -23,7 +23,7 @@ export class BookmarkController {
 		next: NextFunction
 	) {
 		try {
-			const user = req.user
+			const user = req.user!
 			const body = req.body
 			const bookmark = await this.bookmarkService.create(user, body)
 			return res.status(201).json(bookmark)

@@ -45,6 +45,10 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 apiRouter.use('/auth', authRouter)
+apiRouter.use(
+	'/bookmarks',
+	(await import('./modules/bookmark/routes/bookmark.routes')).bookmarkRoutes
+)
 
 app.use('/api', apiRouter)
 

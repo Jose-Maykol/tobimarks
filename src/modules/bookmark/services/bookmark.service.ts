@@ -29,7 +29,12 @@ export class BookmarkService {
 	async create(user: AccessTokenPayload, data: CreateBookmarkRequestBody) {
 		const urlBookmark = data.url
 
-		const { data: html } = await axios.get(urlBookmark)
+		const { data: html } = await axios.get(urlBookmark, {
+			headers: {
+				'User-Agent':
+					'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36'
+			}
+		})
 		const $ = cheerio.load(html)
 
 		const title = $('title').text()
@@ -42,7 +47,7 @@ export class BookmarkService {
 		const website = await this.findOrCreateWebsite(urlBookmark, faviconUrl)
 
 		const newBookmark: CreateBookmarkDto = {
-			userId: user.id,
+			userId: user.sub,
 			categoryId: null,
 			websiteId: website.id,
 			url: urlBookmark,

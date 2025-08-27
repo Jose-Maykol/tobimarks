@@ -21,7 +21,4 @@ router.post(
 	bookmarkController.create.bind(bookmarkController)
 )
 
-/*
- */
-
 export const bookmarkRoutes = router
