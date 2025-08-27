@@ -1,9 +1,18 @@
 import type { NextFunction, Request, Response } from 'express'
+import { StatusCodes } from 'http-status-codes'
 import { inject, injectable } from 'tsyringe'
 
 import { BOOKMARK_SERVICE } from '../di/token'
+import {
+	UrlFetchFailedException,
+	UrlForbiddenException,
+	UrlNotFoundException,
+	UrlTimeoutException
+} from '../exceptions/metadata-extractor.exceptions'
 import type { BookmarkService } from '../services/bookmark.service'
 import type { CreateBookmarkRequestBody } from '../types/bookmark.types'
+
+import { ApiResponseBuilder } from '@/common/utils/api-response'
 
 @injectable()
 export class BookmarkController {
@@ -28,6 +37,22 @@ export class BookmarkController {
 			const bookmark = await this.bookmarkService.create(user, body)
 			return res.status(201).json(bookmark)
 		} catch (error) {
+			if (error instanceof UrlForbiddenException) {
+				res.status(StatusCodes.FORBIDDEN).json(ApiResponseBuilder.error(error.message, error.code))
+			}
+			if (error instanceof UrlNotFoundException) {
+				res.status(StatusCodes.NOT_FOUND).json(ApiResponseBuilder.error(error.message, error.code))
+			}
+			if (error instanceof UrlTimeoutException) {
+				res
+					.status(StatusCodes.REQUEST_TIMEOUT)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
+			if (error instanceof UrlFetchFailedException) {
+				res
+					.status(StatusCodes.INTERNAL_SERVER_ERROR)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
 			next(error)
 		}
 	}

@@ -3,7 +3,7 @@ import type { Request as ExpressRequest } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { container } from 'tsyringe'
 
-import { AuthErrorCode } from '../errors/auth.errors'
+import { AuthErrorCode } from '../../modules/auth/exceptions/auth-error-codes.enum'
 import { ApiResponseBuilder } from '../utils/api-response'
 
 import { TokenService } from '@/modules/auth/services/token.service'
