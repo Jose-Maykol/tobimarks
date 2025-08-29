@@ -5,4 +5,5 @@ export interface MetadataExtractorResponse {
 	ogDescription: string | null
 	ogImageUrl: string | null
 	faviconUrl: string | null
+	canonicalUrl: string | null
 }

@@ -13,7 +13,7 @@ import type { MetadataExtractorResponse } from '../types/metadata.types'
 @injectable()
 export class MetadataExtractorService {
 	/**
-	 * Extracts metadata from the given URL, including title, description, Open Graph data, and favicon URL.
+	 * Extracts metadata from the given URL, including title, description, Open Graph data, favicon URL, and canonical URL.
 	 *
 	 * @param url - The URL to fetch and extract metadata from.
 	 * @returns A promise that resolves to an object containing the extracted metadata.
@@ -39,7 +39,8 @@ export class MetadataExtractorService {
 				ogTitle: this.extractOgTitle($),
 				ogDescription: this.extractOgDescription($),
 				ogImageUrl: this.extractOgImage($),
-				faviconUrl: this.extractFaviconUrl($)
+				faviconUrl: this.extractFaviconUrl($),
+				canonicalUrl: this.extractCanonicalUrl($)
 			}
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
@@ -87,5 +88,9 @@ export class MetadataExtractorService {
 		const favicon =
 			$('link[rel="icon"]').attr('href') || $('link[rel="shortcut icon"]').attr('href')
 		return favicon || null
+	}
+
+	private extractCanonicalUrl($: cheerio.CheerioAPI): string | null {
+		return $('link[rel="canonical"]').attr('href') || null
 	}
 }

@@ -31,7 +31,10 @@ export class BookmarkService {
 
 		const metadata = await this.metadataExtractor.extractFromUrl(urlBookmark)
 
-		const { title, description, ogTitle, ogImageUrl, ogDescription, faviconUrl } = metadata
+		const { title, description, ogTitle, ogImageUrl, ogDescription, faviconUrl, canonicalUrl } =
+			metadata
+
+		//TODO: Se debe extraer url canonical para comparar si existe duplicado de bookmarks
 
 		const website = await this.findOrCreateWebsite(urlBookmark, faviconUrl)
 
@@ -39,7 +42,7 @@ export class BookmarkService {
 			userId: user.sub,
 			categoryId: null,
 			websiteId: website.id,
-			url: urlBookmark,
+			url: canonicalUrl || urlBookmark,
 			title: title || null,
 			description: description || null,
 			ogTitle: ogTitle || null,
