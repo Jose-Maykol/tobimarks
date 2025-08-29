@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes'
 import { inject, injectable } from 'tsyringe'
 
 import { BOOKMARK_SERVICE } from '../di/token'
+import { BookmarkAlreadyExistsError } from '../exceptions/bookmark.exceptions'
 import {
 	UrlFetchFailedException,
 	UrlForbiddenException,
@@ -61,6 +62,9 @@ export class BookmarkController {
 				res
 					.status(StatusCodes.INTERNAL_SERVER_ERROR)
 					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
+			if (error instanceof BookmarkAlreadyExistsError) {
+				res.status(StatusCodes.CONFLICT).json(ApiResponseBuilder.error(error.message, error.code))
 			}
 			next(error)
 		}

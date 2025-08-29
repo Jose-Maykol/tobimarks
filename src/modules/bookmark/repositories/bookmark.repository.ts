@@ -1,8 +1,10 @@
+import { DatabaseError } from 'pg'
 import { inject, injectable } from 'tsyringe'
 
 import type { Bookmark, CreateBookmarkDto } from '../models/bookmark.model'
 
 import type { IDatabaseContext } from '@/core/database/database-context'
+import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
 import { DATABASE_CONTEXT } from '@/core/di/tokens'
 
 export interface IBookmarkRepository {
@@ -63,11 +65,18 @@ export class BookmarkRepository implements IBookmarkRepository {
 			params.isFavorite || false,
 			params.isArchived || false
 		]
-		const result = await this.dbContext.query<Bookmark>(query, values)
-		if (!result.rows[0]) {
-			throw new Error('Failed to create bookmark')
+
+		try {
+			const result = await this.dbContext.query<Bookmark>(query, values)
+			return result.rows[0]!
+		} catch (error) {
+			if (error instanceof DatabaseError) {
+				if (error.code === '23505') {
+					throw new UniqueConstraintViolationError(error.detail)
+				}
+			}
+			throw error
 		}
-		return result.rows[0]
 	}
 
 	async findById(id: string): Promise<Bookmark | null> {
@@ -119,6 +128,7 @@ export class BookmarkRepository implements IBookmarkRepository {
       WHERE user_id = $1
       ORDER BY created_at DESC
     `
+
 		const result = await this.dbContext.query<Bookmark>(query, [userId])
 		return result.rows
 	}

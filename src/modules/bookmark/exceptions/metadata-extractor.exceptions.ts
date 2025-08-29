@@ -1,5 +1,5 @@
 import { BaseException } from '@/common/errors/base-erxception'
-import { MetadataErrorCode } from '@/modules/bookmark/exceptions/bookmarks-error-codes.enum'
+import { MetadataErrorCode } from '@/modules/bookmark/exceptions/bookmark-error-codes.enum'
 
 export class UrlForbiddenException extends BaseException {
 	constructor(message: string = 'Acceso prohibido a la URL') {

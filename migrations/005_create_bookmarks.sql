@@ -23,6 +23,9 @@ CREATE TABLE bookmarks (
     search_vector tsvector
 );
 
+-- Unique constraint to prevent duplicate URLs per user
+CREATE UNIQUE INDEX idx_unique_user_bookmark_url ON bookmarks (user_id, url);
+
 -- Index on user_id to optimize queries filtering by user (e.g., fetching all bookmarks for a specific user)
 CREATE INDEX idx_bookmarks_user_id ON bookmarks (user_id);
 
@@ -46,6 +49,3 @@ CREATE INDEX idx_bookmarks_user_access_count ON bookmarks (user_id, access_count
 
 -- Full-text search index on the search_vector column to optimize text search queries on bookmarks
 CREATE INDEX idx_bookmarks_search_vector ON bookmarks USING gin(search_vector);
-
--- Unique constraint to prevent duplicate URLs per user
-CREATE UNIQUE INDEX uniq_user_url ON bookmarks (user_id, url);

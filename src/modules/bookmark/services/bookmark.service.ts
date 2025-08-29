@@ -3,11 +3,13 @@ import { inject, injectable } from 'tsyringe'
 
 import type { MetadataExtractorService } from './metadata-extractor.service'
 import { BOOKMARK_REPOSITORY, METADATA_EXTRACTOR_SERVICE, WEBSITE_REPOSITORY } from '../di/token'
+import { BookmarkAlreadyExistsError } from '../exceptions/bookmark.exceptions'
 import type { CreateBookmarkDto } from '../models/bookmark.model'
 import type { IBookmarkRepository } from '../repositories/bookmark.repository'
 import type { IWebsiteRepository } from '../repositories/websites.repository'
 import type { CreateBookmarkRequestBody } from '../types/bookmark.types'
 
+import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
 @injectable()
@@ -34,8 +36,6 @@ export class BookmarkService {
 		const { title, description, ogTitle, ogImageUrl, ogDescription, faviconUrl, canonicalUrl } =
 			metadata
 
-		//TODO: Se debe extraer url canonical para comparar si existe duplicado de bookmarks
-
 		const website = await this.findOrCreateWebsite(urlBookmark, faviconUrl)
 
 		const newBookmark: CreateBookmarkDto = {
@@ -52,8 +52,15 @@ export class BookmarkService {
 			isArchived: false
 		}
 
-		const createdBookmark = await this.bookmarkRepository.create(newBookmark)
-		return createdBookmark
+		try {
+			const createdBookmark = await this.bookmarkRepository.create(newBookmark)
+			return createdBookmark
+		} catch (error) {
+			if (error instanceof UniqueConstraintViolationError) {
+				throw new BookmarkAlreadyExistsError()
+			}
+			throw error
+		}
 	}
 
 	/**
