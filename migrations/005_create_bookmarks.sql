@@ -46,3 +46,6 @@ CREATE INDEX idx_bookmarks_user_access_count ON bookmarks (user_id, access_count
 
 -- Full-text search index on the search_vector column to optimize text search queries on bookmarks
 CREATE INDEX idx_bookmarks_search_vector ON bookmarks USING gin(search_vector);
+
+-- Unique constraint to prevent duplicate URLs per user
+CREATE UNIQUE INDEX uniq_user_url ON bookmarks (user_id, url);
