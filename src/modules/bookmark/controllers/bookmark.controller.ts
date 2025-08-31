@@ -70,6 +70,14 @@ export class BookmarkController {
 		}
 	}
 
+	/**
+	 * Retrieves all bookmarks for the authenticated user.
+	 *
+	 * @param req - The HTTP request containing the authenticated user.
+	 * @param res - The HTTP response to send the retrieved bookmarks.
+	 * @param next - The next middleware function for error handling.
+	 * @returns A JSON response with the list of bookmarks.
+	 */
 	async get(
 		req: Request<Record<string, never>, Record<string, never>, Record<string, never>>,
 		res: Response,
