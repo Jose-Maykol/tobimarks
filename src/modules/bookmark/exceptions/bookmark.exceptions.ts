@@ -1,4 +1,4 @@
-import { BookmarkErrorCode } from './bookmark-error-codes.enum'
+import { BookmarkErrorCode } from './bookmark.errors'
 
 import { BaseException } from '@/common/errors/base-erxception'
 

@@ -4,7 +4,3 @@ export enum MetadataErrorCode {
 	URL_TIMEOUT = 'URL_TIMEOUT',
 	URL_FETCH_FAILED = 'URL_FETCH_FAILED'
 }
-
-export enum BookmarkErrorCode {
-	BOOKMARK_ALREADY_EXISTS = 'BOOKMARK_ALREADY_EXISTS'
-}
