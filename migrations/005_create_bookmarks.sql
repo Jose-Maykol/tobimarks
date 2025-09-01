@@ -15,16 +15,20 @@ CREATE TABLE bookmarks (
     is_favorite BOOLEAN DEFAULT false,
     is_archived BOOLEAN DEFAULT false,
 
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     last_accessed_at TIMESTAMP WITH TIME ZONE,
     access_count INTEGER DEFAULT 0,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    deleted_at TIMESTAMP WITH TIME ZONE,
 
     search_vector tsvector
 );
 
 -- Unique constraint to prevent duplicate URLs per user
 CREATE UNIQUE INDEX idx_unique_user_bookmark_url ON bookmarks (user_id, url);
+
+CREATE UNIQUE INDEX idx_unique_user_bookmark_url ON bookmarks (user_id, url) WHERE deleted_at IS NULL;
 
 -- Index on user_id to optimize queries filtering by user (e.g., fetching all bookmarks for a specific user)
 CREATE INDEX idx_bookmarks_user_id ON bookmarks (user_id);
