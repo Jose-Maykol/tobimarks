@@ -100,4 +100,19 @@ export class BookmarkController {
 			next(error)
 		}
 	}
+
+	async delete(
+		req: Request<{ id: string }, Record<string, never>, Record<string, never>>,
+		res: Response,
+		next: NextFunction
+	) {
+		try {
+			const user = req.user!
+			const { id } = req.params
+			await this.bookmarkService.delete(user, id)
+			return res.status(StatusCodes.NO_CONTENT).send()
+		} catch (error) {
+			next(error)
+		}
+	}
 }

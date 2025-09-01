@@ -93,4 +93,9 @@ export class BookmarkService {
 		const bookmarks = await this.bookmarkRepository.findByUserId(user.sub)
 		return bookmarks
 	}
+
+	async delete(user: AccessTokenPayload, bookmarkId: string) {
+		const deletedBookmark = await this.bookmarkRepository.softDelete(bookmarkId)
+		return deletedBookmark
+	}
 }

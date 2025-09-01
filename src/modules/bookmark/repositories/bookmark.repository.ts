@@ -11,6 +11,7 @@ export interface IBookmarkRepository {
 	findById(id: string): Promise<Bookmark | null>
 	findByUserId(userId: string): Promise<Bookmark[]>
 	create(params: CreateBookmarkDto): Promise<Bookmark>
+	softDelete(id: string): Promise<void>
 }
 
 @injectable()
@@ -131,5 +132,14 @@ export class BookmarkRepository implements IBookmarkRepository {
 
 		const result = await this.dbContext.query<Bookmark>(query, [userId])
 		return result.rows
+	}
+
+	async softDelete(id: string): Promise<void> {
+		const query = `
+      UPDATE bookmarks
+      SET deleted_at = NOW()
+      WHERE id = $1
+    `
+		await this.dbContext.query(query, [id])
 	}
 }

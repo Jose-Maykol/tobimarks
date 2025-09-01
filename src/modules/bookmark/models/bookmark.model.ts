@@ -11,11 +11,12 @@ export interface Bookmark {
 	ogImageUrl: string | null
 	isFavorite: boolean
 	isArchived: boolean
-	createdAt: Date
-	updatedAt: Date
 	lastAccessedAt: Date | null
 	accessCount: number
 	searchVector: string
+	createdAt: Date
+	updatedAt: Date
+	deletedAt: Date | null
 }
 
 export type CreateBookmarkDto = Pick<

@@ -15,12 +15,12 @@ router.use(authMiddleware)
 
 router.post(
 	'/',
-	validateRequest({
-		body: CreateBookmarkSchema
-	}),
+	validateRequest({ body: CreateBookmarkSchema }),
 	bookmarkController.create.bind(bookmarkController)
 )
 
 router.get('/', bookmarkController.get.bind(bookmarkController))
+
+router.delete('/:id', bookmarkController.delete.bind(bookmarkController))
 
 export const bookmarkRoutes = router
