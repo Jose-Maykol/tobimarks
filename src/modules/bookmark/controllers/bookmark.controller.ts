@@ -201,4 +201,30 @@ export class BookmarkController {
 			next(error)
 		}
 	}
+
+	async updateTitle(
+		req: Request<{ id: string }, Record<string, never>, { title: string }>,
+		res: Response,
+		next: NextFunction
+	) {
+		try {
+			const user = req.user!
+			const { id } = req.params
+			const { title } = req.body
+			const result = await this.bookmarkService.updateTitle(user, id, title)
+			return res.status(StatusCodes.OK).json(
+				ApiResponseBuilder.success(
+					{
+						bookmark: {
+							id: result.id,
+							title: result.title
+						}
+					},
+					'Bookmark title updated successfully'
+				)
+			)
+		} catch (error) {
+			next(error)
+		}
+	}
 }

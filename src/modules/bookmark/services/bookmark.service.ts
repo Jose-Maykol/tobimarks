@@ -135,4 +135,9 @@ export class BookmarkService {
 		const result = await this.bookmarkRepository.updateFavoriteStatus(bookmarkId, false)
 		return result
 	}
+
+	async updateTitle(user: AccessTokenPayload, bookmarkId: string, title: string) {
+		const result = await this.bookmarkRepository.updateTitle(bookmarkId, title)
+		return result
+	}
 }

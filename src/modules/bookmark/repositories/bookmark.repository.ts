@@ -16,6 +16,7 @@ export interface IBookmarkRepository {
 		id: string,
 		isFavorite: boolean
 	): Promise<Pick<Bookmark, 'id' | 'isFavorite'>>
+	updateTitle(id: string, title: string): Promise<Pick<Bookmark, 'id' | 'title'>>
 }
 
 @injectable()
@@ -163,6 +164,17 @@ export class BookmarkRepository implements IBookmarkRepository {
 			isFavorite,
 			id
 		])
+		return result.rows[0]!
+	}
+
+	async updateTitle(id: string, title: string): Promise<Pick<Bookmark, 'id' | 'title'>> {
+		const query = `
+      UPDATE bookmarks
+      SET title = $1
+      WHERE id = $2
+      RETURNING id, title
+    `
+		const result = await this.dbContext.query<Pick<Bookmark, 'id' | 'title'>>(query, [title, id])
 		return result.rows[0]!
 	}
 }

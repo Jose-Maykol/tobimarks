@@ -41,7 +41,7 @@ app.use(express.json())
 app.use('/api-docs', apiReference(scalarConfig))
 
 app.get('/', (req: Request, res: Response) => {
-	res.send('Tobimarks API')
+	res.json({ message: 'Welcome to the Tobimarks API', version: '0.0.1' })
 })
 
 apiRouter.use('/auth', authRouter)
