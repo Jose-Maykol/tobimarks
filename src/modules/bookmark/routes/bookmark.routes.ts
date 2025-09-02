@@ -12,15 +12,14 @@ const router = Router()
 const bookmarkController = container.resolve<BookmarkController>(BOOKMARK_CONTROLLER)
 
 router.use(authMiddleware)
-
 router.post(
 	'/',
 	validateRequest({ body: CreateBookmarkSchema }),
 	bookmarkController.create.bind(bookmarkController)
 )
-
 router.get('/', bookmarkController.get.bind(bookmarkController))
-
 router.delete('/:id', bookmarkController.delete.bind(bookmarkController))
+router.patch('/:id/favorite', bookmarkController.markAsFavorite.bind(bookmarkController))
+router.delete('/:id/favorite', bookmarkController.unmarkAsFavorite.bind(bookmarkController))
 
 export const bookmarkRoutes = router

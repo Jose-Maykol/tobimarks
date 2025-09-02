@@ -11,7 +11,11 @@ export interface IBookmarkRepository {
 	findById(id: string): Promise<Bookmark | null>
 	findByUserId(userId: string): Promise<Bookmark[]>
 	create(params: CreateBookmarkDto): Promise<Bookmark>
-	softDelete(id: string): Promise<void>
+	softDelete(id: string): Promise<Pick<Bookmark, 'id'>>
+	updateFavoriteStatus(
+		id: string,
+		isFavorite: boolean
+	): Promise<Pick<Bookmark, 'id' | 'isFavorite'>>
 }
 
 @injectable()
@@ -134,12 +138,31 @@ export class BookmarkRepository implements IBookmarkRepository {
 		return result.rows
 	}
 
-	async softDelete(id: string): Promise<void> {
+	async softDelete(id: string): Promise<Pick<Bookmark, 'id'>> {
 		const query = `
       UPDATE bookmarks
       SET deleted_at = NOW()
       WHERE id = $1
+      RETURNING id
     `
-		await this.dbContext.query(query, [id])
+		const result = await this.dbContext.query<Pick<Bookmark, 'id'>>(query, [id])
+		return result.rows[0]!
+	}
+
+	async updateFavoriteStatus(
+		id: string,
+		isFavorite: boolean
+	): Promise<Pick<Bookmark, 'id' | 'isFavorite'>> {
+		const query = `
+      UPDATE bookmarks
+      SET is_favorite = $1
+      WHERE id = $2
+      RETURNING id, is_favorite AS "isFavorite"
+    `
+		const result = await this.dbContext.query<Pick<Bookmark, 'id' | 'isFavorite'>>(query, [
+			isFavorite,
+			id
+		])
+		return result.rows[0]!
 	}
 }

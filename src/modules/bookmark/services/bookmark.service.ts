@@ -89,13 +89,50 @@ export class BookmarkService {
 		return website
 	}
 
+	/**
+	 * Retrieves all bookmarks for the given user.
+	 *
+	 * @param user - The user whose bookmarks are to be retrieved.
+	 * @returns A list of bookmarks belonging to the user.
+	 */
 	async get(user: AccessTokenPayload) {
 		const bookmarks = await this.bookmarkRepository.findByUserId(user.sub)
 		return bookmarks
 	}
 
+	/**
+	 * Deletes a bookmark for the given user by its ID.
+	 *
+	 * @param user - The user requesting the deletion.
+	 * @param bookmarkId - The ID of the bookmark to delete.
+	 * @returns The deleted bookmark.
+	 */
 	async delete(user: AccessTokenPayload, bookmarkId: string) {
 		const deletedBookmark = await this.bookmarkRepository.softDelete(bookmarkId)
 		return deletedBookmark
+	}
+
+	/**
+	 * Marks a bookmark as a favorite for the given user.
+	 *
+	 * @param user - The user marking the bookmark as favorite.
+	 * @param bookmarkId - The ID of the bookmark to mark as favorite.
+	 * @returns The updated bookmark with favorite status.
+	 */
+	async markAsFavorite(user: AccessTokenPayload, bookmarkId: string) {
+		const result = await this.bookmarkRepository.updateFavoriteStatus(bookmarkId, true)
+		return result
+	}
+
+	/**
+	 * Removes the favorite status from a bookmark for the given user.
+	 *
+	 * @param user - The user unmarking the bookmark as favorite.
+	 * @param bookmarkId - The ID of the bookmark to unmark as favorite.
+	 * @returns The updated bookmark with favorite status removed.
+	 */
+	async unmarkAsFavorite(user: AccessTokenPayload, bookmarkId: string) {
+		const result = await this.bookmarkRepository.updateFavoriteStatus(bookmarkId, false)
+		return result
 	}
 }
