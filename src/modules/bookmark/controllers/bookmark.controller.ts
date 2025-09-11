@@ -95,7 +95,11 @@ export class BookmarkController {
 						id: b.id,
 						url: b.url,
 						title: b.title,
-						description: b.description
+						isFavorite: b.isFavorite,
+						isArchived: b.isArchived,
+						accessCount: b.accessCount,
+						domain: b.domain,
+						faviconUrl: b.faviconUrl
 					}))
 				})
 			)

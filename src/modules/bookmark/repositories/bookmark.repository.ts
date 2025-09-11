@@ -1,7 +1,7 @@
 import { DatabaseError } from 'pg'
 import { inject, injectable } from 'tsyringe'
 
-import type { Bookmark, CreateBookmarkDto } from '../models/bookmark.model'
+import type { Bookmark, BookmarkListItemDto, CreateBookmarkDto } from '../models/bookmark.model'
 
 import type { IDatabaseContext } from '@/core/database/database-context'
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
@@ -9,7 +9,7 @@ import { DATABASE_CONTEXT } from '@/core/di/tokens'
 
 export interface IBookmarkRepository {
 	findById(id: string): Promise<Bookmark | null>
-	findByUserId(userId: string): Promise<Bookmark[]>
+	findByUserId(userId: string): Promise<BookmarkListItemDto[]>
 	create(params: CreateBookmarkDto): Promise<Bookmark>
 	softDelete(id: string): Promise<Pick<Bookmark, 'id'>>
 	updateFavoriteStatus(
@@ -111,31 +111,24 @@ export class BookmarkRepository implements IBookmarkRepository {
 		return result.rows[0] || null
 	}
 
-	async findByUserId(userId: string): Promise<Bookmark[]> {
+	async findByUserId(userId: string): Promise<BookmarkListItemDto[]> {
 		const query = `
       SELECT 
-        id, 
-        user_id AS "userId", 
-        website_id AS "websiteId", 
-        category_id AS "categoryId", 
-        url, 
-        title, 
-        og_title AS "ogTitle", 
-        og_description AS "ogDescription", 
-        og_image_url AS "ogImageUrl", 
-        is_favorite AS "isFavorite", 
-        is_archived AS "isArchived", 
-        created_at AS "createdAt", 
-        updated_at AS "updatedAt", 
-        last_accessed_at AS "lastAccessedAt", 
-        access_count AS "accessCount", 
-        search_vector AS "searchVector"
-      FROM bookmarks
-      WHERE user_id = $1
-      ORDER BY created_at DESC
+        b.id, 
+        b.url, 
+        COALESCE(b.title, b.og_title) AS title, 
+        b.is_favorite AS "isFavorite", 
+        b.is_archived AS "isArchived", 
+        b.access_count AS "accessCount",
+        w.domain, 
+        w.favicon_url AS "faviconUrl"
+      FROM bookmarks b
+      INNER JOIN websites w ON b.website_id = w.id
+      WHERE b.user_id = $1
+      ORDER BY b.created_at DESC
     `
 
-		const result = await this.dbContext.query<Bookmark>(query, [userId])
+		const result = await this.dbContext.query<BookmarkListItemDto>(query, [userId])
 		return result.rows
 	}
 

@@ -18,7 +18,7 @@ const RATE_LIMIT_MESSAGE: string = 'Too many requests, please try again later.'
 
 app.use(
 	cors({
-		origin: 'http://localhost:8080',
+		origin: 'http://localhost:5173',
 		credentials: true
 	})
 )

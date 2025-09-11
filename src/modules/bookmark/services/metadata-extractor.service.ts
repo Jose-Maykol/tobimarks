@@ -85,6 +85,7 @@ export class MetadataExtractorService {
 	}
 
 	private extractFaviconUrl($: cheerio.CheerioAPI): string | null {
+		//TODO: Es posible que el favicion apunte a una URL relativa, manejar ese caso
 		const favicon =
 			$('link[rel="icon"]').attr('href') || $('link[rel="shortcut icon"]').attr('href')
 		return favicon || null

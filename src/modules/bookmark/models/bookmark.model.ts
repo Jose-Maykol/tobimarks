@@ -1,3 +1,5 @@
+import type { Website } from './website.model'
+
 export interface Bookmark {
 	id: string
 	userId: string
@@ -33,3 +35,9 @@ export type CreateBookmarkDto = Pick<
 	| 'isFavorite'
 	| 'isArchived'
 >
+
+export type BookmarkListItemDto = Pick<
+	Bookmark,
+	'id' | 'url' | 'title' | 'isFavorite' | 'isArchived' | 'accessCount'
+> &
+	Pick<Website, 'domain' | 'faviconUrl'>
