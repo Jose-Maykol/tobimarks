@@ -32,15 +32,16 @@ export class MetadataExtractorService {
 			})
 
 			const $ = cheerio.load(html)
+			const baseUrl = new URL(url).origin
 
 			return {
 				title: this.extractTitle($),
 				description: this.extractDescription($),
 				ogTitle: this.extractOgTitle($),
 				ogDescription: this.extractOgDescription($),
-				ogImageUrl: this.extractOgImage($),
-				faviconUrl: this.extractFaviconUrl($),
-				canonicalUrl: this.extractCanonicalUrl($)
+				ogImageUrl: this.extractOgImage($, baseUrl),
+				faviconUrl: this.extractFaviconUrl($, baseUrl),
+				canonicalUrl: this.extractCanonicalUrl($, baseUrl)
 			}
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
@@ -80,18 +81,29 @@ export class MetadataExtractorService {
 		return $('meta[property="og:description"]').attr('content') || null
 	}
 
-	private extractOgImage($: cheerio.CheerioAPI): string | null {
-		return $('meta[property="og:image"]').attr('content') || null
+	private extractOgImage($: cheerio.CheerioAPI, baseUrl: string): string | null {
+		const ogImage = $('meta[property="og:image"]').attr('content')
+		if (!ogImage) return null
+		if (ogImage.startsWith('http://') || ogImage.startsWith('https://')) return ogImage
+		return new URL(ogImage, baseUrl).href
 	}
 
-	private extractFaviconUrl($: cheerio.CheerioAPI): string | null {
-		//TODO: Es posible que el favicion apunte a una URL relativa, manejar ese caso
+	private extractFaviconUrl($: cheerio.CheerioAPI, baseUrl: string): string | null {
 		const favicon =
 			$('link[rel="icon"]').attr('href') || $('link[rel="shortcut icon"]').attr('href')
-		return favicon || null
+
+		if (!favicon) return null
+
+		if (favicon.startsWith('http://') || favicon.startsWith('https://')) return favicon
+
+		const absoluteFaviconUrl = new URL(favicon, `${baseUrl}/`).href
+		return absoluteFaviconUrl
 	}
 
-	private extractCanonicalUrl($: cheerio.CheerioAPI): string | null {
-		return $('link[rel="canonical"]').attr('href') || null
+	private extractCanonicalUrl($: cheerio.CheerioAPI, baseUrl: string): string | null {
+		const canonical = $('link[rel="canonical"]').attr('href')
+		if (!canonical) return null
+		if (canonical.startsWith('http://') || canonical.startsWith('https://')) return canonical
+		return new URL(canonical, baseUrl).href
 	}
 }
