@@ -42,7 +42,7 @@ export class BookmarkService {
 			userId: user.sub,
 			categoryId: null,
 			websiteId: website.id,
-			url: canonicalUrl || urlBookmark,
+			url: this.normalizeUrl(urlBookmark, canonicalUrl),
 			title: title || null,
 			description: description || null,
 			ogTitle: ogTitle || null,
@@ -87,6 +87,30 @@ export class BookmarkService {
 		}
 
 		return website
+	}
+
+	/**
+	 * Normalizes a URL by comparing it with its canonical version.
+	 *
+	 * @param originalUrl - The original URL provided.
+	 * @param canonicalUrl - The canonical URL, if available.
+	 * @returns The normalized URL, which is either the canonical URL or the original URL.
+	 */
+	private normalizeUrl(originalUrl: string, canonicalUrl: string | null): string {
+		if (!canonicalUrl) return originalUrl
+
+		try {
+			const original = new URL(originalUrl)
+			const canonical = new URL(canonicalUrl)
+
+			if (original.hostname !== canonical.hostname) return originalUrl
+
+			if (original.pathname === canonical.pathname) return canonicalUrl
+
+			return canonicalUrl
+		} catch {
+			return originalUrl
+		}
 	}
 
 	/**
