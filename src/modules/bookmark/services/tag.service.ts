@@ -2,10 +2,11 @@ import slugify from 'slugify'
 import { inject, injectable } from 'tsyringe'
 
 import { TAG_REPOSITORY } from '../di/token'
-import { TagNotFoundError } from '../exceptions/tag.exceptions'
+import { TagAlreadyExistsError, TagNotFoundError } from '../exceptions/tag.exceptions'
 import type { ITagRepository } from '../repositories/tag.repository'
 import type { CreateTagRequestBody, UpdateTagRequestBody } from '../types/tags.types'
 
+import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
 @injectable()
@@ -40,8 +41,15 @@ export class TagService {
 			userId: user.sub
 		}
 
-		const createdTag = await this.tagRepository.create(newTag)
-		return createdTag
+		try {
+			const createdTag = await this.tagRepository.create(newTag)
+			return createdTag
+		} catch (error) {
+			if (error instanceof UniqueConstraintViolationError) {
+				throw new TagAlreadyExistsError()
+			}
+			throw error
+		}
 	}
 
 	/**
@@ -59,13 +67,15 @@ export class TagService {
 		const tagExists = await this.tagRepository.existsByIdAndUserId(tagId, user.sub)
 		if (!tagExists) throw new TagNotFoundError()
 
+		const slugName = slugify(data.name)
+
 		const updateData = {
 			...data,
-			slug: slugify(data.name)
+			slug: slugName
 		}
 
 		const updatedTag = await this.tagRepository.update(tagId, updateData)
-		return updatedTag
+		return updatedTag!
 	}
 
 	/**

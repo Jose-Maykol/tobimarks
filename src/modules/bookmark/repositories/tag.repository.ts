@@ -1,8 +1,10 @@
+import { DatabaseError } from 'pg'
 import { inject, injectable } from 'tsyringe'
 
 import type { CreateTagDto, Tag } from '../models/tag.model'
 
 import type { IDatabaseContext } from '@/core/database/database-context'
+import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
 import { DATABASE_CONTEXT } from '@/core/di/tokens'
 
 export interface ITagRepository {
@@ -33,8 +35,17 @@ export class TagRepository implements ITagRepository {
 		`
 		const values = [data.userId, data.name, data.slug]
 
-		const result = await this.dbContext.query<Tag>(query, values)
-		return result.rows[0]!
+		try {
+			const result = await this.dbContext.query<Tag>(query, values)
+			return result.rows[0]!
+		} catch (error) {
+			if (error instanceof DatabaseError) {
+				if (error.code === '23505') {
+					throw new UniqueConstraintViolationError(error.detail)
+				}
+			}
+			throw error
+		}
 	}
 
 	async findByUserId(userId: string): Promise<Tag[]> {

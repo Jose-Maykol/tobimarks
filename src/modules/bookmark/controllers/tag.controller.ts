@@ -53,7 +53,16 @@ export class TagController {
 			const user = req.user!
 			const data = req.body
 			const createdTag = await this.tagService.create(user, data)
-			return res.status(StatusCodes.CREATED).json(ApiResponseBuilder.success({ tag: createdTag }))
+			return res.status(StatusCodes.CREATED).json(
+				ApiResponseBuilder.success({
+					tag: {
+						id: createdTag.id,
+						name: createdTag.name,
+						slug: createdTag.slug,
+						usageCount: createdTag.usageCount
+					}
+				})
+			)
 		} catch (error) {
 			next(error)
 		}
@@ -69,7 +78,16 @@ export class TagController {
 			const tagId = req.params.id
 			const data = req.body
 			const updatedTag = await this.tagService.update(user, tagId, data)
-			return res.status(StatusCodes.OK).json(ApiResponseBuilder.success({ tag: updatedTag }))
+			return res.status(StatusCodes.OK).json(
+				ApiResponseBuilder.success({
+					tag: {
+						id: updatedTag.id,
+						name: updatedTag.name,
+						slug: updatedTag.slug,
+						usageCount: updatedTag.usageCount
+					}
+				})
+			)
 		} catch (error) {
 			if (error instanceof TagNotFoundError) {
 				return res
