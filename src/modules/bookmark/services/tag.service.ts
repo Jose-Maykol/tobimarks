@@ -2,17 +2,14 @@ import slugify from 'slugify'
 import { inject, injectable } from 'tsyringe'
 
 import { TAG_REPOSITORY } from '../di/token'
+import { TagNotFoundError } from '../exceptions/tag.exceptions'
 import type { ITagRepository } from '../repositories/tag.repository'
-import type { CreateTagRequestBody } from '../types/tags.types'
+import type { CreateTagRequestBody, UpdateTagRequestBody } from '../types/tags.types'
 
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
 @injectable()
 export class TagService {
-	/**
-	 * Initializes the service with the tag repository.
-	 * @param tagRepository - Instance of the tag repository.
-	 */
 	constructor(@inject(TAG_REPOSITORY) private readonly tagRepository: ITagRepository) {}
 
 	/**
@@ -45,5 +42,44 @@ export class TagService {
 
 		const createdTag = await this.tagRepository.create(newTag)
 		return createdTag
+	}
+
+	/**
+	 * Updates an existing tag for the authenticated user.
+	 * Ensures the tag belongs to the user before updating.
+	 * Generates a new slug from the updated tag name.
+	 *
+	 * @param user - The authenticated user's information (token payload).
+	 * @param tagId - The unique identifier of the tag to update.
+	 * @param data - The data to update the tag, including its name.
+	 * @returns A promise that resolves to the updated tag.
+	 * @throws TagNotFoundError - If the tag does not exist or does not belong to the user.
+	 */
+	async update(user: AccessTokenPayload, tagId: string, data: UpdateTagRequestBody) {
+		const tagExists = await this.tagRepository.existsByIdAndUserId(tagId, user.sub)
+		if (!tagExists) throw new TagNotFoundError()
+
+		const updateData = {
+			...data,
+			slug: slugify(data.name)
+		}
+
+		const updatedTag = await this.tagRepository.update(tagId, updateData)
+		return updatedTag
+	}
+
+	/**
+	 * Deletes an existing tag for the authenticated user.
+	 * Ensures the tag belongs to the user before deletion.
+	 *
+	 * @param user - The authenticated user's information (token payload).
+	 * @param id - The unique identifier of the tag to delete.
+	 * @returns A promise that resolves when the tag is deleted.
+	 * @throws TagNotFoundError - If the tag does not exist or does not belong to the user.
+	 */
+	async delete(user: AccessTokenPayload, id: string): Promise<void> {
+		const tagExists = await this.tagRepository.existsByIdAndUserId(id, user.sub)
+		if (!tagExists) throw new TagNotFoundError()
+		await this.tagRepository.delete(id)
 	}
 }

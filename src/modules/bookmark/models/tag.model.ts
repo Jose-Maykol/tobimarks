@@ -9,3 +9,5 @@ export interface Tag {
 }
 
 export type CreateTagDto = Pick<Tag, 'userId' | 'name' | 'slug'>
+
+export type UpdateTagDto = Partial<Pick<Tag, 'id' | 'name' | 'slug'>>
