@@ -3,7 +3,10 @@ import { StatusCodes } from 'http-status-codes'
 import { inject, injectable } from 'tsyringe'
 
 import { BOOKMARK_SERVICE } from '../di/token'
-import { BookmarkAlreadyExistsError } from '../exceptions/bookmark.exceptions'
+import {
+	BookmarkAlreadyExistsError,
+	BookmarkNotFoundError
+} from '../exceptions/bookmark.exceptions'
 import {
 	UrlFetchFailedException,
 	UrlForbiddenException,
@@ -136,6 +139,11 @@ export class BookmarkController {
 				)
 			)
 		} catch (error) {
+			if (error instanceof BookmarkNotFoundError) {
+				return res
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
 			next(error)
 		}
 	}
@@ -169,6 +177,11 @@ export class BookmarkController {
 				)
 			)
 		} catch (error) {
+			if (error instanceof BookmarkNotFoundError) {
+				return res
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
 			next(error)
 		}
 	}
@@ -202,6 +215,11 @@ export class BookmarkController {
 				)
 			)
 		} catch (error) {
+			if (error instanceof BookmarkNotFoundError) {
+				return res
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
 			next(error)
 		}
 	}
@@ -228,6 +246,11 @@ export class BookmarkController {
 				)
 			)
 		} catch (error) {
+			if (error instanceof BookmarkNotFoundError) {
+				return res
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
 			next(error)
 		}
 	}

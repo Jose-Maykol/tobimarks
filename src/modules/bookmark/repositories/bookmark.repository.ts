@@ -10,6 +10,7 @@ import { DATABASE_CONTEXT } from '@/core/di/tokens'
 export interface IBookmarkRepository {
 	findById(id: string): Promise<Bookmark | null>
 	findByUserId(userId: string): Promise<BookmarkListItemDto[]>
+	existsByIdAndUserId(id: string, userId: string): Promise<boolean>
 	create(params: CreateBookmarkDto): Promise<Bookmark>
 	softDelete(id: string): Promise<Pick<Bookmark, 'id'>>
 	updateFavoriteStatus(
@@ -61,13 +62,13 @@ export class BookmarkRepository implements IBookmarkRepository {
 		const values = [
 			params.userId,
 			params.websiteId,
-			params.categoryId || null,
+			params.categoryId,
 			params.url || null,
-			params.title || null,
-			params.description || null,
-			params.ogTitle || null,
-			params.ogDescription || null,
-			params.ogImageUrl || null,
+			params.title,
+			params.description,
+			params.ogTitle,
+			params.ogDescription,
+			params.ogImageUrl,
 			params.isFavorite || false,
 			params.isArchived || false
 		]
@@ -130,6 +131,17 @@ export class BookmarkRepository implements IBookmarkRepository {
 
 		const result = await this.dbContext.query<BookmarkListItemDto>(query, [userId])
 		return result.rows
+	}
+
+	async existsByIdAndUserId(id: string, userId: string): Promise<boolean> {
+		const query = `
+      SELECT 1
+      FROM bookmarks
+      WHERE id = $1 AND user_id = $2
+      LIMIT 1
+    `
+		const result = await this.dbContext.query(query, [id, userId])
+		return result.rowCount > 0
 	}
 
 	async softDelete(id: string): Promise<Pick<Bookmark, 'id'>> {

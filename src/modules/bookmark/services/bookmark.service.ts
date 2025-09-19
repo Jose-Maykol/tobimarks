@@ -3,7 +3,10 @@ import { inject, injectable } from 'tsyringe'
 
 import type { MetadataExtractorService } from './metadata-extractor.service'
 import { BOOKMARK_REPOSITORY, METADATA_EXTRACTOR_SERVICE, WEBSITE_REPOSITORY } from '../di/token'
-import { BookmarkAlreadyExistsError } from '../exceptions/bookmark.exceptions'
+import {
+	BookmarkAlreadyExistsError,
+	BookmarkNotFoundError
+} from '../exceptions/bookmark.exceptions'
 import type { CreateBookmarkDto } from '../models/bookmark.model'
 import type { IBookmarkRepository } from '../repositories/bookmark.repository'
 import type { IWebsiteRepository } from '../repositories/websites.repository'
@@ -43,11 +46,11 @@ export class BookmarkService {
 			categoryId: null,
 			websiteId: website.id,
 			url: this.normalizeUrl(urlBookmark, canonicalUrl),
-			title: title || null,
-			description: description || null,
-			ogTitle: ogTitle || null,
-			ogDescription: ogDescription || null,
-			ogImageUrl: ogImageUrl || null,
+			title: title,
+			description: description,
+			ogTitle: ogTitle,
+			ogDescription: ogDescription,
+			ogImageUrl: ogImageUrl,
 			isFavorite: false,
 			isArchived: false
 		}
@@ -132,6 +135,10 @@ export class BookmarkService {
 	 * @returns The deleted bookmark.
 	 */
 	async delete(user: AccessTokenPayload, bookmarkId: string) {
+		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
+
+		if (!existsBookmark) throw new BookmarkNotFoundError()
+
 		const deletedBookmark = await this.bookmarkRepository.softDelete(bookmarkId)
 		return deletedBookmark
 	}
@@ -144,6 +151,10 @@ export class BookmarkService {
 	 * @returns The updated bookmark with favorite status.
 	 */
 	async markAsFavorite(user: AccessTokenPayload, bookmarkId: string) {
+		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
+
+		if (!existsBookmark) throw new BookmarkNotFoundError()
+
 		const result = await this.bookmarkRepository.updateFavoriteStatus(bookmarkId, true)
 		return result
 	}
@@ -156,11 +167,19 @@ export class BookmarkService {
 	 * @returns The updated bookmark with favorite status removed.
 	 */
 	async unmarkAsFavorite(user: AccessTokenPayload, bookmarkId: string) {
+		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
+
+		if (!existsBookmark) throw new BookmarkNotFoundError()
+
 		const result = await this.bookmarkRepository.updateFavoriteStatus(bookmarkId, false)
 		return result
 	}
 
 	async updateTitle(user: AccessTokenPayload, bookmarkId: string, title: string) {
+		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
+
+		if (!existsBookmark) throw new BookmarkNotFoundError()
+
 		const result = await this.bookmarkRepository.updateTitle(bookmarkId, title)
 		return result
 	}
