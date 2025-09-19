@@ -8,6 +8,8 @@ import { DATABASE_CONTEXT } from '@/core/di/tokens'
 export interface ITagRepository {
 	create(data: CreateTagDto): Promise<Tag>
 	findByUserId(userId: string): Promise<Tag[]>
+	findById(id: string): Promise<Tag | null>
+	existsByIdAndUserId(id: string, userId: string): Promise<boolean>
 	update(id: string, data: Partial<Tag>): Promise<Tag | null>
 	delete(id: string): Promise<Pick<Tag, 'id'> | null>
 }
@@ -53,6 +55,36 @@ export class TagRepository implements ITagRepository {
 
 		const result = await this.dbContext.query<Tag>(query, values)
 		return result.rows
+	}
+
+	async findById(id: string): Promise<Tag | null> {
+		const query = `
+			SELECT
+				id, 
+				user_id AS "userId", 
+				name,
+				slug,
+				usage_count AS "usageCount",
+				created_at AS "createdAt",
+				updated_at AS "updatedAt"
+			FROM tags
+			WHERE id = $1
+		`
+		const values = [id]
+		const result = await this.dbContext.query<Tag>(query, values)
+		return result.rows[0] || null
+	}
+
+	async existsByIdAndUserId(id: string, userId: string): Promise<boolean> {
+		const query = `
+			SELECT 1
+			FROM tags
+			WHERE id = $1 AND user_id = $2
+			LIMIT 1
+		`
+		const values = [id, userId]
+		const result = await this.dbContext.query<{ '1': number }>(query, values)
+		return result.rowCount > 0
 	}
 
 	async update(id: string, data: Partial<Tag>): Promise<Tag | null> {

@@ -10,5 +10,3 @@ CREATE TABLE users (
     is_active BOOLEAN DEFAULT true
     --settings JSONB DEFAULT '{}' -- User preferences
 );
-
-
