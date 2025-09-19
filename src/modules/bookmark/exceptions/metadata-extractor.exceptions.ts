@@ -1,6 +1,11 @@
-import { MetadataErrorCode } from './metadata-extractor..errors'
-
 import { BaseException } from '@/common/errors/base-erxception'
+
+export enum MetadataErrorCode {
+	URL_FORBIDDEN = 'URL_FORBIDDEN',
+	URL_NOT_FOUND = 'URL_NOT_FOUND',
+	URL_TIMEOUT = 'URL_TIMEOUT',
+	URL_FETCH_FAILED = 'URL_FETCH_FAILED'
+}
 
 export class UrlForbiddenException extends BaseException {
 	constructor(message: string = 'Acceso prohibido a la URL') {

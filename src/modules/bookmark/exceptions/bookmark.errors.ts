@@ -1,3 +1,0 @@
-export enum BookmarkErrorCode {
-	BOOKMARK_ALREADY_EXISTS = 'BOOKMARK_ALREADY_EXISTS'
-}

@@ -1,5 +1,14 @@
 import { BaseException } from '@/common/errors/base-erxception'
-import { AuthErrorCode } from '@/modules/auth/exceptions/auth-error-codes.enum'
+
+export enum AuthErrorCode {
+	ACCESS_HEADER_MISSING = 'ACCESS_HEADER_MISSING',
+	ACCESS_TOKEN_MISSING = 'ACCESS_TOKEN_MISSING',
+	ACCESS_TOKEN_INVALID = 'ACCESS_TOKEN_INVALID',
+	INVALID_GOOGLE_TOKEN_SIGNATURE = 'INVALID_GOOGLE_TOKEN_SIGNATURE',
+	GOOGLE_ID_TOKEN_INVALID = 'GOOGLE_ID_TOKEN_INVALID',
+	GOOGLE_EMAIL_MISSING = 'GOOGLE_EMAIL_MISSING',
+	GOOGLE_NAME_MISSING = 'GOOGLE_NAME_MISSING'
+}
 
 export class AuthHeaderMissingException extends BaseException {
 	constructor(message: string = 'Falta el encabezado de autenticación') {
