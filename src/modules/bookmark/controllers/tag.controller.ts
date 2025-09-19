@@ -54,14 +54,17 @@ export class TagController {
 			const data = req.body
 			const createdTag = await this.tagService.create(user, data)
 			return res.status(StatusCodes.CREATED).json(
-				ApiResponseBuilder.success({
-					tag: {
-						id: createdTag.id,
-						name: createdTag.name,
-						slug: createdTag.slug,
-						usageCount: createdTag.usageCount
-					}
-				})
+				ApiResponseBuilder.success(
+					{
+						tag: {
+							id: createdTag.id,
+							name: createdTag.name,
+							slug: createdTag.slug,
+							usageCount: createdTag.usageCount
+						}
+					},
+					'Tag created successfully'
+				)
 			)
 		} catch (error) {
 			next(error)
@@ -79,14 +82,17 @@ export class TagController {
 			const data = req.body
 			const updatedTag = await this.tagService.update(user, tagId, data)
 			return res.status(StatusCodes.OK).json(
-				ApiResponseBuilder.success({
-					tag: {
-						id: updatedTag.id,
-						name: updatedTag.name,
-						slug: updatedTag.slug,
-						usageCount: updatedTag.usageCount
-					}
-				})
+				ApiResponseBuilder.success(
+					{
+						tag: {
+							id: updatedTag.id,
+							name: updatedTag.name,
+							slug: updatedTag.slug,
+							usageCount: updatedTag.usageCount
+						}
+					},
+					'Tag updated successfully'
+				)
 			)
 		} catch (error) {
 			if (error instanceof TagNotFoundError) {
@@ -113,8 +119,8 @@ export class TagController {
 		} catch (error) {
 			if (error instanceof TagNotFoundError) {
 				return res
-					.status(StatusCodes.OK)
-					.json(ApiResponseBuilder.success(null, 'Tag deleted successfully'))
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
 			}
 			next(error)
 		}

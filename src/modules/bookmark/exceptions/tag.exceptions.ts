@@ -6,13 +6,13 @@ export enum BookMarkErrorCode {
 }
 
 export class TagNotFoundError extends BaseException {
-	constructor(message: string = 'Tag no encontrada') {
+	constructor(message: string = 'Tag not found') {
 		super(message, BookMarkErrorCode.TAG_NOT_FOUND)
 	}
 }
 
 export class TagAlreadyExistsError extends BaseException {
-	constructor(message: string = 'El tag ya existe') {
+	constructor(message: string = 'The tag already exists') {
 		super(message, BookMarkErrorCode.TAG_ALREADY_EXISTS)
 	}
 }

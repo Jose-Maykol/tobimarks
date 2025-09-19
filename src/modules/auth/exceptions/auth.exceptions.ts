@@ -11,43 +11,43 @@ export enum AuthErrorCode {
 }
 
 export class AuthHeaderMissingException extends BaseException {
-	constructor(message: string = 'Falta el encabezado de autenticación') {
+	constructor(message: string = 'Authentication header is missing') {
 		super(message, AuthErrorCode.ACCESS_HEADER_MISSING)
 	}
 }
 
 export class AccessTokenMissingException extends BaseException {
-	constructor(message: string = 'Falta el token de acceso') {
+	constructor(message: string = 'Access token is missing') {
 		super(message, AuthErrorCode.ACCESS_TOKEN_MISSING)
 	}
 }
 
 export class AccessTokenInvalidException extends BaseException {
-	constructor(message: string = 'Token de acceso inválido') {
+	constructor(message: string = 'Access token is invalid') {
 		super(message, AuthErrorCode.ACCESS_TOKEN_INVALID)
 	}
 }
 
 export class InvalidGoogleTokenSignatureException extends BaseException {
-	constructor(message: string = 'Firma del token de Google inválida') {
+	constructor(message: string = 'Google token signature is invalid') {
 		super(message, AuthErrorCode.INVALID_GOOGLE_TOKEN_SIGNATURE)
 	}
 }
 
 export class GoogleAuthException extends BaseException {
-	constructor(message: string = 'Token ID de Google inválido') {
+	constructor(message: string = 'Google ID token is invalid') {
 		super(message, AuthErrorCode.GOOGLE_ID_TOKEN_INVALID)
 	}
 }
 
 export class GoogleEmailMissingException extends BaseException {
-	constructor(message: string = 'Correo electrónico no proporcionado por Google') {
+	constructor(message: string = 'Email not provided by Google') {
 		super(message, AuthErrorCode.GOOGLE_EMAIL_MISSING)
 	}
 }
 
 export class GoogleNameMissingException extends BaseException {
-	constructor(message: string = 'Nombre no proporcionado por Google') {
+	constructor(message: string = 'Name not provided by Google') {
 		super(message, AuthErrorCode.GOOGLE_NAME_MISSING)
 	}
 }

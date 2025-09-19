@@ -8,25 +8,25 @@ export enum MetadataErrorCode {
 }
 
 export class UrlForbiddenException extends BaseException {
-	constructor(message: string = 'Acceso prohibido a la URL') {
+	constructor(message: string = 'Access to the URL is forbidden') {
 		super(message, MetadataErrorCode.URL_FORBIDDEN)
 	}
 }
 
 export class UrlNotFoundException extends BaseException {
-	constructor(message: string = 'URL no encontrada') {
+	constructor(message: string = 'URL not found') {
 		super(message, MetadataErrorCode.URL_NOT_FOUND)
 	}
 }
 
 export class UrlTimeoutException extends BaseException {
-	constructor(message: string = 'Tiempo de espera agotado al obtener la URL') {
+	constructor(message: string = 'URL fetch timed out') {
 		super(message, MetadataErrorCode.URL_TIMEOUT)
 	}
 }
 
 export class UrlFetchFailedException extends BaseException {
-	constructor(message: string = 'Error al obtener datos de la URL') {
+	constructor(message: string = 'Failed to fetch data from the URL') {
 		super(message, MetadataErrorCode.URL_FETCH_FAILED)
 	}
 }
