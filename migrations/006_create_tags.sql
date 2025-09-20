@@ -4,7 +4,6 @@ CREATE TABLE tags (
     name VARCHAR(50) NOT NULL,
     slug VARCHAR(50) NOT NULL,
     style_token VARCHAR(100), -- bg-blue-100
-    usage_count INTEGER DEFAULT 0,
     embedding VECTOR(1536),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

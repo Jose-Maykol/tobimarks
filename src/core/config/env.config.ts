@@ -17,6 +17,7 @@ export interface EnvVariables {
 	GOOGLE_CLIENT_SECRET: string
 	JWT_SECRET: string
 	JWT_EXPIRES_IN: number
+	GEMINI_API_KEY: string
 }
 
 const envSchema = v.object({
@@ -43,7 +44,9 @@ const envSchema = v.object({
 		v.transform(Number),
 		v.number(),
 		v.minValue(1, 'JWT_EXPIRES_IN debe ser un valor numérico mayor a 0')
-	)
+	),
+	// AI
+	GEMINI_API_KEY: v.pipe(v.string(), v.minLength(1, 'GEMINI_API_KEY es requerido'))
 })
 
 const validateEnv = (): EnvVariables => {
