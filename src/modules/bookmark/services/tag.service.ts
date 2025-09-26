@@ -7,11 +7,16 @@ import type { ITagRepository } from '../repositories/tag.repository'
 import type { CreateTagRequestBody, UpdateTagRequestBody } from '../types/tags.types'
 
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
+import { EMBEDDING_SERVICE } from '@/core/di/tokens'
+import type { IEmbeddingService } from '@/core/embedding/embedding.service'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
 @injectable()
 export class TagService {
-	constructor(@inject(TAG_REPOSITORY) private readonly tagRepository: ITagRepository) {}
+	constructor(
+		@inject(TAG_REPOSITORY) private readonly tagRepository: ITagRepository,
+		@inject(EMBEDDING_SERVICE) private readonly embeddingService: IEmbeddingService
+	) {}
 
 	/**
 	 * Retrieves all tags created by a specific user.
@@ -34,11 +39,13 @@ export class TagService {
 	 */
 	async create(user: AccessTokenPayload, data: CreateTagRequestBody) {
 		const slugName = slugify(data.name)
+		const embedding = await this.embeddingService.generateEmbedding(data.name)
 
 		const newTag = {
 			...data,
 			slug: slugName,
-			userId: user.sub
+			userId: user.sub,
+			embedding
 		}
 
 		try {
