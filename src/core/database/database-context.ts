@@ -23,6 +23,13 @@ export class DatabaseContext implements IDatabaseContext {
 		})
 	}
 
+	/**
+	 * Executes a database query and returns the result.
+	 *
+	 * @param text - The SQL query string to execute.
+	 * @param params - Optional parameters for the query.
+	 * @returns A promise that resolves to the query result, including rows and row count.
+	 */
 	async query<T>(text: string, params?: unknown[]): Promise<DatabaseResponse<T>> {
 		const client = await this.pool.connect()
 		try {
@@ -36,10 +43,20 @@ export class DatabaseContext implements IDatabaseContext {
 		}
 	}
 
+	/**
+	 * Acquires a database client from the connection pool.
+	 *
+	 * @returns A promise that resolves to a `PoolClient` instance.
+	 */
 	async getClient(): Promise<PoolClient> {
 		return await this.pool.connect()
 	}
 
+	/**
+	 * Closes the database connection pool.
+	 *
+	 * @returns A promise that resolves when the pool is closed.
+	 */
 	async closePool(): Promise<void> {
 		await this.pool.end()
 	}

@@ -21,6 +21,13 @@ export class EmbeddingService implements IEmbeddingService {
 		})
 	}
 
+	/**
+	 * Generates an embedding vector for a single text input.
+	 *
+	 * @param text - The input text to generate the embedding for.
+	 * @returns A promise that resolves to a normalized embedding vector.
+	 * @throws Error - If the embedding generation fails.
+	 */
 	async generateEmbedding(text: string): Promise<number[]> {
 		try {
 			const response = this.genAI.models.embedContent({
@@ -45,6 +52,13 @@ export class EmbeddingService implements IEmbeddingService {
 		}
 	}
 
+	/**
+	 * Generates embedding vectors for multiple text inputs.
+	 *
+	 * @param texts - An array of input texts to generate embeddings for.
+	 * @returns A promise that resolves to an array of normalized embedding vectors.
+	 * @throws Error - If the embedding generation fails for any input.
+	 */
 	async generateEmbeddings(texts: string[]): Promise<number[][]> {
 		try {
 			const response = this.genAI.models.embedContent({
@@ -71,6 +85,12 @@ export class EmbeddingService implements IEmbeddingService {
 		}
 	}
 
+	/**
+	 * Normalizes a vector to have a unit norm.
+	 *
+	 * @param values - The input vector to normalize.
+	 * @returns The normalized vector.
+	 */
 	private normalizeVector(values: number[]): number[] {
 		const norm = Math.sqrt(values.reduce((sum, val) => sum + val * val, 0))
 		return norm > 0 ? values.map((val) => val / norm) : values
