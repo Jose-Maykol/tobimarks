@@ -25,6 +25,7 @@ export const validateRequest = (schemas: ValidationSchemas) => {
 			next()
 		} catch (error) {
 			if (error instanceof v.ValiError) {
+				//TODO: Mejorar el formato del error, estandarizarlo con el formato estandar
 				return res.status(StatusCodes.BAD_REQUEST).json({
 					success: false,
 					message: 'Validation failed',

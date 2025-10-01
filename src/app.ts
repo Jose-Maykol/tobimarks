@@ -50,6 +50,8 @@ apiRouter.use(
 	(await import('./modules/bookmark/routes/bookmark.routes')).bookmarkRoutes
 )
 
+apiRouter.use('/tags', (await import('./modules/bookmark/routes/tag.routes')).tagRoutes)
+
 app.use('/api', apiRouter)
 
 export { app }

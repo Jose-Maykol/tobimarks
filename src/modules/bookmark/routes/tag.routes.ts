@@ -11,6 +11,7 @@ import { validateRequest } from '@/common/middlewares/validation.middleware'
 const router = Router()
 const tagController = container.resolve<TagController>(TAG_CONTROLLER)
 
+router.use(authMiddleware)
 router.get('/', tagController.getByUserId.bind(tagController))
 router.post(
 	'/',

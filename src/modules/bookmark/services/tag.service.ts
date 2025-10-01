@@ -32,10 +32,12 @@ export class TagService {
 	/**
 	 * Creates a new tag for the authenticated user.
 	 * Generates a slug from the tag name to ensure uniqueness.
+	 * Generates an embedding for the tag name using the embedding service.
 	 *
 	 * @param user - The authenticated user's information (token payload).
 	 * @param data - The data required to create the tag, including its name.
 	 * @returns A promise that resolves to the created tag.
+	 * @throws TagAlreadyExistsError - If a tag with the same name already exists.
 	 */
 	async create(user: AccessTokenPayload, data: CreateTagRequestBody) {
 		const slugName = slugify(data.name)
@@ -62,7 +64,7 @@ export class TagService {
 	/**
 	 * Updates an existing tag for the authenticated user.
 	 * Ensures the tag belongs to the user before updating.
-	 * Generates a new slug from the updated tag name.
+	 * Generates a new slug and embedding from the updated tag name.
 	 *
 	 * @param user - The authenticated user's information (token payload).
 	 * @param tagId - The unique identifier of the tag to update.
@@ -75,10 +77,12 @@ export class TagService {
 		if (!tagExists) throw new TagNotFoundError()
 
 		const slugName = slugify(data.name)
+		const embedding = await this.embeddingService.generateEmbedding(data.name)
 
 		const updateData = {
 			...data,
-			slug: slugName
+			slug: slugName,
+			embedding
 		}
 
 		const updatedTag = await this.tagRepository.update(tagId, updateData)

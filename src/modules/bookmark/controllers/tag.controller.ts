@@ -59,8 +59,7 @@ export class TagController {
 						tag: {
 							id: createdTag.id,
 							name: createdTag.name,
-							slug: createdTag.slug,
-							usageCount: createdTag.usageCount
+							slug: createdTag.slug
 						}
 					},
 					'Tag created successfully'
@@ -87,8 +86,7 @@ export class TagController {
 						tag: {
 							id: updatedTag.id,
 							name: updatedTag.name,
-							slug: updatedTag.slug,
-							usageCount: updatedTag.usageCount
+							slug: updatedTag.slug
 						}
 					},
 					'Tag updated successfully'
