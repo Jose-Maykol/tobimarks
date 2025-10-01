@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+
 CREATE TABLE tags (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -7,7 +9,7 @@ CREATE TABLE tags (
     embedding VECTOR(1536),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(user_id, slug)
+    UNIQUE(user_id, name)
 );
 
 -- Index on user_id to optimize queries filtering tags by user (e.g., fetching all tags for a specific user)

@@ -32,7 +32,9 @@ export class TagRepository implements ITagRepository {
 				created_at AS "createdAt", 
 				updated_at AS "updatedAt"
 		`
-		const values = [data.userId, data.name, data.slug, data.embedding]
+
+		const embeddingVector = data.embedding ? `[${data.embedding.join(', ')}]` : null
+		const values = [data.userId, data.name, data.slug, embeddingVector]
 
 		try {
 			const result = await this.dbContext.query<Tag>(query, values)
@@ -98,6 +100,7 @@ export class TagRepository implements ITagRepository {
 	}
 
 	async update(id: string, data: Partial<Tag>): Promise<Tag | null> {
+		//TODO: El recurso no se deberia de poder actualizar parcialmente
 		const fields = []
 		const values = []
 		let index = 1
@@ -109,6 +112,10 @@ export class TagRepository implements ITagRepository {
 		if (data.slug !== undefined) {
 			fields.push(`slug = $${index++}`)
 			values.push(data.slug)
+		}
+		if (data.embedding !== undefined) {
+			fields.push(`embedding = $${index++}`)
+			values.push(data.embedding)
 		}
 
 		values.push(id)
