@@ -9,6 +9,8 @@ export interface Tag {
 	updatedAt: Date
 }
 
-export type CreateTagDto = Pick<Tag, 'userId' | 'name' | 'slug' | 'embedding'>
+export type CreateTagDto = Pick<Tag, 'userId' | 'name' | 'slug' | 'embedding' | 'styleToken'>
 
-export type UpdateTagDto = Partial<Pick<Tag, 'id' | 'name' | 'slug'>>
+export type UpdateTagDto = Partial<Pick<Tag, 'id' | 'name' | 'slug' | 'styleToken'>>
+
+export type TagListItemDto = Pick<Tag, 'id' | 'name' | 'slug' | 'styleToken'>

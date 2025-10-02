@@ -28,7 +28,7 @@ export class TagController {
 	) {
 		try {
 			const user = req.user!
-			const userId = user.id
+			const userId = user.sub
 			const tags = await this.tagService.getByUserId(userId)
 			return res.status(StatusCodes.OK).json(ApiResponseBuilder.success({ tags }))
 		} catch (error) {

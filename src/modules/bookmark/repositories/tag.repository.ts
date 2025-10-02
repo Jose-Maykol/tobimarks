@@ -1,7 +1,7 @@
 import { DatabaseError } from 'pg'
 import { inject, injectable } from 'tsyringe'
 
-import type { CreateTagDto, Tag } from '../models/tag.model'
+import type { CreateTagDto, Tag, TagListItemDto } from '../models/tag.model'
 
 import type { IDatabaseContext } from '@/core/database/database-context'
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
@@ -9,7 +9,7 @@ import { DATABASE_CONTEXT } from '@/core/di/tokens'
 
 export interface ITagRepository {
 	create(data: CreateTagDto): Promise<Tag>
-	findByUserId(userId: string): Promise<Tag[]>
+	findByUserId(userId: string): Promise<TagListItemDto[]>
 	findById(id: string): Promise<Tag | null>
 	existsByIdAndUserId(id: string, userId: string): Promise<boolean>
 	update(id: string, data: Partial<Tag>): Promise<Tag | null>
@@ -22,19 +22,18 @@ export class TagRepository implements ITagRepository {
 
 	async create(data: CreateTagDto): Promise<Tag> {
 		const query = `
-			INSERT INTO tags (user_id, name, slug, embedding)
-			VALUES ($1, $2, $3, $4)
+			INSERT INTO tags (user_id, name, slug, embedding, style_token)
+			VALUES ($1, $2, $3, $4, $5)
 			RETURNING 
 				id, 
 				user_id AS "userId", 
 				name, 
 				slug, 
-				created_at AS "createdAt", 
-				updated_at AS "updatedAt"
+				style_token AS "styleToken"
 		`
 
 		const embeddingVector = data.embedding ? `[${data.embedding.join(', ')}]` : null
-		const values = [data.userId, data.name, data.slug, embeddingVector]
+		const values = [data.userId, data.name, data.slug, embeddingVector, data.styleToken]
 
 		try {
 			const result = await this.dbContext.query<Tag>(query, values)
@@ -53,12 +52,9 @@ export class TagRepository implements ITagRepository {
 		const query = `
 			SELECT 
 				id, 
-				user_id AS "userId", 
 				name, 
-				slug, 
-				usage_count AS "usageCount", 
-				created_at AS "createdAt", 
-				updated_at AS "updatedAt"
+				slug,
+				style_token AS "styleToken"
 			FROM tags
 			WHERE user_id = $1
 			ORDER BY name ASC
@@ -76,7 +72,6 @@ export class TagRepository implements ITagRepository {
 				user_id AS "userId", 
 				name,
 				slug,
-				usage_count AS "usageCount",
 				created_at AS "createdAt",
 				updated_at AS "updatedAt"
 			FROM tags
@@ -129,7 +124,6 @@ export class TagRepository implements ITagRepository {
 				user_id AS "userId", 
 				name, 
 				slug, 
-				usage_count AS "usageCount", 
 				created_at AS "createdAt", 
 				updated_at AS "updatedAt"
 		`
