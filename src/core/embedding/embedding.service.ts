@@ -11,7 +11,7 @@ export interface IEmbeddingService {
 @injectable()
 export class EmbeddingService implements IEmbeddingService {
 	private genAI: GoogleGenAI
-	private readonly VECTOR_DIMENSION = 1024
+	private readonly VECTOR_DIMENSION = 1536
 	private readonly EMBEDDING_MODEL = 'gemini-embedding-001'
 	private readonly TASK_TYPE = 'RETRIEVAL_DOCUMENT'
 
