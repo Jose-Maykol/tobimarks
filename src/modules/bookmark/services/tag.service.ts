@@ -40,7 +40,7 @@ export class TagService {
 	 * @throws TagAlreadyExistsError - If a tag with the same name already exists.
 	 */
 	async create(user: AccessTokenPayload, data: CreateTagRequestBody) {
-		const slugName = slugify(data.name)
+		const slugName = slugify(data.name, { lower: true, strict: true })
 		const embedding = await this.embeddingService.generateEmbedding(data.name)
 
 		const newTag = {

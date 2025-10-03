@@ -9,7 +9,7 @@ CREATE TABLE tags (
     embedding VECTOR(1536),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(user_id, name)
+    UNIQUE(user_id, slug)
 );
 
 -- Index on user_id to optimize queries filtering tags by user (e.g., fetching all tags for a specific user)
