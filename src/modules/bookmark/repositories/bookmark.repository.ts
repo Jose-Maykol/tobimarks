@@ -11,7 +11,7 @@ export interface IBookmarkRepository {
 	findById(id: string): Promise<Bookmark | null>
 	findByUserId(userId: string): Promise<BookmarkListItemDto[]>
 	existsByIdAndUserId(id: string, userId: string): Promise<boolean>
-	create(params: CreateBookmarkDto): Promise<Bookmark>
+	create(params: CreateBookmarkDto): Promise<Partial<Bookmark>>
 	softDelete(id: string): Promise<Pick<Bookmark, 'id'>>
 	updateFavoriteStatus(
 		id: string,
@@ -24,7 +24,7 @@ export interface IBookmarkRepository {
 export class BookmarkRepository implements IBookmarkRepository {
 	constructor(@inject(DATABASE_CONTEXT) private readonly dbContext: IDatabaseContext) {}
 
-	async create(params: CreateBookmarkDto): Promise<Bookmark> {
+	async create(params: CreateBookmarkDto): Promise<Partial<Bookmark>> {
 		const query = `
       INSERT INTO bookmarks (
         user_id, 
@@ -39,25 +39,15 @@ export class BookmarkRepository implements IBookmarkRepository {
         is_favorite, 
         is_archived
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+        setweight(to_tsvector('english', coalesce($5, $7, '')), 'A') ||
+      )
       RETURNING 
         id, 
-        user_id AS "userId", 
-        website_id AS "websiteId", 
-        category_id AS "categoryId", 
         url, 
         title, 
-        description, 
-        og_title AS "ogTitle", 
-        og_description AS "ogDescription", 
-        og_image_url AS "ogImageUrl", 
-        is_favorite AS "isFavorite", 
-        is_archived AS "isArchived", 
-        created_at AS "createdAt", 
-        updated_at AS "updatedAt", 
-        last_accessed_at AS "lastAccessedAt", 
-        access_count AS "accessCount", 
-        search_vector AS "searchVector"
+        description
     `
 		const values = [
 			params.userId,
