@@ -14,3 +14,5 @@ export type CreateTagDto = Pick<Tag, 'userId' | 'name' | 'slug' | 'embedding' | 
 export type UpdateTagDto = Partial<Pick<Tag, 'id' | 'name' | 'slug' | 'styleToken'>>
 
 export type TagListItemDto = Pick<Tag, 'id' | 'name' | 'slug' | 'styleToken'>
+
+export type TagSummaryDto = Pick<Tag, 'id' | 'name' | 'slug' | 'styleToken'>

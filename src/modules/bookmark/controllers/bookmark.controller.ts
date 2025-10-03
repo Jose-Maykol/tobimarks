@@ -102,7 +102,8 @@ export class BookmarkController {
 						isArchived: b.isArchived,
 						accessCount: b.accessCount,
 						domain: b.domain,
-						faviconUrl: b.faviconUrl
+						faviconUrl: b.faviconUrl,
+						tags: b.tags
 					}))
 				})
 			)

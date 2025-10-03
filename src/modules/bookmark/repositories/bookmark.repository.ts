@@ -122,7 +122,22 @@ export class BookmarkRepository implements IBookmarkRepository {
         b.is_archived AS "isArchived", 
         b.access_count AS "accessCount",
         w.domain, 
-        w.favicon_url AS "faviconUrl"
+        w.favicon_url AS "faviconUrl",
+        COALESCE(
+          (
+            SELECT json_agg(
+                json_build_object(
+                    'id', t.id,
+                    'name', t.name,
+                    'slug', t.slug,
+                    'styleToken', t.style_token
+                )
+            )
+            FROM bookmark_tags bt
+            INNER JOIN tags t ON t.id = bt.tag_id
+            WHERE bt.bookmark_id = b.id
+          ), '[]'
+        ) AS tags
       FROM bookmarks b
       INNER JOIN websites w ON b.website_id = w.id
       WHERE b.user_id = $1

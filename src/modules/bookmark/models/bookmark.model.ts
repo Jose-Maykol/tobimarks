@@ -1,3 +1,4 @@
+import type { TagSummaryDto } from './tag.model'
 import type { Website } from './website.model'
 
 export interface Bookmark {
@@ -40,4 +41,4 @@ export type BookmarkListItemDto = Pick<
 	Bookmark,
 	'id' | 'url' | 'title' | 'isFavorite' | 'isArchived' | 'accessCount'
 > &
-	Pick<Website, 'domain' | 'faviconUrl'>
+	Pick<Website, 'domain' | 'faviconUrl'> & { tags: TagSummaryDto[] }
