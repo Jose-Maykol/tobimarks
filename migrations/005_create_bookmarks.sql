@@ -18,6 +18,8 @@ CREATE TABLE bookmarks (
     last_accessed_at TIMESTAMP WITH TIME ZONE,
     access_count INTEGER DEFAULT 0,
 
+    embedding VECTOR(1536),
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     deleted_at TIMESTAMP WITH TIME ZONE,
