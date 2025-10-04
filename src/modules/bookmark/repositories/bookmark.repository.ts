@@ -1,7 +1,12 @@
 import { DatabaseError } from 'pg'
 import { inject, injectable } from 'tsyringe'
 
-import type { Bookmark, BookmarkListItemDto, CreateBookmarkDto } from '../models/bookmark.model'
+import type {
+	Bookmark,
+	BookmarkListItemDto,
+	CreateBookmarkDto,
+	UpdateBookmarkDto
+} from '../models/bookmark.model'
 
 import type { IDatabaseContext } from '@/core/database/database-context'
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
@@ -17,7 +22,7 @@ export interface IBookmarkRepository {
 		id: string,
 		isFavorite: boolean
 	): Promise<Pick<Bookmark, 'id' | 'isFavorite'>>
-	updateTitle(id: string, title: string): Promise<Pick<Bookmark, 'id' | 'title'>>
+	update(id: string, data: UpdateBookmarkDto): Promise<void>
 }
 
 @injectable()
@@ -177,14 +182,43 @@ export class BookmarkRepository implements IBookmarkRepository {
 		return result.rows[0]!
 	}
 
-	async updateTitle(id: string, title: string): Promise<Pick<Bookmark, 'id' | 'title'>> {
-		const query = `
-      UPDATE bookmarks
-      SET title = $1
-      WHERE id = $2
-      RETURNING id, title
-    `
-		const result = await this.dbContext.query<Pick<Bookmark, 'id' | 'title'>>(query, [title, id])
-		return result.rows[0]!
+	async update(id: string, data: UpdateBookmarkDto): Promise<void> {
+		const updates: string[] = []
+		const values: (string | null)[] = []
+
+		if (data.title !== undefined) {
+			updates.push('title = $' + (values.length + 1))
+			values.push(data.title)
+		}
+
+		if (updates.length > 0) {
+			const query = `
+			UPDATE bookmarks
+			SET ${updates.join(', ')}
+			WHERE id = $${values.length + 1}
+		`
+			values.push(id)
+
+			try {
+				await this.dbContext.query('BEGIN')
+				await this.dbContext.query(query, values)
+
+				if (data.tags !== undefined) {
+					await this.dbContext.query('DELETE FROM bookmark_tags WHERE bookmark_id = $1;', [id])
+					if (data.tags.length > 0) {
+						await this.dbContext.query(
+							`INSERT INTO bookmark_tags (bookmark_id, tag_id)
+						SELECT $1, unnest($2::uuid[]);`,
+							[id, data.tags]
+						)
+					}
+				}
+
+				await this.dbContext.query('COMMIT')
+			} catch (error) {
+				await this.dbContext.query('ROLLBACK')
+				throw error
+			}
+		}
 	}
 }

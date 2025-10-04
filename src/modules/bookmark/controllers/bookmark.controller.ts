@@ -14,7 +14,7 @@ import {
 	UrlTimeoutException
 } from '../exceptions/metadata-extractor.exceptions'
 import type { BookmarkService } from '../services/bookmark.service'
-import type { CreateBookmarkRequestBody } from '../types/bookmark.types'
+import type { CreateBookmarkRequestBody, UpdateBookmarkRequestBody } from '../types/bookmark.types'
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
@@ -225,27 +225,19 @@ export class BookmarkController {
 		}
 	}
 
-	async updateTitle(
-		req: Request<{ id: string }, Record<string, never>, { title: string }>,
+	async update(
+		req: Request<{ id: string }, Record<string, never>, UpdateBookmarkRequestBody>,
 		res: Response,
 		next: NextFunction
 	) {
 		try {
 			const user = req.user!
-			const { id } = req.params
-			const { title } = req.body
-			const result = await this.bookmarkService.updateTitle(user, id, title)
-			return res.status(StatusCodes.OK).json(
-				ApiResponseBuilder.success(
-					{
-						bookmark: {
-							id: result.id,
-							title: result.title
-						}
-					},
-					'Bookmark title updated successfully'
-				)
-			)
+			const data = req.body
+			const id = req.params.id
+			await this.bookmarkService.update(user, id, data)
+			return res
+				.status(StatusCodes.OK)
+				.json(ApiResponseBuilder.success('Bookmark title updated successfully'))
 		} catch (error) {
 			if (error instanceof BookmarkNotFoundError) {
 				return res

@@ -37,6 +37,8 @@ export type CreateBookmarkDto = Pick<
 	| 'isArchived'
 >
 
+export type UpdateBookmarkDto = Partial<Pick<Bookmark, 'title'>> & { tags?: string[] }
+
 export type BookmarkListItemDto = Pick<
 	Bookmark,
 	'id' | 'url' | 'title' | 'isFavorite' | 'isArchived' | 'accessCount'

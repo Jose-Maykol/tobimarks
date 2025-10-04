@@ -10,7 +10,7 @@ import {
 import type { CreateBookmarkDto } from '../models/bookmark.model'
 import type { IBookmarkRepository } from '../repositories/bookmark.repository'
 import type { IWebsiteRepository } from '../repositories/websites.repository'
-import type { CreateBookmarkRequestBody } from '../types/bookmark.types'
+import type { CreateBookmarkRequestBody, UpdateBookmarkRequestBody } from '../types/bookmark.types'
 
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
@@ -175,12 +175,20 @@ export class BookmarkService {
 		return result
 	}
 
-	async updateTitle(user: AccessTokenPayload, bookmarkId: string, title: string) {
+	/**
+	 * Updates a bookmark for the given user.
+	 *
+	 * @param user - The user updating the bookmark.
+	 * @param bookmarkId - The ID of the bookmark to update.
+	 * @param data - The data to update.
+	 */
+	async update(user: AccessTokenPayload, bookmarkId: string, data: UpdateBookmarkRequestBody) {
 		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
-
 		if (!existsBookmark) throw new BookmarkNotFoundError()
 
-		const result = await this.bookmarkRepository.updateTitle(bookmarkId, title)
-		return result
+		const { title = null, tags = [] } = data
+		const updateData = { title, tags }
+
+		await this.bookmarkRepository.update(bookmarkId, updateData)
 	}
 }
