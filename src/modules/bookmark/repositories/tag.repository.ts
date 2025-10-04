@@ -22,18 +22,18 @@ export class TagRepository implements ITagRepository {
 
 	async create(data: CreateTagDto): Promise<Tag> {
 		const query = `
-			INSERT INTO tags (user_id, name, slug, embedding, style_token)
+			INSERT INTO tags (user_id, name, slug, embedding, color)
 			VALUES ($1, $2, $3, $4, $5)
 			RETURNING 
 				id, 
 				user_id AS "userId", 
 				name, 
 				slug, 
-				style_token AS "styleToken"
+				color
 		`
 
 		const embeddingVector = data.embedding ? `[${data.embedding.join(', ')}]` : null
-		const values = [data.userId, data.name, data.slug, embeddingVector, data.styleToken]
+		const values = [data.userId, data.name, data.slug, embeddingVector, data.color]
 
 		try {
 			const result = await this.dbContext.query<Tag>(query, values)
@@ -54,7 +54,7 @@ export class TagRepository implements ITagRepository {
 				id, 
 				name, 
 				slug,
-				style_token AS "styleToken"
+				color
 			FROM tags
 			WHERE user_id = $1
 			ORDER BY name ASC

@@ -120,7 +120,7 @@ export class BookmarkRepository implements IBookmarkRepository {
                     'id', t.id,
                     'name', t.name,
                     'slug', t.slug,
-                    'styleToken', t.style_token
+                    'color', t.color
                 )
             )
             FROM bookmark_tags bt

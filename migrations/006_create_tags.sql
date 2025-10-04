@@ -5,7 +5,7 @@ CREATE TABLE tags (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(50) NOT NULL,
     slug VARCHAR(50) NOT NULL,
-    style_token VARCHAR(100), -- bg-blue-100
+    color VARCHAR(100),
     embedding VECTOR(1536),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

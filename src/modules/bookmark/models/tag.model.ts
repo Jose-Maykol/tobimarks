@@ -3,16 +3,16 @@ export interface Tag {
 	userId: string
 	name: string
 	slug: string
-	styleToken: string | null
+	color: string | null
 	embedding: number[] | null
 	createdAt: Date
 	updatedAt: Date
 }
 
-export type CreateTagDto = Pick<Tag, 'userId' | 'name' | 'slug' | 'embedding' | 'styleToken'>
+export type CreateTagDto = Pick<Tag, 'userId' | 'name' | 'slug' | 'embedding' | 'color'>
 
-export type UpdateTagDto = Partial<Pick<Tag, 'id' | 'name' | 'slug' | 'styleToken'>>
+export type UpdateTagDto = Partial<Pick<Tag, 'id' | 'name' | 'slug' | 'color'>>
 
-export type TagListItemDto = Pick<Tag, 'id' | 'name' | 'slug' | 'styleToken'>
+export type TagListItemDto = Pick<Tag, 'id' | 'name' | 'slug' | 'color'>
 
-export type TagSummaryDto = Pick<Tag, 'id' | 'name' | 'slug' | 'styleToken'>
+export type TagSummaryDto = Pick<Tag, 'id' | 'name' | 'slug' | 'color'>
