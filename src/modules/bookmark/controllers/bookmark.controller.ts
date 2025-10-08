@@ -13,6 +13,7 @@ import {
 	UrlNotFoundException,
 	UrlTimeoutException
 } from '../exceptions/metadata-extractor.exceptions'
+import { TagNotFoundError } from '../exceptions/tag.exceptions'
 import type { BookmarkService } from '../services/bookmark.service'
 import type { CreateBookmarkRequestBody, UpdateBookmarkRequestBody } from '../types/bookmark.types'
 
@@ -240,6 +241,11 @@ export class BookmarkController {
 				.json(ApiResponseBuilder.success('Bookmark title updated successfully'))
 		} catch (error) {
 			if (error instanceof BookmarkNotFoundError) {
+				return res
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
+			if (error instanceof TagNotFoundError) {
 				return res
 					.status(StatusCodes.NOT_FOUND)
 					.json(ApiResponseBuilder.error(error.message, error.code))

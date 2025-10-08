@@ -2,7 +2,13 @@ import { parse } from 'tldts'
 import { inject, injectable } from 'tsyringe'
 
 import type { MetadataExtractorService } from './metadata-extractor.service'
-import { BOOKMARK_REPOSITORY, METADATA_EXTRACTOR_SERVICE, WEBSITE_REPOSITORY } from '../di/token'
+import type { TagService } from './tag.service'
+import {
+	BOOKMARK_REPOSITORY,
+	METADATA_EXTRACTOR_SERVICE,
+	TAG_SERVICE,
+	WEBSITE_REPOSITORY
+} from '../di/token'
 import {
 	BookmarkAlreadyExistsError,
 	BookmarkNotFoundError
@@ -20,7 +26,8 @@ export class BookmarkService {
 	constructor(
 		@inject(BOOKMARK_REPOSITORY) private bookmarkRepository: IBookmarkRepository,
 		@inject(METADATA_EXTRACTOR_SERVICE) private metadataExtractor: MetadataExtractorService,
-		@inject(WEBSITE_REPOSITORY) private websiteRepository: IWebsiteRepository
+		@inject(WEBSITE_REPOSITORY) private websiteRepository: IWebsiteRepository,
+		@inject(TAG_SERVICE) private tagService: TagService
 	) {}
 
 	/**
@@ -185,7 +192,9 @@ export class BookmarkService {
 	async update(user: AccessTokenPayload, bookmarkId: string, data: UpdateBookmarkRequestBody) {
 		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
 		if (!existsBookmark) throw new BookmarkNotFoundError()
-
+		if (data.tags) {
+			await this.tagService.checkTagsOwnership(user.sub, data.tags)
+		}
 		const { title = null, tags = [] } = data
 		const updateData = { title, tags }
 

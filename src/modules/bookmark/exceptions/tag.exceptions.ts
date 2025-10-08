@@ -12,7 +12,7 @@ export class TagNotFoundError extends BaseException {
 }
 
 export class TagAlreadyExistsError extends BaseException {
-	constructor(message: string = 'The tag already exists') {
+	constructor(message: string = 'Tag already exists') {
 		super(message, BookMarkErrorCode.TAG_ALREADY_EXISTS)
 	}
 }

@@ -12,6 +12,7 @@ export interface ITagRepository {
 	findByUserId(userId: string): Promise<TagListItemDto[]>
 	findById(id: string): Promise<Tag | null>
 	existsByIdAndUserId(id: string, userId: string): Promise<boolean>
+	existsByUserIdAndIds(userId: string, ids: string[]): Promise<boolean>
 	update(id: string, data: Partial<Tag>): Promise<Tag | null>
 	delete(id: string): Promise<Pick<Tag, 'id'> | null>
 }
@@ -92,6 +93,22 @@ export class TagRepository implements ITagRepository {
 		const values = [id, userId]
 		const result = await this.dbContext.query<{ '1': number }>(query, values)
 		return result.rowCount > 0
+	}
+
+	async existsByUserIdAndIds(userId: string, ids: string[]): Promise<boolean> {
+		if (ids.length === 0) return true
+
+		const query = `
+			SELECT COUNT(*) AS count
+			FROM tags
+			WHERE user_id = $1 AND id = ANY($2)
+			LIMIT 1
+		`
+		const values = [userId, ids]
+		const result = await this.dbContext.query<{ count: string }>(query, values)
+
+		const count = parseInt(result.rows[0]?.count || '0', 10)
+		return count === ids.length
 	}
 
 	async update(id: string, data: Partial<Tag>): Promise<Tag | null> {

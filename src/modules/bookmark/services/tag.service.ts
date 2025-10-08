@@ -30,6 +30,25 @@ export class TagService {
 	}
 
 	/**
+	 * Verifies that all provided tag IDs belong to the specified user.
+	 * Throws an error if any tag does not belong to the user.
+	 *
+	 * @param userId - The unique identifier of the user.
+	 * @param tagIds - The list of tag IDs to verify ownership.
+	 * @returns A promise that resolves to true if all tags belong to the user.
+	 * @throws TagNotFoundError - If any tag does not belong to the user.
+	 */
+	async checkTagsOwnership(userId: string, tagIds: string[]) {
+		if (tagIds.length === 0) return true
+
+		const allTagsExist = await this.tagRepository.existsByUserIdAndIds(userId, tagIds)
+
+		if (!allTagsExist) {
+			throw new TagNotFoundError()
+		}
+	}
+
+	/**
 	 * Creates a new tag for the authenticated user.
 	 * Generates a slug from the tag name to ensure uniqueness.
 	 * Generates an embedding for the tag name using the embedding service.
