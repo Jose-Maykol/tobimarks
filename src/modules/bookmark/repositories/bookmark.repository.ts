@@ -23,6 +23,7 @@ export interface IBookmarkRepository {
 		isFavorite: boolean
 	): Promise<Pick<Bookmark, 'id' | 'isFavorite'>>
 	update(id: string, data: UpdateBookmarkDto): Promise<void>
+	registerAccess(id: string): Promise<void>
 }
 
 @injectable()
@@ -116,6 +117,7 @@ export class BookmarkRepository implements IBookmarkRepository {
         b.is_favorite AS "isFavorite", 
         b.is_archived AS "isArchived", 
         b.access_count AS "accessCount",
+				b.last_accessed_at AS "lastAccessedAt",
         w.domain, 
         w.favicon_url AS "faviconUrl",
         COALESCE(
@@ -220,5 +222,16 @@ export class BookmarkRepository implements IBookmarkRepository {
 				throw error
 			}
 		}
+	}
+
+	async registerAccess(id: string): Promise<void> {
+		const query = `
+			UPDATE bookmarks
+			SET 
+				last_accessed_at = NOW(),
+				access_count = access_count + 1
+			WHERE id = $1
+		`
+		await this.dbContext.query(query, [id])
 	}
 }

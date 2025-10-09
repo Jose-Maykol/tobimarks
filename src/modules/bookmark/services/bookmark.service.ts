@@ -200,4 +200,11 @@ export class BookmarkService {
 
 		await this.bookmarkRepository.update(bookmarkId, updateData)
 	}
+
+	async registerAccess(user: AccessTokenPayload, bookmarkId: string) {
+		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
+		if (!existsBookmark) throw new BookmarkNotFoundError()
+
+		await this.bookmarkRepository.registerAccess(bookmarkId)
+	}
 }

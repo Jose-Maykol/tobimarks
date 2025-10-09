@@ -102,6 +102,7 @@ export class BookmarkController {
 						isFavorite: b.isFavorite,
 						isArchived: b.isArchived,
 						accessCount: b.accessCount,
+						lastAccessedAt: b.lastAccessedAt,
 						domain: b.domain,
 						faviconUrl: b.faviconUrl,
 						tags: b.tags
@@ -246,6 +247,28 @@ export class BookmarkController {
 					.json(ApiResponseBuilder.error(error.message, error.code))
 			}
 			if (error instanceof TagNotFoundError) {
+				return res
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
+			next(error)
+		}
+	}
+
+	async registerAccess(
+		req: Request<{ id: string }, Record<string, never>, Record<string, never>>,
+		res: Response,
+		next: NextFunction
+	) {
+		try {
+			const user = req.user!
+			const { id } = req.params
+			await this.bookmarkService.registerAccess(user, id)
+			return res
+				.status(StatusCodes.OK)
+				.json(ApiResponseBuilder.success('Bookmark access registered successfully'))
+		} catch (error) {
+			if (error instanceof BookmarkNotFoundError) {
 				return res
 					.status(StatusCodes.NOT_FOUND)
 					.json(ApiResponseBuilder.error(error.message, error.code))

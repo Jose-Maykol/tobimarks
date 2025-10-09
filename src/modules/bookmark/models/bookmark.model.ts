@@ -41,6 +41,6 @@ export type UpdateBookmarkDto = Partial<Pick<Bookmark, 'title'>> & { tags?: stri
 
 export type BookmarkListItemDto = Pick<
 	Bookmark,
-	'id' | 'url' | 'title' | 'isFavorite' | 'isArchived' | 'accessCount'
+	'id' | 'url' | 'title' | 'isFavorite' | 'isArchived' | 'accessCount' | 'lastAccessedAt'
 > &
 	Pick<Website, 'domain' | 'faviconUrl'> & { tags: TagSummaryDto[] }
