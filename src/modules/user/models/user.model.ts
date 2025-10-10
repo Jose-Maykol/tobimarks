@@ -12,3 +12,5 @@ export interface User {
 }
 
 export type CreateUserDto = Pick<User, 'googleId' | 'email' | 'displayName' | 'avatarUrl'>
+
+export type ProfileUserDto = Pick<User, 'id' | 'email' | 'displayName' | 'avatarUrl'>

@@ -1,12 +1,13 @@
 import { inject, injectable } from 'tsyringe'
 
-import type { User, CreateUserDto } from '../models/user.model'
+import type { User, CreateUserDto, ProfileUserDto } from '../models/user.model'
 
 import type { IDatabaseContext } from '@/core/database/database-context'
 import { DATABASE_CONTEXT } from '@/core/di/tokens'
 
 export interface IUserRepository {
 	findByGoogleId(googleId: string): Promise<User | null>
+	findById(id: string): Promise<ProfileUserDto | null>
 	create(params: CreateUserDto): Promise<User>
 }
 
@@ -30,6 +31,20 @@ export class UserRepository implements IUserRepository {
       WHERE google_id = $1
     `
 		const result = await this.dbContext.query<User>(query, [googleId])
+		return result.rows[0] ?? null
+	}
+
+	async findById(id: string): Promise<ProfileUserDto | null> {
+		const query = `
+			SELECT
+				id, 
+				email, 
+				display_name AS "displayName", 
+				avatar_url AS "avatarUrl",
+			FROM users
+			WHERE id = $1
+		`
+		const result = await this.dbContext.query<ProfileUserDto>(query, [id])
 		return result.rows[0] ?? null
 	}
 
