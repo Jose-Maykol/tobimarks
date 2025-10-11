@@ -36,6 +36,7 @@ export class TokenService {
 		try {
 			return jwt.verify(token, env.JWT_SECRET) as AccessTokenPayload
 		} catch (error: unknown) {
+			//TODO: improve error handling
 			return 'Invalid token'
 		}
 	}

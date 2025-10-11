@@ -103,6 +103,7 @@ export class BookmarkRepository implements IBookmarkRepository {
         search_vector AS "searchVector"
       FROM bookmarks
       WHERE id = $1
+			AND deleted_at IS NULL
     `
 		const result = await this.dbContext.query<Bookmark>(query, [id])
 		return result.rows[0] || null
@@ -138,6 +139,7 @@ export class BookmarkRepository implements IBookmarkRepository {
       FROM bookmarks b
       INNER JOIN websites w ON b.website_id = w.id
       WHERE b.user_id = $1
+			AND b.deleted_at IS NULL
       ORDER BY b.created_at DESC
     `
 

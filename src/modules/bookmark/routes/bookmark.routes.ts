@@ -23,5 +23,6 @@ router.patch('/:id', bookmarkController.update.bind(bookmarkController))
 router.patch('/:id/access', bookmarkController.registerAccess.bind(bookmarkController))
 router.patch('/:id/favorite', bookmarkController.markAsFavorite.bind(bookmarkController))
 router.delete('/:id/favorite', bookmarkController.unmarkAsFavorite.bind(bookmarkController))
+router.delete('/:id', bookmarkController.delete.bind(bookmarkController))
 
 export const bookmarkRoutes = router
