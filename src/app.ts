@@ -45,6 +45,9 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 apiRouter.use('/auth', authRouter)
+
+apiRouter.use('/users', (await import('./modules/user/routes/user.routes')).userRoutes)
+
 apiRouter.use(
 	'/bookmarks',
 	(await import('./modules/bookmark/routes/bookmark.routes')).bookmarkRoutes

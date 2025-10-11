@@ -40,7 +40,7 @@ export class UserRepository implements IUserRepository {
 				id, 
 				email, 
 				display_name AS "displayName", 
-				avatar_url AS "avatarUrl",
+				avatar_url AS "avatarUrl"
 			FROM users
 			WHERE id = $1
 		`
@@ -65,6 +65,7 @@ export class UserRepository implements IUserRepository {
 		`
 		const values = [params.googleId, params.email, params.displayName, params.avatarUrl ?? null]
 		const result = await this.dbContext.query<User>(query, values)
+		//TODO: handle error to domain specific error
 		if (!result.rows[0]) {
 			throw new Error('Failed to create user')
 		}
