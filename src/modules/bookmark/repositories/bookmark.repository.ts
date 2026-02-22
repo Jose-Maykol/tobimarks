@@ -11,18 +11,19 @@ import type {
 import type { IDatabaseContext } from '@/core/database/database-context'
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
 import { DATABASE_CONTEXT } from '@/core/di/tokens'
+import type { IQueryRunner } from '@/core/types/database.type'
 
 export interface IBookmarkRepository {
 	findById(id: string): Promise<Bookmark | null>
 	findByUserId(userId: string): Promise<BookmarkListItemDto[]>
 	existsByIdAndUserId(id: string, userId: string): Promise<boolean>
-	create(params: CreateBookmarkDto): Promise<Partial<Bookmark>>
+	create(params: CreateBookmarkDto, queryRunner?: IQueryRunner): Promise<Partial<Bookmark>>
 	softDelete(id: string): Promise<Pick<Bookmark, 'id'>>
 	updateFavoriteStatus(
 		id: string,
 		isFavorite: boolean
 	): Promise<Pick<Bookmark, 'id' | 'isFavorite'>>
-	update(id: string, data: UpdateBookmarkDto): Promise<void>
+	update(id: string, data: UpdateBookmarkDto, queryRunner?: IQueryRunner): Promise<void>
 	registerAccess(id: string): Promise<void>
 }
 
@@ -30,7 +31,8 @@ export interface IBookmarkRepository {
 export class BookmarkRepository implements IBookmarkRepository {
 	constructor(@inject(DATABASE_CONTEXT) private readonly dbContext: IDatabaseContext) {}
 
-	async create(params: CreateBookmarkDto): Promise<Partial<Bookmark>> {
+	async create(params: CreateBookmarkDto, queryRunner?: IQueryRunner): Promise<Partial<Bookmark>> {
+		const db = queryRunner ?? this.dbContext
 		const query = `
       INSERT INTO bookmarks (
         user_id, 
@@ -70,7 +72,7 @@ export class BookmarkRepository implements IBookmarkRepository {
 		]
 
 		try {
-			const result = await this.dbContext.query<Bookmark>(query, values)
+			const result = await db.query<Bookmark>(query, values)
 			return result.rows[0]!
 		} catch (error) {
 			if (error instanceof DatabaseError) {
@@ -186,7 +188,8 @@ export class BookmarkRepository implements IBookmarkRepository {
 		return result.rows[0]!
 	}
 
-	async update(id: string, data: UpdateBookmarkDto): Promise<void> {
+	async update(id: string, data: UpdateBookmarkDto, queryRunner?: IQueryRunner): Promise<void> {
+		const db = queryRunner ?? this.dbContext
 		const updates: string[] = []
 		const values: (string | null)[] = []
 
@@ -202,26 +205,17 @@ export class BookmarkRepository implements IBookmarkRepository {
 			WHERE id = $${values.length + 1}
 		`
 			values.push(id)
+			await db.query(query, values)
+		}
 
-			try {
-				await this.dbContext.query('BEGIN')
-				await this.dbContext.query(query, values)
-
-				if (data.tags !== undefined) {
-					await this.dbContext.query('DELETE FROM bookmark_tags WHERE bookmark_id = $1;', [id])
-					if (data.tags.length > 0) {
-						await this.dbContext.query(
-							`INSERT INTO bookmark_tags (bookmark_id, tag_id)
-						SELECT $1, unnest($2::uuid[]);`,
-							[id, data.tags]
-						)
-					}
-				}
-
-				await this.dbContext.query('COMMIT')
-			} catch (error) {
-				await this.dbContext.query('ROLLBACK')
-				throw error
+		if (data.tags !== undefined) {
+			await db.query('DELETE FROM bookmark_tags WHERE bookmark_id = $1;', [id])
+			if (data.tags.length > 0) {
+				await db.query(
+					`INSERT INTO bookmark_tags (bookmark_id, tag_id)
+					SELECT $1, unnest($2::uuid[]);`,
+					[id, data.tags]
+				)
 			}
 		}
 	}
