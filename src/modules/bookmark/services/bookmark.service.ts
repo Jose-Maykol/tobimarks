@@ -19,6 +19,8 @@ import type { IWebsiteRepository } from '../repositories/websites.repository'
 import type { CreateBookmarkRequestBody, UpdateBookmarkRequestBody } from '../types/bookmark.types'
 
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
+import type { IUnitOfWork } from '@/core/database/unit-of-work'
+import { UNIT_OF_WORK } from '@/core/di/tokens'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
 @injectable()
@@ -27,7 +29,8 @@ export class BookmarkService {
 		@inject(BOOKMARK_REPOSITORY) private bookmarkRepository: IBookmarkRepository,
 		@inject(METADATA_EXTRACTOR_SERVICE) private metadataExtractor: MetadataExtractorService,
 		@inject(WEBSITE_REPOSITORY) private websiteRepository: IWebsiteRepository,
-		@inject(TAG_SERVICE) private tagService: TagService
+		@inject(TAG_SERVICE) private tagService: TagService,
+		@inject(UNIT_OF_WORK) private unitOfWork: IUnitOfWork
 	) {}
 
 	/**
@@ -46,26 +49,29 @@ export class BookmarkService {
 		const { title, description, ogTitle, ogImageUrl, ogDescription, faviconUrl, canonicalUrl } =
 			metadata
 
-		const website = await this.findOrCreateWebsite(urlBookmark, faviconUrl)
-
-		const newBookmark: CreateBookmarkDto = {
-			userId: user.sub,
-			categoryId: null,
-			websiteId: website.id,
-			url: this.normalizeUrl(urlBookmark, canonicalUrl),
-			title: title,
-			description: description,
-			ogTitle: ogTitle,
-			ogDescription: ogDescription,
-			ogImageUrl: ogImageUrl,
-			isFavorite: false,
-			isArchived: false
-		}
-
+		await this.unitOfWork.begin()
 		try {
-			const createdBookmark = await this.bookmarkRepository.create(newBookmark)
+			const website = await this.findOrCreateWebsite(urlBookmark, faviconUrl, this.unitOfWork)
+
+			const newBookmark: CreateBookmarkDto = {
+				userId: user.sub,
+				categoryId: null,
+				websiteId: website.id,
+				url: this.normalizeUrl(urlBookmark, canonicalUrl),
+				title: title,
+				description: description,
+				ogTitle: ogTitle,
+				ogDescription: ogDescription,
+				ogImageUrl: ogImageUrl,
+				isFavorite: false,
+				isArchived: false
+			}
+
+			const createdBookmark = await this.bookmarkRepository.create(newBookmark, this.unitOfWork)
+			await this.unitOfWork.commit()
 			return createdBookmark
 		} catch (error) {
+			await this.unitOfWork.rollback()
 			if (error instanceof UniqueConstraintViolationError) {
 				throw new BookmarkAlreadyExistsError()
 			}
@@ -80,19 +86,26 @@ export class BookmarkService {
 	 * @param faviconUrl - The favicon URL of the website, if available.
 	 * @returns The found or newly created website.
 	 */
-	private async findOrCreateWebsite(url: string, faviconUrl: string | null) {
+	private async findOrCreateWebsite(
+		url: string,
+		faviconUrl: string | null,
+		queryRunner?: IUnitOfWork
+	) {
 		const urlParse = parse(url)
 		const domain = urlParse.domain as string
 		const domainWithoutSuffix = urlParse.domainWithoutSuffix as string
 
-		const website = await this.websiteRepository.findByDomain(domain)
+		const website = await this.websiteRepository.findByDomain(domain, queryRunner)
 
 		if (!website) {
-			const newWebsite = await this.websiteRepository.create({
-				domain,
-				name: domainWithoutSuffix,
-				faviconUrl: faviconUrl
-			})
+			const newWebsite = await this.websiteRepository.create(
+				{
+					domain,
+					name: domainWithoutSuffix,
+					faviconUrl: faviconUrl
+				},
+				queryRunner
+			)
 			return newWebsite
 		}
 
@@ -198,7 +211,14 @@ export class BookmarkService {
 		const { title = null, tags = [] } = data
 		const updateData = { title, tags }
 
-		await this.bookmarkRepository.update(bookmarkId, updateData)
+		await this.unitOfWork.begin()
+		try {
+			await this.bookmarkRepository.update(bookmarkId, updateData, this.unitOfWork)
+			await this.unitOfWork.commit()
+		} catch (error) {
+			await this.unitOfWork.rollback()
+			throw error
+		}
 	}
 
 	async registerAccess(user: AccessTokenPayload, bookmarkId: string) {
