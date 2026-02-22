@@ -3,18 +3,18 @@ import { inject, injectable } from 'tsyringe'
 
 import { type IDatabaseContext } from './database-context'
 import { DATABASE_CONTEXT } from '../di/tokens'
-import type { DatabaseResponse } from '../types/database.type'
+import type { DatabaseResponse, IQueryRunner } from '../types/database.type'
 
-export interface IUnitOfWork {
-	// users: IUserRepository;
+export interface IUnitOfWork extends IQueryRunner {
 	begin(): Promise<void>
 	commit(): Promise<void>
 	rollback(): Promise<void>
+	dispose(): Promise<void>
 }
 
 @injectable()
 export class UnitOfWork implements IUnitOfWork {
-	public client: PoolClient | null = null
+	private client: PoolClient | null = null
 	private _transactionStarted: boolean = false
 	private _disposed: boolean = false
 

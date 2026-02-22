@@ -2,9 +2,9 @@ import { Pool, type PoolClient } from 'pg'
 import { injectable, singleton } from 'tsyringe'
 
 import { databaseConfig } from '../config/database.config'
-import type { DatabaseResponse } from '../types/database.type'
+import type { DatabaseResponse, IQueryRunner } from '../types/database.type'
 
-export interface IDatabaseContext {
+export interface IDatabaseContext extends IQueryRunner {
 	query<T>(text: string, params?: unknown[]): Promise<DatabaseResponse<T>>
 	getClient(): Promise<PoolClient>
 	closePool(): Promise<void>

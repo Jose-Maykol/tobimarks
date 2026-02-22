@@ -7,6 +7,6 @@ import { EmbeddingService, type IEmbeddingService } from '../embedding/embedding
 
 export const registerCoreDependencies = () => {
 	container.registerSingleton<IDatabaseContext>(DATABASE_CONTEXT, DatabaseContext)
-	container.registerSingleton<IUnitOfWork>(UNIT_OF_WORK, UnitOfWork)
+	container.register<IUnitOfWork>(UNIT_OF_WORK, { useClass: UnitOfWork })
 	container.registerSingleton<IEmbeddingService>(EMBEDDING_SERVICE, EmbeddingService)
 }
