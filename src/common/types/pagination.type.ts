@@ -11,3 +11,24 @@ export interface PaginationMeta {
 	total: number
 	totalPages: number
 }
+
+/**
+ * Options for pagination incoming requests.
+ * @property page - The requested page number (1-indexed).
+ * @property limit - The maximum number of items per page.
+ */
+export interface PaginationOptions {
+	page: number
+	limit: number
+}
+
+/**
+ * Standard structured result for paginated queries.
+ * @template T - Type of the array elements.
+ * @property data - The collection of items for the current page.
+ * @property meta - The pagination metadata.
+ */
+export interface PaginatedResult<T> {
+	data: T[]
+	meta: PaginationMeta
+}
