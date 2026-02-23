@@ -13,7 +13,7 @@ import {
 	BookmarkAlreadyExistsError,
 	BookmarkNotFoundError
 } from '../exceptions/bookmark.exceptions'
-import type { CreateBookmarkDto } from '../models/bookmark.model'
+import type { BookmarkFilters, CreateBookmarkDto } from '../models/bookmark.model'
 import type { IBookmarkRepository } from '../repositories/bookmark.repository'
 import type { IWebsiteRepository } from '../repositories/websites.repository'
 import type { CreateBookmarkRequestBody, UpdateBookmarkRequestBody } from '../types/bookmark.types'
@@ -142,8 +142,8 @@ export class BookmarkService {
 	 * @param user - The user whose bookmarks are to be retrieved.
 	 * @returns A list of bookmarks belonging to the user.
 	 */
-	async get(user: AccessTokenPayload) {
-		const bookmarks = await this.bookmarkRepository.findByUserId(user.sub)
+	async get(user: AccessTokenPayload, filters?: BookmarkFilters) {
+		const bookmarks = await this.bookmarkRepository.findByUserId(user.sub, filters)
 		return bookmarks
 	}
 

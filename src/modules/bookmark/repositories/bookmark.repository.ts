@@ -5,7 +5,8 @@ import type {
 	Bookmark,
 	BookmarkListItemDto,
 	CreateBookmarkDto,
-	UpdateBookmarkDto
+	UpdateBookmarkDto,
+	BookmarkFilters
 } from '../models/bookmark.model'
 
 import type { IDatabaseContext } from '@/core/database/database-context'
@@ -15,7 +16,7 @@ import type { IQueryRunner } from '@/core/types/database.type'
 
 export interface IBookmarkRepository {
 	findById(id: string): Promise<Bookmark | null>
-	findByUserId(userId: string): Promise<BookmarkListItemDto[]>
+	findByUserId(userId: string, filters?: BookmarkFilters): Promise<BookmarkListItemDto[]>
 	existsByIdAndUserId(id: string, userId: string): Promise<boolean>
 	create(params: CreateBookmarkDto, queryRunner?: IQueryRunner): Promise<Partial<Bookmark>>
 	softDelete(id: string): Promise<Pick<Bookmark, 'id'>>
@@ -111,8 +112,8 @@ export class BookmarkRepository implements IBookmarkRepository {
 		return result.rows[0] || null
 	}
 
-	async findByUserId(userId: string): Promise<BookmarkListItemDto[]> {
-		const query = `
+	async findByUserId(userId: string, filters?: BookmarkFilters): Promise<BookmarkListItemDto[]> {
+		let query = `
       SELECT 
         b.id, 
         b.url, 
@@ -142,10 +143,37 @@ export class BookmarkRepository implements IBookmarkRepository {
       INNER JOIN websites w ON b.website_id = w.id
       WHERE b.user_id = $1
 			AND b.deleted_at IS NULL
-      ORDER BY b.created_at DESC
     `
 
-		const result = await this.dbContext.query<BookmarkListItemDto>(query, [userId])
+		//eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const values: any[] = [userId]
+
+		if (filters?.isFavorite !== undefined) {
+			values.push(filters.isFavorite)
+			query += ` AND b.is_favorite = $${values.length}`
+		}
+
+		if (filters?.tags && filters.tags.length > 0) {
+			values.push(filters.tags)
+			query += ` AND EXISTS (
+				SELECT 1 FROM bookmark_tags bt 
+				WHERE bt.bookmark_id = b.id AND bt.tag_id = ANY($${values.length}::uuid[])
+			)`
+		}
+
+		const sortColumns: Record<string, string> = {
+			createdAt: 'b.created_at',
+			lastAccessedAt: 'b.last_accessed_at'
+		}
+
+		const sortBy =
+			filters?.sortBy && sortColumns[filters.sortBy] ? sortColumns[filters.sortBy] : 'b.created_at'
+		const sortOrder = filters?.sortDirection === 'asc' ? 'ASC' : 'DESC'
+		const nullsPosition = sortOrder === 'DESC' ? 'NULLS LAST' : 'NULLS FIRST'
+
+		query += ` ORDER BY ${sortBy} ${sortOrder} ${nullsPosition}`
+
+		const result = await this.dbContext.query<BookmarkListItemDto>(query, values)
 		return result.rows
 	}
 

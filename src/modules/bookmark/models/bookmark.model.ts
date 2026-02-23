@@ -44,3 +44,10 @@ export type BookmarkListItemDto = Pick<
 	'id' | 'url' | 'title' | 'isFavorite' | 'isArchived' | 'accessCount' | 'lastAccessedAt'
 > &
 	Pick<Website, 'domain' | 'faviconUrl'> & { tags: TagSummaryDto[] }
+
+export interface BookmarkFilters {
+	isFavorite?: boolean | undefined
+	tags?: string[] | undefined
+	sortBy?: 'createdAt' | 'lastAccessedAt' | undefined
+	sortDirection?: 'asc' | 'desc' | undefined
+}

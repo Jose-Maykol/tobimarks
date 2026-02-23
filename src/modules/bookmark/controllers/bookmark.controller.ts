@@ -15,7 +15,11 @@ import {
 } from '../exceptions/metadata-extractor.exceptions'
 import { TagNotFoundError } from '../exceptions/tag.exceptions'
 import type { BookmarkService } from '../services/bookmark.service'
-import type { CreateBookmarkRequestBody, UpdateBookmarkRequestBody } from '../types/bookmark.types'
+import type {
+	CreateBookmarkRequestBody,
+	GetBookmarksQueryOutput,
+	UpdateBookmarkRequestBody
+} from '../types/bookmark.types'
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
@@ -86,13 +90,19 @@ export class BookmarkController {
 	 * @returns A JSON response with the list of bookmarks.
 	 */
 	async get(
-		req: Request<Record<string, never>, Record<string, never>, Record<string, never>>,
+		req: Request<
+			Record<string, never>,
+			Record<string, never>,
+			Record<string, never>,
+			GetBookmarksQueryOutput
+		>,
 		res: Response,
 		next: NextFunction
 	) {
 		try {
 			const user = req.user!
-			const bookmark = await this.bookmarkService.get(user)
+			const filters = req.query
+			const bookmark = await this.bookmarkService.get(user, filters)
 			return res.status(StatusCodes.OK).json(
 				ApiResponseBuilder.success({
 					bookmarks: bookmark.map((b) => ({

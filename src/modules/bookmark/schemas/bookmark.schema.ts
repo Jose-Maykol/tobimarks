@@ -20,3 +20,20 @@ export const UpdateBookmarkSchema = v.object({
 		v.array(v.pipe(v.string('Each tag must be a valid UUID'), v.uuid('Invalid UUID format')))
 	)
 })
+
+export const GetBookmarksQuerySchema = v.object({
+	isFavorite: v.optional(
+		v.pipe(
+			v.string(),
+			v.transform((val) => val === 'true')
+		)
+	),
+	tags: v.optional(
+		v.pipe(
+			v.string(),
+			v.transform((val) => val.split(',').filter(Boolean))
+		)
+	),
+	sortBy: v.optional(v.picklist(['createdAt', 'lastAccessedAt'])),
+	sortDirection: v.optional(v.picklist(['asc', 'desc']))
+})
