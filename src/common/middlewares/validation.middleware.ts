@@ -5,7 +5,7 @@ import * as v from 'valibot'
 export interface ValidationSchemas {
 	body?: v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>
 	params?: v.BaseSchema<unknown, Record<string, string>, v.BaseIssue<unknown>>
-	query?: v.BaseSchema<unknown, Record<string, string>, v.BaseIssue<unknown>>
+	query?: v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>
 }
 
 export const validateRequest = (schemas: ValidationSchemas) => {
@@ -20,7 +20,13 @@ export const validateRequest = (schemas: ValidationSchemas) => {
 			}
 
 			if (schemas.query) {
-				req.query = v.parse(schemas.query, req.query)
+				const parsed = v.parse(schemas.query, req.query)
+				Object.defineProperty(req, 'query', {
+					value: parsed,
+					writable: true,
+					configurable: true,
+					enumerable: true
+				})
 			}
 			next()
 		} catch (error) {
