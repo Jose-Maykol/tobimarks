@@ -89,35 +89,37 @@ export class BookmarkController {
 	 * @param next - The next middleware function for error handling.
 	 * @returns A JSON response with the list of bookmarks.
 	 */
-	async get(
-		req: Request<
-			Record<string, never>,
-			Record<string, never>,
-			Record<string, never>,
-			GetBookmarksQueryOutput
-		>,
-		res: Response,
-		next: NextFunction
-	) {
+	async get(req: Request, res: Response, next: NextFunction) {
 		try {
 			const user = req.user!
-			const filters = req.query
-			const bookmark = await this.bookmarkService.get(user, filters)
+			const query = req.query as unknown as GetBookmarksQueryOutput
+			const { page, limit, ...filters } = query
+
+			const paginatedBookmarks = await this.bookmarkService.get(
+				user,
+				{ page: page!, limit: limit! },
+				filters
+			)
+
 			return res.status(StatusCodes.OK).json(
-				ApiResponseBuilder.success({
-					bookmarks: bookmark.map((b) => ({
-						id: b.id,
-						url: b.url,
-						title: b.title,
-						isFavorite: b.isFavorite,
-						isArchived: b.isArchived,
-						accessCount: b.accessCount,
-						lastAccessedAt: b.lastAccessedAt,
-						domain: b.domain,
-						faviconUrl: b.faviconUrl,
-						tags: b.tags
-					}))
-				})
+				ApiResponseBuilder.success(
+					{
+						bookmarks: paginatedBookmarks.data.map((b) => ({
+							id: b.id,
+							url: b.url,
+							title: b.title,
+							isFavorite: b.isFavorite,
+							isArchived: b.isArchived,
+							accessCount: b.accessCount,
+							lastAccessedAt: b.lastAccessedAt,
+							domain: b.domain,
+							faviconUrl: b.faviconUrl,
+							tags: b.tags
+						}))
+					},
+					undefined,
+					paginatedBookmarks.meta
+				)
 			)
 		} catch (error) {
 			next(error)

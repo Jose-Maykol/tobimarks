@@ -9,6 +9,7 @@ import type {
 	BookmarkFilters
 } from '../models/bookmark.model'
 
+import type { PaginatedResult, PaginationOptions } from '@/common/types/pagination.type'
 import type { IDatabaseContext } from '@/core/database/database-context'
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
 import { DATABASE_CONTEXT } from '@/core/di/tokens'
@@ -16,7 +17,11 @@ import type { IQueryRunner } from '@/core/types/database.type'
 
 export interface IBookmarkRepository {
 	findById(id: string): Promise<Bookmark | null>
-	findByUserId(userId: string, filters?: BookmarkFilters): Promise<BookmarkListItemDto[]>
+	findByUserId(
+		userId: string,
+		options: PaginationOptions,
+		filters?: BookmarkFilters
+	): Promise<PaginatedResult<BookmarkListItemDto>>
 	existsByIdAndUserId(id: string, userId: string): Promise<boolean>
 	create(params: CreateBookmarkDto, queryRunner?: IQueryRunner): Promise<Partial<Bookmark>>
 	softDelete(id: string): Promise<Pick<Bookmark, 'id'>>
@@ -112,8 +117,12 @@ export class BookmarkRepository implements IBookmarkRepository {
 		return result.rows[0] || null
 	}
 
-	async findByUserId(userId: string, filters?: BookmarkFilters): Promise<BookmarkListItemDto[]> {
-		let query = `
+	async findByUserId(
+		userId: string,
+		options: PaginationOptions,
+		filters?: BookmarkFilters
+	): Promise<PaginatedResult<BookmarkListItemDto>> {
+		const selectClause = `
       SELECT 
         b.id, 
         b.url, 
@@ -139,8 +148,15 @@ export class BookmarkRepository implements IBookmarkRepository {
             WHERE bt.bookmark_id = b.id
           ), '[]'
         ) AS tags
+    `
+		const countClause = 'SELECT COUNT(*) AS total'
+
+		const fromClause = `
       FROM bookmarks b
       INNER JOIN websites w ON b.website_id = w.id
+    `
+
+		let whereClause = `
       WHERE b.user_id = $1
 			AND b.deleted_at IS NULL
     `
@@ -150,12 +166,12 @@ export class BookmarkRepository implements IBookmarkRepository {
 
 		if (filters?.isFavorite !== undefined) {
 			values.push(filters.isFavorite)
-			query += ` AND b.is_favorite = $${values.length}`
+			whereClause += ` AND b.is_favorite = $${values.length}`
 		}
 
 		if (filters?.tags && filters.tags.length > 0) {
 			values.push(filters.tags)
-			query += ` AND EXISTS (
+			whereClause += ` AND EXISTS (
 				SELECT 1 FROM bookmark_tags bt 
 				WHERE bt.bookmark_id = b.id AND bt.tag_id = ANY($${values.length}::uuid[])
 			)`
@@ -163,7 +179,8 @@ export class BookmarkRepository implements IBookmarkRepository {
 
 		const sortColumns: Record<string, string> = {
 			createdAt: 'b.created_at',
-			lastAccessedAt: 'b.last_accessed_at'
+			lastAccessedAt: 'b.last_accessed_at',
+			accessCount: 'b.access_count'
 		}
 
 		const sortBy =
@@ -171,10 +188,31 @@ export class BookmarkRepository implements IBookmarkRepository {
 		const sortOrder = filters?.sortDirection === 'asc' ? 'ASC' : 'DESC'
 		const nullsPosition = sortOrder === 'DESC' ? 'NULLS LAST' : 'NULLS FIRST'
 
-		query += ` ORDER BY ${sortBy} ${sortOrder} ${nullsPosition}`
+		const orderClause = ` ORDER BY ${sortBy} ${sortOrder} ${nullsPosition}`
 
-		const result = await this.dbContext.query<BookmarkListItemDto>(query, values)
-		return result.rows
+		const offset = (options.page - 1) * options.limit
+		const limitClause = ` LIMIT $${values.length + 1} OFFSET $${values.length + 2}`
+		const valuesWithPagination = [...values, options.limit, offset]
+
+		const dataQuery = selectClause + fromClause + whereClause + orderClause + limitClause
+		const countQuery = countClause + fromClause + whereClause
+
+		const [dataResult, countResult] = await Promise.all([
+			this.dbContext.query<BookmarkListItemDto>(dataQuery, valuesWithPagination),
+			this.dbContext.query<{ total: string }>(countQuery, values)
+		])
+
+		const total = parseInt(countResult?.rows?.[0]?.total || '0', 10)
+
+		return {
+			data: dataResult.rows,
+			meta: {
+				page: options.page,
+				perPage: options.limit,
+				total,
+				totalPages: Math.ceil(total / options.limit)
+			}
+		}
 	}
 
 	async existsByIdAndUserId(id: string, userId: string): Promise<boolean> {

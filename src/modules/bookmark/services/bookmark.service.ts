@@ -18,6 +18,7 @@ import type { IBookmarkRepository } from '../repositories/bookmark.repository'
 import type { IWebsiteRepository } from '../repositories/websites.repository'
 import type { CreateBookmarkRequestBody, UpdateBookmarkRequestBody } from '../types/bookmark.types'
 
+import type { PaginationOptions } from '@/common/types/pagination.type'
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
 import type { IUnitOfWork } from '@/core/database/unit-of-work'
 import { UNIT_OF_WORK } from '@/core/di/tokens'
@@ -142,8 +143,8 @@ export class BookmarkService {
 	 * @param user - The user whose bookmarks are to be retrieved.
 	 * @returns A list of bookmarks belonging to the user.
 	 */
-	async get(user: AccessTokenPayload, filters?: BookmarkFilters) {
-		const bookmarks = await this.bookmarkRepository.findByUserId(user.sub, filters)
+	async get(user: AccessTokenPayload, options: PaginationOptions, filters?: BookmarkFilters) {
+		const bookmarks = await this.bookmarkRepository.findByUserId(user.sub, options, filters)
 		return bookmarks
 	}
 

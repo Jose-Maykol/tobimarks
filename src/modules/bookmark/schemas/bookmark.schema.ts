@@ -1,5 +1,7 @@
 import * as v from 'valibot'
 
+import { PaginationQuerySchema } from '@/common/schemas/pagination.schema'
+
 export const CreateBookmarkSchema = v.object({
 	url: v.pipe(
 		v.string('Url is required'),
@@ -21,19 +23,22 @@ export const UpdateBookmarkSchema = v.object({
 	)
 })
 
-export const GetBookmarksQuerySchema = v.object({
-	isFavorite: v.optional(
-		v.pipe(
-			v.string(),
-			v.transform((val) => val === 'true')
-		)
-	),
-	tags: v.optional(
-		v.pipe(
-			v.string(),
-			v.transform((val) => val.split(',').filter(Boolean))
-		)
-	),
-	sortBy: v.optional(v.picklist(['createdAt', 'lastAccessedAt'])),
-	sortDirection: v.optional(v.picklist(['asc', 'desc']))
-})
+export const GetBookmarksQuerySchema = v.intersect([
+	PaginationQuerySchema,
+	v.object({
+		isFavorite: v.optional(
+			v.pipe(
+				v.string(),
+				v.transform((val) => val === 'true')
+			)
+		),
+		tags: v.optional(
+			v.pipe(
+				v.string(),
+				v.transform((val) => val.split(',').filter(Boolean))
+			)
+		),
+		sortBy: v.optional(v.picklist(['createdAt', 'lastAccessedAt', 'accessCount'])),
+		sortDirection: v.optional(v.picklist(['asc', 'desc']))
+	})
+])
