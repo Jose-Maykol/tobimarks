@@ -1,7 +1,9 @@
 import { Pool, type PoolClient } from 'pg'
-import { injectable, singleton } from 'tsyringe'
+import { inject, injectable, singleton } from 'tsyringe'
 
 import { databaseConfig } from '../config/database.config'
+import { LOGGER } from '../di/tokens'
+import type { ILogger } from '../logger/logger'
 import type { DatabaseResponse, IQueryRunner } from '../types/database.type'
 
 export interface IDatabaseContext extends IQueryRunner {
@@ -15,11 +17,14 @@ export interface IDatabaseContext extends IQueryRunner {
 export class DatabaseContext implements IDatabaseContext {
 	private pool: Pool
 
-	constructor() {
+	constructor(@inject(LOGGER) private readonly logger: ILogger) {
 		this.pool = new Pool(databaseConfig)
 
 		this.pool.on('error', (err) => {
-			console.error('Unexpected error on client', err)
+			this.logger.error('Unexpected error on idle client', {
+				message: err.message,
+				stack: err.stack
+			})
 		})
 	}
 

@@ -1,7 +1,9 @@
 import { GoogleGenAI } from '@google/genai'
-import { injectable } from 'tsyringe'
+import { inject, injectable } from 'tsyringe'
 
 import { env } from '../config/env.config'
+import { LOGGER } from '../di/tokens'
+import type { ILogger } from '../logger/logger'
 
 export interface IEmbeddingService {
 	generateEmbedding(text: string): Promise<number[]>
@@ -15,7 +17,7 @@ export class EmbeddingService implements IEmbeddingService {
 	private readonly EMBEDDING_MODEL = 'gemini-embedding-001'
 	private readonly TASK_TYPE = 'RETRIEVAL_DOCUMENT'
 
-	constructor() {
+	constructor(@inject(LOGGER) private readonly logger: ILogger) {
 		this.genAI = new GoogleGenAI({
 			apiKey: env.GEMINI_API_KEY
 		})
@@ -47,7 +49,9 @@ export class EmbeddingService implements IEmbeddingService {
 
 			return this.normalizeVector(embedding[0].values)
 		} catch (error) {
-			console.error('Error generating embedding:', error)
+			this.logger.error('Error generating embedding', {
+				error: error instanceof Error ? error.message : String(error)
+			})
 			throw error
 		}
 	}
@@ -80,7 +84,9 @@ export class EmbeddingService implements IEmbeddingService {
 				return this.normalizeVector(embed.values)
 			})
 		} catch (error) {
-			console.error('Error generating embeddings:', error)
+			this.logger.error('Error generating embeddings', {
+				error: error instanceof Error ? error.message : String(error)
+			})
 			throw error
 		}
 	}
