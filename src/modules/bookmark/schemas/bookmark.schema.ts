@@ -7,6 +7,9 @@ export const CreateBookmarkSchema = v.object({
 		v.string('Url is required'),
 		v.minLength(1, 'Url cannot be empty'),
 		v.url('Invalid url format')
+	),
+	collectionId: v.optional(
+		v.nullable(v.pipe(v.string('Collection ID must be a string'), v.uuid('Invalid UUID format')))
 	)
 })
 
@@ -20,6 +23,9 @@ export const UpdateBookmarkSchema = v.object({
 	),
 	tags: v.optional(
 		v.array(v.pipe(v.string('Each tag must be a valid UUID'), v.uuid('Invalid UUID format')))
+	),
+	collectionId: v.optional(
+		v.nullable(v.pipe(v.string('Collection ID must be a string'), v.uuid('Invalid UUID format')))
 	)
 })
 
@@ -39,6 +45,7 @@ export const GetBookmarksQuerySchema = v.intersect([
 			)
 		),
 		sortBy: v.optional(v.picklist(['createdAt', 'lastAccessedAt', 'accessCount'])),
-		sortDirection: v.optional(v.picklist(['asc', 'desc']))
+		sortDirection: v.optional(v.picklist(['asc', 'desc'])),
+		accessedWithin: v.optional(v.picklist(['week', 'month', 'all']))
 	})
 ])

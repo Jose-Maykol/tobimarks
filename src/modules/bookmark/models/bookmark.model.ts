@@ -12,6 +12,7 @@ export interface Bookmark {
 	ogTitle: string | null
 	ogDescription: string | null
 	ogImageUrl: string | null
+	collectionId: string | null
 	isFavorite: boolean
 	isArchived: boolean
 	lastAccessedAt: Date | null
@@ -33,11 +34,14 @@ export type CreateBookmarkDto = Pick<
 	| 'ogTitle'
 	| 'ogDescription'
 	| 'ogImageUrl'
+	| 'collectionId'
 	| 'isFavorite'
 	| 'isArchived'
 >
 
-export type UpdateBookmarkDto = Partial<Pick<Bookmark, 'title'>> & { tags?: string[] }
+export type UpdateBookmarkDto = Partial<Pick<Bookmark, 'title' | 'collectionId'>> & {
+	tags?: string[]
+}
 
 export type BookmarkListItemDto = Pick<
 	Bookmark,
@@ -50,4 +54,5 @@ export interface BookmarkFilters {
 	tags?: string[] | undefined
 	sortBy?: 'createdAt' | 'lastAccessedAt' | 'accessCount' | undefined
 	sortDirection?: 'asc' | 'desc' | undefined
+	accessedWithin?: 'week' | 'month' | 'all' | undefined
 }

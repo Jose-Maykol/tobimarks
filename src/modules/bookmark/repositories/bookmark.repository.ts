@@ -50,11 +50,12 @@ export class BookmarkRepository implements IBookmarkRepository {
         og_title, 
         og_description, 
         og_image_url, 
+        collection_id,
         is_favorite, 
         is_archived
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
         setweight(to_tsvector('english', coalesce($5, $7, '')), 'A') ||
       )
       RETURNING 
@@ -73,6 +74,7 @@ export class BookmarkRepository implements IBookmarkRepository {
 			params.ogTitle,
 			params.ogDescription,
 			params.ogImageUrl,
+			params.collectionId || null,
 			params.isFavorite || false,
 			params.isArchived || false
 		]
@@ -102,6 +104,7 @@ export class BookmarkRepository implements IBookmarkRepository {
         og_title AS "ogTitle", 
         og_description AS "ogDescription", 
         og_image_url AS "ogImageUrl", 
+        collection_id AS "collectionId",
         is_favorite AS "isFavorite", 
         is_archived AS "isArchived", 
         created_at AS "createdAt", 
@@ -122,7 +125,7 @@ export class BookmarkRepository implements IBookmarkRepository {
 		options: PaginationOptions,
 		filters?: BookmarkFilters
 	): Promise<PaginatedResult<BookmarkListItemDto>> {
-		const selectClause = `
+		let selectClause = `
       SELECT 
         b.id, 
         b.url, 
@@ -164,6 +167,29 @@ export class BookmarkRepository implements IBookmarkRepository {
 		//eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const values: any[] = [userId]
 
+		const applyPeriodFilter =
+			filters?.accessedWithin === 'week' || filters?.accessedWithin === 'month'
+
+		let joinTrendingClause = ''
+		let groupByClause = ''
+
+		if (applyPeriodFilter) {
+			const interval = filters.accessedWithin === 'week' ? '7 days' : '1 month'
+			joinTrendingClause = `
+        INNER JOIN bookmark_access_logs bal 
+        ON bal.bookmark_id = b.id AND bal.accessed_at >= NOW() - INTERVAL '${interval}'
+      `
+
+			groupByClause = `
+        GROUP BY b.id, w.id
+      `
+
+			selectClause = selectClause.replace(
+				'b.access_count AS "accessCount",',
+				'COUNT(bal.id) AS "accessCount",'
+			)
+		}
+
 		if (filters?.isFavorite !== undefined) {
 			values.push(filters.isFavorite)
 			whereClause += ` AND b.is_favorite = $${values.length}`
@@ -180,7 +206,7 @@ export class BookmarkRepository implements IBookmarkRepository {
 		const sortColumns: Record<string, string> = {
 			createdAt: 'b.created_at',
 			lastAccessedAt: 'b.last_accessed_at',
-			accessCount: 'b.access_count'
+			accessCount: applyPeriodFilter ? 'COUNT(bal.id)' : 'b.access_count'
 		}
 
 		const sortBy =
@@ -194,7 +220,14 @@ export class BookmarkRepository implements IBookmarkRepository {
 		const limitClause = ` LIMIT $${values.length + 1} OFFSET $${values.length + 2}`
 		const valuesWithPagination = [...values, options.limit, offset]
 
-		const dataQuery = selectClause + fromClause + whereClause + orderClause + limitClause
+		const dataQuery =
+			selectClause +
+			fromClause +
+			joinTrendingClause +
+			whereClause +
+			groupByClause +
+			orderClause +
+			limitClause
 		const countQuery = countClause + fromClause + whereClause
 
 		const [dataResult, countResult] = await Promise.all([
@@ -264,6 +297,11 @@ export class BookmarkRepository implements IBookmarkRepository {
 			values.push(data.title)
 		}
 
+		if (data.collectionId !== undefined) {
+			updates.push('collection_id = $' + (values.length + 1))
+			values.push(data.collectionId)
+		}
+
 		if (updates.length > 0) {
 			const query = `
 			UPDATE bookmarks
@@ -288,11 +326,16 @@ export class BookmarkRepository implements IBookmarkRepository {
 
 	async registerAccess(id: string): Promise<void> {
 		const query = `
-			UPDATE bookmarks
-			SET 
-				last_accessed_at = NOW(),
-				access_count = access_count + 1
-			WHERE id = $1
+			WITH updated_bookmark AS (
+				UPDATE bookmarks
+				SET 
+					last_accessed_at = NOW(),
+					access_count = access_count + 1
+				WHERE id = $1
+				RETURNING id
+			)
+			INSERT INTO bookmark_access_logs (bookmark_id)
+			SELECT id FROM updated_bookmark;
 		`
 		await this.dbContext.query(query, [id])
 	}

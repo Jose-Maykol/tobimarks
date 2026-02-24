@@ -3,6 +3,7 @@ CREATE TABLE bookmarks (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     website_id UUID NOT NULL REFERENCES websites(id),
     category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    collection_id UUID REFERENCES collections(id) ON DELETE SET NULL,
 
     url TEXT NOT NULL,
     title VARCHAR(500),
@@ -55,3 +56,6 @@ CREATE INDEX idx_bookmarks_user_access_count ON bookmarks (user_id, access_count
 
 -- Full-text search index on the search_vector column to optimize text search queries on bookmarks
 CREATE INDEX idx_bookmarks_search_vector ON bookmarks USING gin(search_vector);
+
+-- Index on collection_id to query bookmarks by collection quickly
+CREATE INDEX idx_bookmarks_collection_id ON bookmarks (collection_id);

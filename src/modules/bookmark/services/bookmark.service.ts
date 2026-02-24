@@ -58,6 +58,7 @@ export class BookmarkService {
 				userId: user.sub,
 				categoryId: null,
 				websiteId: website.id,
+				collectionId: data.collectionId ?? null,
 				url: this.normalizeUrl(urlBookmark, canonicalUrl),
 				title: title,
 				description: description,

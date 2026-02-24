@@ -9,7 +9,7 @@ export const PaginationQuerySchema = v.object({
 			v.integer('Page must be an integer'),
 			v.minValue(1, 'Page must be greater than or equal to 1')
 		),
-		'1' // Valibot automatically applies transforms to default values, so if the string '1' is provided as default, it will be transformed to 1 (number)
+		'1'
 	),
 	limit: v.optional(
 		v.pipe(
