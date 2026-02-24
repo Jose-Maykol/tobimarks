@@ -18,11 +18,16 @@ export interface EnvVariables {
 	JWT_SECRET: string
 	JWT_EXPIRES_IN: number
 	GEMINI_API_KEY: string
+	LOG_LEVEL: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent'
 }
 
 const envSchema = v.object({
 	//Server
 	NODE_ENV: v.optional(v.picklist(['DEVELOPMENT', 'PRODUCTION', 'TEST']), 'DEVELOPMENT'),
+	LOG_LEVEL: v.optional(
+		v.picklist(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']),
+		'info'
+	),
 	PORT: v.optional(
 		v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1000), v.maxValue(65535)),
 		'3000'
