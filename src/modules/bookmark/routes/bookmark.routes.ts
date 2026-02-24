@@ -3,7 +3,11 @@ import { container } from 'tsyringe'
 
 import type { BookmarkController } from '../controllers/bookmark.controller'
 import { BOOKMARK_CONTROLLER } from '../di/token'
-import { CreateBookmarkSchema, GetBookmarksQuerySchema } from '../schemas/bookmark.schema'
+import {
+	CreateBookmarkSchema,
+	GetBookmarksQuerySchema,
+	UpdateBookmarkCollectionSchema
+} from '../schemas/bookmark.schema'
 
 import { authMiddleware } from '@/common/middlewares/auth.middleware'
 import { validateRequest } from '@/common/middlewares/validation.middleware'
@@ -24,6 +28,12 @@ router.get(
 )
 router.delete('/:id', bookmarkController.delete.bind(bookmarkController))
 router.patch('/:id', bookmarkController.update.bind(bookmarkController))
+router.patch(
+	'/:id/collection',
+	validateRequest({ body: UpdateBookmarkCollectionSchema }),
+	bookmarkController.updateCollection.bind(bookmarkController)
+)
+router.delete('/:id/collection', bookmarkController.removeCollection.bind(bookmarkController))
 router.patch('/:id/access', bookmarkController.registerAccess.bind(bookmarkController))
 router.patch('/:id/favorite', bookmarkController.markAsFavorite.bind(bookmarkController))
 router.delete('/:id/favorite', bookmarkController.unmarkAsFavorite.bind(bookmarkController))

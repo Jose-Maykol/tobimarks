@@ -18,7 +18,8 @@ import type { BookmarkService } from '../services/bookmark.service'
 import type {
 	CreateBookmarkRequestBody,
 	GetBookmarksQueryOutput,
-	UpdateBookmarkRequestBody
+	UpdateBookmarkRequestBody,
+	UpdateBookmarkCollectionRequestBody
 } from '../types/bookmark.types'
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
@@ -279,6 +280,51 @@ export class BookmarkController {
 			return res
 				.status(StatusCodes.OK)
 				.json(ApiResponseBuilder.success('Bookmark access registered successfully'))
+		} catch (error) {
+			if (error instanceof BookmarkNotFoundError) {
+				return res
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
+			next(error)
+		}
+	}
+
+	async updateCollection(
+		req: Request<{ id: string }, Record<string, never>, UpdateBookmarkCollectionRequestBody>,
+		res: Response,
+		next: NextFunction
+	) {
+		try {
+			const user = req.user!
+			const { collectionId } = req.body
+			const id = req.params.id
+			await this.bookmarkService.updateCollection(user, id, collectionId)
+			return res
+				.status(StatusCodes.OK)
+				.json(ApiResponseBuilder.success('Bookmark collection updated successfully'))
+		} catch (error) {
+			if (error instanceof BookmarkNotFoundError) {
+				return res
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
+			next(error)
+		}
+	}
+
+	async removeCollection(
+		req: Request<{ id: string }, Record<string, never>, Record<string, never>>,
+		res: Response,
+		next: NextFunction
+	) {
+		try {
+			const user = req.user!
+			const id = req.params.id
+			await this.bookmarkService.removeCollection(user, id)
+			return res
+				.status(StatusCodes.OK)
+				.json(ApiResponseBuilder.success('Bookmark collection removed successfully'))
 		} catch (error) {
 			if (error instanceof BookmarkNotFoundError) {
 				return res

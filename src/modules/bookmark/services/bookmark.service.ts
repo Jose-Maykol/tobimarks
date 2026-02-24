@@ -229,4 +229,45 @@ export class BookmarkService {
 
 		await this.bookmarkRepository.registerAccess(bookmarkId)
 	}
+
+	/**
+	 * Updates the collection associated with a bookmark.
+	 *
+	 * @param user - The user updating the collection.
+	 * @param bookmarkId - The ID of the bookmark.
+	 * @param collectionId - The ID of the collection to associate.
+	 */
+	async updateCollection(user: AccessTokenPayload, bookmarkId: string, collectionId: string) {
+		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
+		if (!existsBookmark) throw new BookmarkNotFoundError()
+
+		await this.unitOfWork.begin()
+		try {
+			await this.bookmarkRepository.update(bookmarkId, { collectionId }, this.unitOfWork)
+			await this.unitOfWork.commit()
+		} catch (error) {
+			await this.unitOfWork.rollback()
+			throw error
+		}
+	}
+
+	/**
+	 * Removes the collection association from a bookmark.
+	 *
+	 * @param user - The user removing the collection.
+	 * @param bookmarkId - The ID of the bookmark.
+	 */
+	async removeCollection(user: AccessTokenPayload, bookmarkId: string) {
+		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
+		if (!existsBookmark) throw new BookmarkNotFoundError()
+
+		await this.unitOfWork.begin()
+		try {
+			await this.bookmarkRepository.update(bookmarkId, { collectionId: null }, this.unitOfWork)
+			await this.unitOfWork.commit()
+		} catch (error) {
+			await this.unitOfWork.rollback()
+			throw error
+		}
+	}
 }
