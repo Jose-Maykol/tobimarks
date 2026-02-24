@@ -4,8 +4,12 @@ import cors from 'cors'
 import express, { type Request, type Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
-import morgan from 'morgan'
+import { container } from 'tsyringe'
 
+import { errorHandlerMiddleware } from './common/middlewares/error-handler.middleware'
+import { httpLoggerMiddleware } from './common/middlewares/http-logger.middleware'
+import { LOGGER } from './core/di/tokens'
+import type { ILogger } from './core/logger/logger'
 import { authRouter } from './modules/auth/routes/auth.routes'
 import { scalarConfig } from './scalar'
 
@@ -35,7 +39,10 @@ app.use(limiter)
 
 app.use(helmet())
 app.use(cookieParser())
-app.use(morgan('dev'))
+
+const logger = container.resolve<ILogger>(LOGGER)
+app.use(httpLoggerMiddleware(logger))
+
 app.use(express.json())
 
 app.use('/api-docs', apiReference(scalarConfig))
@@ -56,5 +63,7 @@ apiRouter.use(
 apiRouter.use('/tags', (await import('./modules/bookmark/routes/tag.routes')).tagRoutes)
 
 app.use('/api', apiRouter)
+
+app.use(errorHandlerMiddleware(logger))
 
 export { app }
