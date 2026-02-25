@@ -52,6 +52,7 @@ export type BookmarkListItemDto = Pick<
 export interface BookmarkFilters {
 	isFavorite?: boolean | undefined
 	tags?: string[] | undefined
+	collectionId?: string | null | undefined
 	sortBy?: 'createdAt' | 'lastAccessedAt' | 'accessCount' | undefined
 	sortDirection?: 'asc' | 'desc' | undefined
 	accessedWithin?: 'week' | 'month' | 'all' | undefined

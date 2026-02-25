@@ -195,6 +195,15 @@ export class BookmarkRepository implements IBookmarkRepository {
 			whereClause += ` AND b.is_favorite = $${values.length}`
 		}
 
+		if (filters?.collectionId !== undefined) {
+			if (filters.collectionId === null) {
+				whereClause += ' AND b.collection_id IS NULL'
+			} else {
+				values.push(filters.collectionId)
+				whereClause += ` AND b.collection_id = $${values.length}`
+			}
+		}
+
 		if (filters?.tags && filters.tags.length > 0) {
 			values.push(filters.tags)
 			whereClause += ` AND EXISTS (

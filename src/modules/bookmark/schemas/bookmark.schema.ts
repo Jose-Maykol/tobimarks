@@ -42,6 +42,12 @@ export const GetBookmarksQuerySchema = v.intersect([
 				v.transform((val) => val === 'true')
 			)
 		),
+		collectionId: v.optional(
+			v.pipe(
+				v.string(),
+				v.transform((val) => (val === 'null' ? null : val))
+			)
+		),
 		tags: v.optional(
 			v.pipe(
 				v.string(),
