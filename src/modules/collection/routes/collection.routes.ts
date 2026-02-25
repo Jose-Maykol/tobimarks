@@ -6,7 +6,8 @@ import { COLLECTION_CONTROLLER } from '../di/token'
 import {
 	CreateCollectionSchema,
 	GetCollectionsQuerySchema,
-	UpdateCollectionSchema
+	UpdateCollectionSchema,
+	GetCollectionSchema
 } from '../schemas/collection.schema'
 
 import { authMiddleware } from '@/common/middlewares/auth.middleware'
@@ -27,6 +28,12 @@ router.get(
 	'/',
 	validateRequest({ query: GetCollectionsQuerySchema }),
 	collectionController.get.bind(collectionController)
+)
+
+router.get(
+	'/:id',
+	validateRequest({ params: GetCollectionSchema }),
+	collectionController.getById.bind(collectionController)
 )
 
 router.patch(

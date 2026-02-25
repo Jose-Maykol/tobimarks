@@ -78,6 +78,35 @@ export class CollectionController {
 		}
 	}
 
+	async getById(req: Request<{ id: string }>, res: Response, next: NextFunction) {
+		try {
+			const user = req.user!
+			const { id } = req.params
+
+			const collection = await this.collectionService.getById(user, id)
+
+			return res.status(StatusCodes.OK).json(
+				ApiResponseBuilder.success({
+					collection: {
+						id: collection.id,
+						name: collection.name,
+						description: collection.description,
+						bookmarksCount: collection.bookmarksCount,
+						createdAt: collection.createdAt,
+						updatedAt: collection.updatedAt
+					}
+				})
+			)
+		} catch (error) {
+			if (error instanceof CollectionNotFoundError) {
+				return res
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
+			next(error)
+		}
+	}
+
 	async update(
 		req: Request<{ id: string }, Record<string, never>, UpdateCollectionRequestBody>,
 		res: Response,

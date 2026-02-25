@@ -22,7 +22,8 @@ export const UpdateCollectionSchema = v.object({
 	description: v.optional(v.nullable(v.string('Description must be a string')))
 })
 
-export const GetCollectionsQuerySchema = v.intersect([
-	PaginationQuerySchema,
-	v.object({}) // Can add filters later if needed
-])
+export const GetCollectionsQuerySchema = v.intersect([PaginationQuerySchema, v.object({})])
+
+export const GetCollectionSchema = v.object({
+	id: v.pipe(v.string('Collection ID must be a string'), v.uuid('Invalid UUID format'))
+})

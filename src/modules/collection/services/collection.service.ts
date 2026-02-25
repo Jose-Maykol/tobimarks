@@ -46,6 +46,12 @@ export class CollectionService {
 		return await this.collectionRepository.findByUserId(user.sub, options)
 	}
 
+	async getById(user: AccessTokenPayload, id: string): Promise<Collection> {
+		const collection = await this.collectionRepository.findByIdAndUserId(id, user.sub)
+		if (!collection) throw new CollectionNotFoundError()
+		return collection
+	}
+
 	async update(
 		user: AccessTokenPayload,
 		collectionId: string,
