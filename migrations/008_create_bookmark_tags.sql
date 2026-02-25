@@ -1,4 +1,4 @@
-CREATE TABLE bookmark_tags (
+CREATE TABLE IF NOT EXISTS bookmark_tags (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     bookmark_id UUID NOT NULL REFERENCES bookmarks(id) ON DELETE CASCADE,
     tag_id UUID NOT NULL REFERENCES tags(id) ON DELETE CASCADE,

@@ -1,4 +1,4 @@
-CREATE TABLE user_homepage_items (
+CREATE TABLE IF NOT EXISTS user_homepage_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     bookmark_id UUID REFERENCES bookmarks(id) ON DELETE CASCADE,
@@ -33,7 +33,7 @@ CREATE TABLE user_homepage_items (
 );
 
 -- Quick access patterns - learn from user behavior to suggest homepage items
-CREATE TABLE user_access_patterns (
+CREATE TABLE IF NOT EXISTS user_access_patterns (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     bookmark_id UUID REFERENCES bookmarks(id) ON DELETE CASCADE,
@@ -56,7 +56,7 @@ CREATE TABLE user_access_patterns (
 );
 
 -- Activity tracking for analytics and smart suggestions
-CREATE TABLE user_activities (
+CREATE TABLE IF NOT EXISTS user_activities (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     activity_type VARCHAR(50) NOT NULL, -- 'bookmark_created', 'bookmark_accessed', 'homepage_configured'

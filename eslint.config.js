@@ -14,7 +14,7 @@ export default [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: ['./tsconfig.json'],
+        project: ['./tsconfig.json', './tsconfig.scripts.json'],
         sourceType: 'module',
       },
       globals: {

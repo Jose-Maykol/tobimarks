@@ -1,4 +1,4 @@
-CREATE TABLE bookmarks (
+CREATE TABLE IF NOT EXISTS bookmarks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     website_id UUID NOT NULL REFERENCES websites(id),
@@ -28,34 +28,32 @@ CREATE TABLE bookmarks (
     search_vector tsvector
 );
 
--- Unique constraint to prevent duplicate URLs per user
-CREATE UNIQUE INDEX idx_unique_user_bookmark_url ON bookmarks (user_id, url);
-
-CREATE UNIQUE INDEX idx_unique_user_bookmark_url ON bookmarks (user_id, url) WHERE deleted_at IS NULL;
+-- Unique constraint to prevent duplicate URLs per user (partial index, only for non-deleted)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_user_bookmark_url ON bookmarks (user_id, url) WHERE deleted_at IS NULL;
 
 -- Index on user_id to optimize queries filtering by user (e.g., fetching all bookmarks for a specific user)
-CREATE INDEX idx_bookmarks_user_id ON bookmarks (user_id);
+CREATE INDEX IF NOT EXISTS idx_bookmarks_user_id ON bookmarks (user_id);
 
 -- Index on user_favorite to optimize queries filtering favorite bookmarks for a specific user
-CREATE INDEX idx_bookmarks_user_favorite ON bookmarks (user_id, is_favorite) WHERE is_favorite = true;
+CREATE INDEX IF NOT EXISTS idx_bookmarks_user_favorite ON bookmarks (user_id, is_favorite) WHERE is_favorite = true;
 
 -- Index on user_archived to optimize queries filtering archived bookmarks for a specific user
-CREATE INDEX idx_bookmarks_user_archived ON bookmarks (user_id, is_archived) WHERE is_archived = true;
+CREATE INDEX IF NOT EXISTS idx_bookmarks_user_archived ON bookmarks (user_id, is_archived) WHERE is_archived = true;
 
 -- Index on user_category to optimize queries filtering bookmarks by category for a specific user
-CREATE INDEX idx_bookmarks_user_category ON bookmarks (user_id, category_id);
+CREATE INDEX IF NOT EXISTS idx_bookmarks_user_category ON bookmarks (user_id, category_id);
 
 -- Index on user_created_at to optimize queries sorting bookmarks by creation date for a specific user
-CREATE INDEX idx_bookmarks_user_created_at ON bookmarks (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_bookmarks_user_created_at ON bookmarks (user_id, created_at DESC);
 
 -- Index on user_last_accessed to optimize queries sorting bookmarks by last accessed date for a specific user
-CREATE INDEX idx_bookmarks_user_last_accessed ON bookmarks (user_id, last_accessed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_bookmarks_user_last_accessed ON bookmarks (user_id, last_accessed_at DESC);
 
 -- Index on user_access_count to optimize queries sorting bookmarks by access count for a specific user
-CREATE INDEX idx_bookmarks_user_access_count ON bookmarks (user_id, access_count DESC);
+CREATE INDEX IF NOT EXISTS idx_bookmarks_user_access_count ON bookmarks (user_id, access_count DESC);
 
 -- Full-text search index on the search_vector column to optimize text search queries on bookmarks
-CREATE INDEX idx_bookmarks_search_vector ON bookmarks USING gin(search_vector);
+CREATE INDEX IF NOT EXISTS idx_bookmarks_search_vector ON bookmarks USING gin(search_vector);
 
 -- Index on collection_id to query bookmarks by collection quickly
-CREATE INDEX idx_bookmarks_collection_id ON bookmarks (collection_id);
+CREATE INDEX IF NOT EXISTS idx_bookmarks_collection_id ON bookmarks (collection_id);
