@@ -23,6 +23,9 @@ export const UpdateBookmarkSchema = v.object({
 	),
 	tags: v.optional(
 		v.array(v.pipe(v.string('Each tag must be a valid UUID'), v.uuid('Invalid UUID format')))
+	),
+	collectionId: v.optional(
+		v.nullable(v.pipe(v.string('Collection ID must be a string'), v.uuid('Invalid UUID format')))
 	)
 })
 

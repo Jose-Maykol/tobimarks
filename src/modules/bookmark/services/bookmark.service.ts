@@ -3,6 +3,8 @@ import { inject, injectable } from 'tsyringe'
 
 import type { MetadataExtractorService } from './metadata-extractor.service'
 import type { TagService } from './tag.service'
+import { COLLECTION_REPOSITORY } from '../../collection/di/token'
+import type { ICollectionRepository } from '../../collection/repositories/collection.repository'
 import {
 	BOOKMARK_REPOSITORY,
 	METADATA_EXTRACTOR_SERVICE,
@@ -13,7 +15,11 @@ import {
 	BookmarkAlreadyExistsError,
 	BookmarkNotFoundError
 } from '../exceptions/bookmark.exceptions'
-import type { BookmarkFilters, CreateBookmarkDto } from '../models/bookmark.model'
+import type {
+	BookmarkFilters,
+	CreateBookmarkDto,
+	UpdateBookmarkDto
+} from '../models/bookmark.model'
 import type { IBookmarkRepository } from '../repositories/bookmark.repository'
 import type { IWebsiteRepository } from '../repositories/websites.repository'
 import type { CreateBookmarkRequestBody, UpdateBookmarkRequestBody } from '../types/bookmark.types'
@@ -31,6 +37,7 @@ export class BookmarkService {
 		@inject(METADATA_EXTRACTOR_SERVICE) private metadataExtractor: MetadataExtractorService,
 		@inject(WEBSITE_REPOSITORY) private websiteRepository: IWebsiteRepository,
 		@inject(TAG_SERVICE) private tagService: TagService,
+		@inject(COLLECTION_REPOSITORY) private collectionRepository: ICollectionRepository,
 		@inject(UNIT_OF_WORK) private unitOfWork: IUnitOfWork
 	) {}
 
@@ -70,6 +77,11 @@ export class BookmarkService {
 			}
 
 			const createdBookmark = await this.bookmarkRepository.create(newBookmark, this.unitOfWork)
+
+			if (data.collectionId) {
+				await this.collectionRepository.updateBookmarkCount(data.collectionId, 1, this.unitOfWork)
+			}
+
 			await this.unitOfWork.commit()
 			return createdBookmark
 		} catch (error) {
@@ -157,12 +169,28 @@ export class BookmarkService {
 	 * @returns The deleted bookmark.
 	 */
 	async delete(user: AccessTokenPayload, bookmarkId: string) {
-		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
+		const bookmark = await this.bookmarkRepository.findById(bookmarkId)
 
-		if (!existsBookmark) throw new BookmarkNotFoundError()
+		if (!bookmark || bookmark.userId !== user.sub) throw new BookmarkNotFoundError()
 
-		const deletedBookmark = await this.bookmarkRepository.softDelete(bookmarkId)
-		return deletedBookmark
+		await this.unitOfWork.begin()
+		try {
+			const deletedBookmark = await this.bookmarkRepository.softDelete(bookmarkId)
+
+			if (bookmark.collectionId) {
+				await this.collectionRepository.updateBookmarkCount(
+					bookmark.collectionId,
+					-1,
+					this.unitOfWork
+				)
+			}
+
+			await this.unitOfWork.commit()
+			return deletedBookmark
+		} catch (error) {
+			await this.unitOfWork.rollback()
+			throw error
+		}
 	}
 
 	/**
@@ -205,17 +233,37 @@ export class BookmarkService {
 	 * @param data - The data to update.
 	 */
 	async update(user: AccessTokenPayload, bookmarkId: string, data: UpdateBookmarkRequestBody) {
-		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
-		if (!existsBookmark) throw new BookmarkNotFoundError()
+		const bookmark = await this.bookmarkRepository.findById(bookmarkId)
+		if (!bookmark || bookmark.userId !== user.sub) throw new BookmarkNotFoundError()
+
 		if (data.tags) {
 			await this.tagService.checkTagsOwnership(user.sub, data.tags)
 		}
-		const { title = null, tags = [] } = data
-		const updateData = { title, tags }
+
+		const updateData: UpdateBookmarkDto = {}
+		if (data.title !== undefined) updateData.title = data.title
+		if (data.collectionId !== undefined) updateData.collectionId = data.collectionId
+		if (data.tags !== undefined) updateData.tags = data.tags
 
 		await this.unitOfWork.begin()
 		try {
 			await this.bookmarkRepository.update(bookmarkId, updateData, this.unitOfWork)
+
+			if (data.collectionId !== undefined && data.collectionId !== bookmark.collectionId) {
+				// Decrement old collection
+				if (bookmark.collectionId) {
+					await this.collectionRepository.updateBookmarkCount(
+						bookmark.collectionId,
+						-1,
+						this.unitOfWork
+					)
+				}
+				// Increment new collection
+				if (data.collectionId) {
+					await this.collectionRepository.updateBookmarkCount(data.collectionId, 1, this.unitOfWork)
+				}
+			}
+
 			await this.unitOfWork.commit()
 		} catch (error) {
 			await this.unitOfWork.rollback()
@@ -238,12 +286,25 @@ export class BookmarkService {
 	 * @param collectionId - The ID of the collection to associate.
 	 */
 	async updateCollection(user: AccessTokenPayload, bookmarkId: string, collectionId: string) {
-		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
-		if (!existsBookmark) throw new BookmarkNotFoundError()
+		const bookmark = await this.bookmarkRepository.findById(bookmarkId)
+		if (!bookmark || bookmark.userId !== user.sub) throw new BookmarkNotFoundError()
+
+		if (bookmark.collectionId === collectionId) return
 
 		await this.unitOfWork.begin()
 		try {
 			await this.bookmarkRepository.update(bookmarkId, { collectionId }, this.unitOfWork)
+
+			if (bookmark.collectionId) {
+				await this.collectionRepository.updateBookmarkCount(
+					bookmark.collectionId,
+					-1,
+					this.unitOfWork
+				)
+			}
+
+			await this.collectionRepository.updateBookmarkCount(collectionId, 1, this.unitOfWork)
+
 			await this.unitOfWork.commit()
 		} catch (error) {
 			await this.unitOfWork.rollback()
@@ -258,12 +319,21 @@ export class BookmarkService {
 	 * @param bookmarkId - The ID of the bookmark.
 	 */
 	async removeCollection(user: AccessTokenPayload, bookmarkId: string) {
-		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
-		if (!existsBookmark) throw new BookmarkNotFoundError()
+		const bookmark = await this.bookmarkRepository.findById(bookmarkId)
+		if (!bookmark || bookmark.userId !== user.sub) throw new BookmarkNotFoundError()
+
+		if (!bookmark.collectionId) return
 
 		await this.unitOfWork.begin()
 		try {
 			await this.bookmarkRepository.update(bookmarkId, { collectionId: null }, this.unitOfWork)
+
+			await this.collectionRepository.updateBookmarkCount(
+				bookmark.collectionId,
+				-1,
+				this.unitOfWork
+			)
+
 			await this.unitOfWork.commit()
 		} catch (error) {
 			await this.unitOfWork.rollback()

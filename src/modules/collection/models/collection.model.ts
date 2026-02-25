@@ -3,6 +3,7 @@ export interface Collection {
 	userId: string
 	name: string
 	description: string | null
+	bookmarksCount: number
 	createdAt: Date
 	updatedAt: Date
 }

@@ -11,12 +11,14 @@ import type { PaginatedResult, PaginationOptions } from '@/common/types/paginati
 import type { IDatabaseContext } from '@/core/database/database-context'
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
 import { DATABASE_CONTEXT } from '@/core/di/tokens'
+import type { IQueryRunner } from '@/core/types/database.type'
 
 export interface ICollectionRepository {
 	create(params: CreateCollectionDto): Promise<Collection>
 	findByUserId(userId: string, options: PaginationOptions): Promise<PaginatedResult<Collection>>
 	findByIdAndUserId(id: string, userId: string): Promise<Collection | null>
 	update(id: string, data: UpdateCollectionDto): Promise<Collection>
+	updateBookmarkCount(id: string, increment: number, queryRunner?: IQueryRunner): Promise<void>
 }
 
 @injectable()
@@ -25,9 +27,9 @@ export class CollectionRepository implements ICollectionRepository {
 
 	async create(params: CreateCollectionDto): Promise<Collection> {
 		const query = `
-			INSERT INTO collections (user_id, name, description)
-			VALUES ($1, $2, $3)
-			RETURNING id, user_id AS "userId", name, description, created_at AS "createdAt", updated_at AS "updatedAt"
+			INSERT INTO collections (user_id, name, description, bookmarks_count)
+			VALUES ($1, $2, $3, 0)
+			RETURNING id, user_id AS "userId", name, description, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
 		`
 		const values = [params.userId, params.name, params.description || null]
 
@@ -50,7 +52,7 @@ export class CollectionRepository implements ICollectionRepository {
 	): Promise<PaginatedResult<Collection>> {
 		const selectClause = `
 			SELECT 
-				id, user_id AS "userId", name, description, created_at AS "createdAt", updated_at AS "updatedAt"
+				id, user_id AS "userId", name, description, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
 			FROM collections
 			WHERE user_id = $1
 		`
@@ -79,7 +81,7 @@ export class CollectionRepository implements ICollectionRepository {
 
 	async findByIdAndUserId(id: string, userId: string): Promise<Collection | null> {
 		const query = `
-			SELECT id, user_id AS "userId", name, description, created_at AS "createdAt", updated_at AS "updatedAt"
+			SELECT id, user_id AS "userId", name, description, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
 			FROM collections
 			WHERE id = $1 AND user_id = $2
 		`
@@ -107,11 +109,25 @@ export class CollectionRepository implements ICollectionRepository {
 			UPDATE collections
 			SET ${updates.join(', ')}
 			WHERE id = $${values.length + 1}
-			RETURNING id, user_id AS "userId", name, description, created_at AS "createdAt", updated_at AS "updatedAt"
+			RETURNING id, user_id AS "userId", name, description, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
 		`
 		values.push(id)
 
 		const result = await this.dbContext.query<Collection>(query, values)
 		return result.rows[0]!
+	}
+
+	async updateBookmarkCount(
+		id: string,
+		increment: number,
+		queryRunner?: IQueryRunner
+	): Promise<void> {
+		const db = queryRunner ?? this.dbContext
+		const query = `
+			UPDATE collections
+			SET bookmarks_count = bookmarks_count + $1
+			WHERE id = $2
+		`
+		await db.query(query, [increment, id])
 	}
 }
