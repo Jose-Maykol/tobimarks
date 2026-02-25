@@ -7,6 +7,7 @@ import { DATABASE_CONTEXT } from '@/core/di/tokens'
 import type { IQueryRunner } from '@/core/types/database.type'
 
 export interface IWebsiteRepository {
+	findByUserId(userId: string): Promise<Website[]>
 	findByDomain(domain: string, queryRunner?: IQueryRunner): Promise<Website | null>
 	create(params: CreateWebsiteDto, queryRunner?: IQueryRunner): Promise<Website>
 }
@@ -14,6 +15,27 @@ export interface IWebsiteRepository {
 @injectable()
 export class WebsiteRepository implements IWebsiteRepository {
 	constructor(@inject(DATABASE_CONTEXT) private readonly dbContext: IDatabaseContext) {}
+
+	async findByUserId(userId: string): Promise<Website[]> {
+		const query = `
+			SELECT 
+				w.id,
+				w.domain,
+				w.name,
+				w.favicon_url AS "faviconUrl",
+				w.primary_color AS "primaryColor",
+				COUNT(b.id)::int AS "bookmarkCount",
+				MAX(b.created_at) AS "createdAt",
+				MAX(b.updated_at) AS "updatedAt"
+			FROM websites w
+			INNER JOIN bookmarks b ON b.website_id = w.id
+			WHERE b.user_id = $1 AND b.deleted_at IS NULL
+			GROUP BY w.id, w.domain, w.name, w.favicon_url, w.primary_color
+			ORDER BY w.domain ASC
+		`
+		const result = await this.dbContext.query<Website>(query, [userId])
+		return result.rows
+	}
 
 	async findByDomain(domain: string, queryRunner?: IQueryRunner): Promise<Website | null> {
 		const db = queryRunner ?? this.dbContext

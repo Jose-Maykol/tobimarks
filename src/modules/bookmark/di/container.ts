@@ -8,23 +8,27 @@ import {
 	TAG_CONTROLLER,
 	TAG_REPOSITORY,
 	TAG_SERVICE,
+	WEBSITE_CONTROLLER,
+	WEBSITE_SERVICE,
 	WEBSITE_REPOSITORY
 } from './token'
 import { BookmarkController } from '../controllers/bookmark.controller'
 import { TagController } from '../controllers/tag.controller'
+import { WebsiteController } from '../controllers/website.controller'
 import { BookmarkRepository } from '../repositories/bookmark.repository'
 import { TagRepository } from '../repositories/tag.repository'
 import { WebsiteRepository } from '../repositories/websites.repository'
 import { BookmarkService } from '../services/bookmark.service'
 import { MetadataExtractorService } from '../services/metadata-extractor.service'
 import { TagService } from '../services/tag.service'
+import { WebsiteService } from '../services/website.service'
 
 export const registerBookmarkDependencies = () => {
 	container.register(BOOKMARK_CONTROLLER, { useClass: BookmarkController })
 	container.register(BOOKMARK_SERVICE, { useClass: BookmarkService })
 	container.register(BOOKMARK_REPOSITORY, { useClass: BookmarkRepository })
-	/*   container.register(WEBSITE_CONTROLLER, { useClass: WebsiteController })
-  container.register(WEBSITE_SERVICE, { useClass: WebsiteService }) */
+	container.register(WEBSITE_CONTROLLER, { useClass: WebsiteController })
+	container.register(WEBSITE_SERVICE, { useClass: WebsiteService })
 	container.register(WEBSITE_REPOSITORY, { useClass: WebsiteRepository })
 	container.register(METADATA_EXTRACTOR_SERVICE, { useClass: MetadataExtractorService })
 	container.register(TAG_CONTROLLER, { useClass: TagController })
