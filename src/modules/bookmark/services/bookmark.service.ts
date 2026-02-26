@@ -1,5 +1,5 @@
 import { parse } from 'tldts'
-import { inject, injectable } from 'tsyringe'
+import { inject, injectable, container } from 'tsyringe'
 
 import type { MetadataExtractorService } from './metadata-extractor.service'
 import type { TagService } from './tag.service'
@@ -37,8 +37,7 @@ export class BookmarkService {
 		@inject(METADATA_EXTRACTOR_SERVICE) private metadataExtractor: MetadataExtractorService,
 		@inject(WEBSITE_REPOSITORY) private websiteRepository: IWebsiteRepository,
 		@inject(TAG_SERVICE) private tagService: TagService,
-		@inject(COLLECTION_REPOSITORY) private collectionRepository: ICollectionRepository,
-		@inject(UNIT_OF_WORK) private unitOfWork: IUnitOfWork
+		@inject(COLLECTION_REPOSITORY) private collectionRepository: ICollectionRepository
 	) {}
 
 	/**
@@ -57,9 +56,10 @@ export class BookmarkService {
 		const { title, description, ogTitle, ogImageUrl, ogDescription, faviconUrl, canonicalUrl } =
 			metadata
 
-		await this.unitOfWork.begin()
+		const unitOfWork = container.resolve<IUnitOfWork>(UNIT_OF_WORK)
+		await unitOfWork.begin()
 		try {
-			const website = await this.findOrCreateWebsite(urlBookmark, faviconUrl, this.unitOfWork)
+			const website = await this.findOrCreateWebsite(urlBookmark, faviconUrl, unitOfWork)
 
 			const newBookmark: CreateBookmarkDto = {
 				userId: user.sub,
@@ -76,16 +76,16 @@ export class BookmarkService {
 				isArchived: false
 			}
 
-			const createdBookmark = await this.bookmarkRepository.create(newBookmark, this.unitOfWork)
+			const createdBookmark = await this.bookmarkRepository.create(newBookmark, unitOfWork)
 
 			if (data.collectionId) {
-				await this.collectionRepository.updateBookmarkCount(data.collectionId, 1, this.unitOfWork)
+				await this.collectionRepository.updateBookmarkCount(data.collectionId, 1, unitOfWork)
 			}
 
-			await this.unitOfWork.commit()
+			await unitOfWork.commit()
 			return createdBookmark
 		} catch (error) {
-			await this.unitOfWork.rollback()
+			await unitOfWork.rollback()
 			if (error instanceof UniqueConstraintViolationError) {
 				throw new BookmarkAlreadyExistsError()
 			}
@@ -173,22 +173,19 @@ export class BookmarkService {
 
 		if (!bookmark || bookmark.userId !== user.sub) throw new BookmarkNotFoundError()
 
-		await this.unitOfWork.begin()
+		const unitOfWork = container.resolve<IUnitOfWork>(UNIT_OF_WORK)
+		await unitOfWork.begin()
 		try {
 			const deletedBookmark = await this.bookmarkRepository.softDelete(bookmarkId)
 
 			if (bookmark.collectionId) {
-				await this.collectionRepository.updateBookmarkCount(
-					bookmark.collectionId,
-					-1,
-					this.unitOfWork
-				)
+				await this.collectionRepository.updateBookmarkCount(bookmark.collectionId, -1, unitOfWork)
 			}
 
-			await this.unitOfWork.commit()
+			await unitOfWork.commit()
 			return deletedBookmark
 		} catch (error) {
-			await this.unitOfWork.rollback()
+			await unitOfWork.rollback()
 			throw error
 		}
 	}
@@ -245,28 +242,25 @@ export class BookmarkService {
 		if (data.collectionId !== undefined) updateData.collectionId = data.collectionId
 		if (data.tags !== undefined) updateData.tags = data.tags
 
-		await this.unitOfWork.begin()
+		const unitOfWork = container.resolve<IUnitOfWork>(UNIT_OF_WORK)
+		await unitOfWork.begin()
 		try {
-			await this.bookmarkRepository.update(bookmarkId, updateData, this.unitOfWork)
+			await this.bookmarkRepository.update(bookmarkId, updateData, unitOfWork)
 
 			if (data.collectionId !== undefined && data.collectionId !== bookmark.collectionId) {
 				// Decrement old collection
 				if (bookmark.collectionId) {
-					await this.collectionRepository.updateBookmarkCount(
-						bookmark.collectionId,
-						-1,
-						this.unitOfWork
-					)
+					await this.collectionRepository.updateBookmarkCount(bookmark.collectionId, -1, unitOfWork)
 				}
 				// Increment new collection
 				if (data.collectionId) {
-					await this.collectionRepository.updateBookmarkCount(data.collectionId, 1, this.unitOfWork)
+					await this.collectionRepository.updateBookmarkCount(data.collectionId, 1, unitOfWork)
 				}
 			}
 
-			await this.unitOfWork.commit()
+			await unitOfWork.commit()
 		} catch (error) {
-			await this.unitOfWork.rollback()
+			await unitOfWork.rollback()
 			throw error
 		}
 	}
@@ -291,23 +285,20 @@ export class BookmarkService {
 
 		if (bookmark.collectionId === collectionId) return
 
-		await this.unitOfWork.begin()
+		const unitOfWork = container.resolve<IUnitOfWork>(UNIT_OF_WORK)
+		await unitOfWork.begin()
 		try {
-			await this.bookmarkRepository.update(bookmarkId, { collectionId }, this.unitOfWork)
+			await this.bookmarkRepository.update(bookmarkId, { collectionId }, unitOfWork)
 
 			if (bookmark.collectionId) {
-				await this.collectionRepository.updateBookmarkCount(
-					bookmark.collectionId,
-					-1,
-					this.unitOfWork
-				)
+				await this.collectionRepository.updateBookmarkCount(bookmark.collectionId, -1, unitOfWork)
 			}
 
-			await this.collectionRepository.updateBookmarkCount(collectionId, 1, this.unitOfWork)
+			await this.collectionRepository.updateBookmarkCount(collectionId, 1, unitOfWork)
 
-			await this.unitOfWork.commit()
+			await unitOfWork.commit()
 		} catch (error) {
-			await this.unitOfWork.rollback()
+			await unitOfWork.rollback()
 			throw error
 		}
 	}
@@ -324,19 +315,16 @@ export class BookmarkService {
 
 		if (!bookmark.collectionId) return
 
-		await this.unitOfWork.begin()
+		const unitOfWork = container.resolve<IUnitOfWork>(UNIT_OF_WORK)
+		await unitOfWork.begin()
 		try {
-			await this.bookmarkRepository.update(bookmarkId, { collectionId: null }, this.unitOfWork)
+			await this.bookmarkRepository.update(bookmarkId, { collectionId: null }, unitOfWork)
 
-			await this.collectionRepository.updateBookmarkCount(
-				bookmark.collectionId,
-				-1,
-				this.unitOfWork
-			)
+			await this.collectionRepository.updateBookmarkCount(bookmark.collectionId, -1, unitOfWork)
 
-			await this.unitOfWork.commit()
+			await unitOfWork.commit()
 		} catch (error) {
-			await this.unitOfWork.rollback()
+			await unitOfWork.rollback()
 			throw error
 		}
 	}
