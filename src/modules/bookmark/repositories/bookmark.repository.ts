@@ -55,8 +55,7 @@ export class BookmarkRepository implements IBookmarkRepository {
         is_archived
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-        setweight(to_tsvector('english', coalesce($5, $7, '')), 'A') ||
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
       )
       RETURNING 
         id, 
