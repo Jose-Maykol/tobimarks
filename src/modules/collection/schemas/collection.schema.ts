@@ -1,5 +1,6 @@
 import * as v from 'valibot'
 
+import { APP_COLORS } from '@/common/constants/colors'
 import { PaginationQuerySchema } from '@/common/schemas/pagination.schema'
 
 export const CreateCollectionSchema = v.object({
@@ -8,7 +9,8 @@ export const CreateCollectionSchema = v.object({
 		v.minLength(1, 'Name cannot be empty'),
 		v.maxLength(100, 'Name cannot exceed 100 characters')
 	),
-	description: v.optional(v.nullable(v.string('Description must be a string')))
+	description: v.optional(v.nullable(v.string('Description must be a string'))),
+	color: v.optional(v.nullable(v.picklist(APP_COLORS, 'Invalid color')))
 })
 
 export const UpdateCollectionSchema = v.object({
@@ -19,7 +21,8 @@ export const UpdateCollectionSchema = v.object({
 			v.maxLength(100, 'Name cannot exceed 100 characters')
 		)
 	),
-	description: v.optional(v.nullable(v.string('Description must be a string')))
+	description: v.optional(v.nullable(v.string('Description must be a string'))),
+	color: v.optional(v.nullable(v.picklist(APP_COLORS, 'Invalid color')))
 })
 
 export const GetCollectionsQuerySchema = v.intersect([PaginationQuerySchema, v.object({})])

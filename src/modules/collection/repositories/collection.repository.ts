@@ -27,11 +27,11 @@ export class CollectionRepository implements ICollectionRepository {
 
 	async create(params: CreateCollectionDto): Promise<Collection> {
 		const query = `
-			INSERT INTO collections (user_id, name, description, bookmarks_count)
-			VALUES ($1, $2, $3, 0)
-			RETURNING id, user_id AS "userId", name, description, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
+			INSERT INTO collections (user_id, name, description, color, bookmarks_count)
+			VALUES ($1, $2, $3, $4, 0)
+			RETURNING id, user_id AS "userId", name, description, color, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
 		`
-		const values = [params.userId, params.name, params.description || null]
+		const values = [params.userId, params.name, params.description || null, params.color || null]
 
 		try {
 			const result = await this.dbContext.query<Collection>(query, values)
@@ -52,7 +52,7 @@ export class CollectionRepository implements ICollectionRepository {
 	): Promise<PaginatedResult<Collection>> {
 		const selectClause = `
 			SELECT 
-				id, user_id AS "userId", name, description, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
+				id, user_id AS "userId", name, description, color, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
 			FROM collections
 			WHERE user_id = $1
 		`
@@ -81,7 +81,7 @@ export class CollectionRepository implements ICollectionRepository {
 
 	async findByIdAndUserId(id: string, userId: string): Promise<Collection | null> {
 		const query = `
-			SELECT id, user_id AS "userId", name, description, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
+			SELECT id, user_id AS "userId", name, description, color, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
 			FROM collections
 			WHERE id = $1 AND user_id = $2
 		`
@@ -103,13 +103,18 @@ export class CollectionRepository implements ICollectionRepository {
 			values.push(data.description)
 		}
 
+		if (data.color !== undefined) {
+			updates.push('color = $' + (values.length + 1))
+			values.push(data.color)
+		}
+
 		updates.push('updated_at = NOW()')
 
 		const query = `
 			UPDATE collections
 			SET ${updates.join(', ')}
 			WHERE id = $${values.length + 1}
-			RETURNING id, user_id AS "userId", name, description, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
+			RETURNING id, user_id AS "userId", name, description, color, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
 		`
 		values.push(id)
 
