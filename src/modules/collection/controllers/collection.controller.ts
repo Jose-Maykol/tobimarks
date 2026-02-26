@@ -65,6 +65,7 @@ export class CollectionController {
 							id: c.id,
 							name: c.name,
 							description: c.description,
+							bookmarksCount: c.bookmarksCount,
 							createdAt: c.createdAt,
 							updatedAt: c.updatedAt
 						}))
