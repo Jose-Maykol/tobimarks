@@ -60,23 +60,29 @@ export class BookmarkController {
 			)
 		} catch (error) {
 			if (error instanceof UrlForbiddenException) {
-				res.status(StatusCodes.FORBIDDEN).json(ApiResponseBuilder.error(error.message, error.code))
+				return res
+					.status(StatusCodes.FORBIDDEN)
+					.json(ApiResponseBuilder.error(error.message, error.code))
 			}
 			if (error instanceof UrlNotFoundException) {
-				res.status(StatusCodes.NOT_FOUND).json(ApiResponseBuilder.error(error.message, error.code))
+				return res
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
 			}
 			if (error instanceof UrlTimeoutException) {
-				res
+				return res
 					.status(StatusCodes.REQUEST_TIMEOUT)
 					.json(ApiResponseBuilder.error(error.message, error.code))
 			}
 			if (error instanceof UrlFetchFailedException) {
-				res
+				return res
 					.status(StatusCodes.INTERNAL_SERVER_ERROR)
 					.json(ApiResponseBuilder.error(error.message, error.code))
 			}
 			if (error instanceof BookmarkAlreadyExistsError) {
-				res.status(StatusCodes.CONFLICT).json(ApiResponseBuilder.error(error.message, error.code))
+				return res
+					.status(StatusCodes.CONFLICT)
+					.json(ApiResponseBuilder.error(error.message, error.code))
 			}
 			next(error)
 		}
