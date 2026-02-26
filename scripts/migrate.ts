@@ -49,7 +49,7 @@ async function migrate() {
 			: allFiles
 
 		if (files.length === 0) {
-			console.log('⚠️  No migration files matched the given filter.')
+			console.log('No migration files matched the given filter.')
 			return
 		}
 
@@ -61,32 +61,32 @@ async function migrate() {
 		let ran = 0
 		for (const file of files) {
 			if (appliedSet.has(file)) {
-				console.log(`⏭️  Skipping (already applied): ${file}`)
+				console.log(`Skipping (already applied): ${file}`)
 				continue
 			}
 
 			const filePath = join(MIGRATIONS_DIR, file)
 			const sql = await readFile(filePath, 'utf-8')
 
-			console.log(`🔄 Running migration: ${file}`)
+			console.log(`Running migration: ${file}`)
 			await client.query('BEGIN')
 			try {
 				await client.query(sql)
 				await client.query('INSERT INTO schema_migrations (filename) VALUES ($1)', [file])
 				await client.query('COMMIT')
-				console.log(`✅ Applied: ${file}`)
+				console.log(`Applied: ${file}`)
 				ran++
 			} catch (err) {
 				await client.query('ROLLBACK')
-				console.error(`❌ Failed: ${file}`)
+				console.error(`Failed: ${file}`)
 				throw err
 			}
 		}
 
 		if (ran === 0) {
-			console.log('✅ All migrations already applied. Nothing to do.')
+			console.log('All migrations already applied. Nothing to do.')
 		} else {
-			console.log(`\n✅ Migration complete. ${ran} file(s) applied.`)
+			console.log(`\nMigration complete. ${ran} file(s) applied.`)
 		}
 	} finally {
 		client.release()
