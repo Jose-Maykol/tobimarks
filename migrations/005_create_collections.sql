@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS collections (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     color VARCHAR(20),
+    icon VARCHAR(50) DEFAULT 'folder',
     bookmarks_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

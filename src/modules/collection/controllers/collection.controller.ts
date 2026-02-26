@@ -36,7 +36,9 @@ export class CollectionController {
 						collection: {
 							id: collection.id,
 							name: collection.name,
-							description: collection.description
+							description: collection.description,
+							color: collection.color,
+							icon: collection.icon
 						}
 					},
 					'Collection created successfully'
@@ -65,6 +67,8 @@ export class CollectionController {
 							id: c.id,
 							name: c.name,
 							description: c.description,
+							color: c.color,
+							icon: c.icon,
 							bookmarksCount: c.bookmarksCount,
 							createdAt: c.createdAt,
 							updatedAt: c.updatedAt
@@ -92,6 +96,8 @@ export class CollectionController {
 						id: collection.id,
 						name: collection.name,
 						description: collection.description,
+						color: collection.color,
+						icon: collection.icon,
 						bookmarksCount: collection.bookmarksCount,
 						createdAt: collection.createdAt,
 						updatedAt: collection.updatedAt
@@ -125,7 +131,9 @@ export class CollectionController {
 						collection: {
 							id: collection.id,
 							name: collection.name,
-							description: collection.description
+							description: collection.description,
+							color: collection.color,
+							icon: collection.icon
 						}
 					},
 					'Collection updated successfully'

@@ -35,7 +35,8 @@ export class CollectionService {
 			userId: user.sub,
 			name: data.name,
 			description: data.description ?? null,
-			color: data.color ?? null
+			color: data.color ?? null,
+			icon: data.icon ?? 'folder'
 		}
 
 		try {
@@ -92,10 +93,11 @@ export class CollectionService {
 			throw new CollectionNotFoundError()
 		}
 
-		const updateData: Partial<Pick<Collection, 'name' | 'description' | 'color'>> = {}
+		const updateData: UpdateCollectionDto = {}
 		if (data.name !== undefined) updateData.name = data.name
 		if (data.description !== undefined) updateData.description = data.description
 		if (data.color !== undefined) updateData.color = data.color
+		if (data.icon !== undefined) updateData.icon = data.icon
 
 		try {
 			const result = await this.collectionRepository.update(collectionId, updateData)
