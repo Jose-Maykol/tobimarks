@@ -4,13 +4,25 @@ import { WEBSITE_REPOSITORY } from '../di/token'
 import type { Website } from '../models/website.model'
 import type { IWebsiteRepository } from '../repositories/websites.repository'
 
+import { LOGGER } from '@/core/di/tokens'
+import type { ILogger } from '@/core/logger/logger'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
 @injectable()
 export class WebsiteService {
-	constructor(@inject(WEBSITE_REPOSITORY) private readonly websiteRepository: IWebsiteRepository) {}
+	private readonly logger: ILogger
+
+	constructor(
+		@inject(WEBSITE_REPOSITORY) private readonly websiteRepository: IWebsiteRepository,
+		@inject(LOGGER) logger: ILogger
+	) {
+		this.logger = logger.child({ context: 'WebsiteService' })
+	}
 
 	async getByUserId(user: AccessTokenPayload): Promise<Website[]> {
-		return await this.websiteRepository.findByUserId(user.sub)
+		this.logger.info('Fetching websites for user', { userId: user.sub })
+		const websites = await this.websiteRepository.findByUserId(user.sub)
+		this.logger.info('Websites fetched successfully', { userId: user.sub, count: websites.length })
+		return websites
 	}
 }
