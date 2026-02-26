@@ -9,6 +9,6 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     last_login_at TIMESTAMP WITH TIME ZONE,
-    is_active BOOLEAN DEFAULT true
-    --settings JSONB DEFAULT '{}' -- User preferences
+    is_active BOOLEAN DEFAULT true,
+    settings JSONB DEFAULT '{"aiAutoTags": false, "aiAutoCollections": false}'::jsonb NOT NULL
 );

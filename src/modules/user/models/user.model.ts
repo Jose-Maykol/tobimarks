@@ -1,3 +1,8 @@
+export interface UserSettings {
+	aiAutoTags: boolean
+	aiAutoCollections: boolean
+}
+
 export interface User {
 	id: string
 	googleId: string
@@ -8,9 +13,9 @@ export interface User {
 	updatedAt: Date
 	lastLoginAt: Date | null
 	isActive: boolean
-	//settings: Record<string, unknown>
+	settings: UserSettings
 }
 
 export type CreateUserDto = Pick<User, 'googleId' | 'email' | 'displayName' | 'avatarUrl'>
 
-export type ProfileUserDto = Pick<User, 'id' | 'email' | 'displayName' | 'avatarUrl'>
+export type ProfileUserDto = Pick<User, 'id' | 'email' | 'displayName' | 'avatarUrl' | 'settings'>

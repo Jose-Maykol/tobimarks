@@ -5,6 +5,7 @@ import { inject, injectable } from 'tsyringe'
 import { USER_SERVICE } from '../di/tokens'
 import { UserNotFoundError } from '../exceptions/user.exceptions'
 import type { UserService } from '../services/user.service'
+import type { UpdateUserSettingsRequestBody } from '../types/user.types'
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
@@ -28,6 +29,31 @@ export class UserController {
 		} catch (error) {
 			if (error instanceof UserNotFoundError) {
 				res.status(StatusCodes.NOT_FOUND).json(ApiResponseBuilder.error(error.message, error.code))
+			}
+			next(error)
+		}
+	}
+	async updateSettings(
+		req: Request<Record<string, never>, Record<string, never>, UpdateUserSettingsRequestBody>,
+		res: Response,
+		next: NextFunction
+	) {
+		try {
+			const user = req.user!
+			const profile = await this.userService.updateSettings(user.sub, req.body)
+			return res.status(StatusCodes.OK).json(
+				ApiResponseBuilder.success(
+					{
+						user: profile
+					},
+					'User settings updated successfully'
+				)
+			)
+		} catch (error) {
+			if (error instanceof UserNotFoundError) {
+				return res
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
 			}
 			next(error)
 		}

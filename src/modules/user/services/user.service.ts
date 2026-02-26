@@ -2,8 +2,9 @@ import { inject, injectable } from 'tsyringe'
 
 import { USER_REPOSITORY } from '../di/tokens'
 import { UserNotFoundError } from '../exceptions/user.exceptions'
-import type { CreateUserDto, ProfileUserDto, User } from '../models/user.model'
+import type { CreateUserDto, ProfileUserDto, User, UserSettings } from '../models/user.model'
 import type { IUserRepository } from '../repositories/user.repository'
+import type { UpdateUserSettingsRequestBody } from '../types/user.types'
 
 @injectable()
 export class UserService {
@@ -20,5 +21,13 @@ export class UserService {
 
 	async create(params: CreateUserDto): Promise<User> {
 		return this.userRepository.create(params)
+	}
+
+	async updateSettings(
+		userId: string,
+		data: UpdateUserSettingsRequestBody
+	): Promise<ProfileUserDto> {
+		if (!userId) throw new UserNotFoundError()
+		return this.userRepository.updateSettings(userId, data as Partial<UserSettings>)
 	}
 }
