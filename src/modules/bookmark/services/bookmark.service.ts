@@ -27,18 +27,24 @@ import type { CreateBookmarkRequestBody, UpdateBookmarkRequestBody } from '../ty
 import type { PaginationOptions } from '@/common/types/pagination.type'
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
 import type { IUnitOfWork } from '@/core/database/unit-of-work'
-import { UNIT_OF_WORK } from '@/core/di/tokens'
+import { UNIT_OF_WORK, LOGGER } from '@/core/di/tokens'
+import type { ILogger } from '@/core/logger/logger'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
 @injectable()
 export class BookmarkService {
+	private readonly logger: ILogger
+
 	constructor(
 		@inject(BOOKMARK_REPOSITORY) private bookmarkRepository: IBookmarkRepository,
 		@inject(METADATA_EXTRACTOR_SERVICE) private metadataExtractor: MetadataExtractorService,
 		@inject(WEBSITE_REPOSITORY) private websiteRepository: IWebsiteRepository,
 		@inject(TAG_SERVICE) private tagService: TagService,
-		@inject(COLLECTION_REPOSITORY) private collectionRepository: ICollectionRepository
-	) {}
+		@inject(COLLECTION_REPOSITORY) private collectionRepository: ICollectionRepository,
+		@inject(LOGGER) logger: ILogger
+	) {
+		this.logger = logger.child({ context: 'BookmarkService' })
+	}
 
 	/**
 	 * Creates a new bookmark for the given user and URL.
@@ -49,6 +55,7 @@ export class BookmarkService {
 	 * @returns The created bookmark.
 	 */
 	async create(user: AccessTokenPayload, data: CreateBookmarkRequestBody) {
+		this.logger.info('Creating new bookmark', { userId: user.sub, url: data.url })
 		const urlBookmark = data.url
 
 		const metadata = await this.metadataExtractor.extractFromUrl(urlBookmark)
@@ -83,12 +90,15 @@ export class BookmarkService {
 			}
 
 			await unitOfWork.commit()
+			this.logger.info('Bookmark created successfully', { bookmarkId: createdBookmark.id })
 			return createdBookmark
 		} catch (error) {
 			await unitOfWork.rollback()
 			if (error instanceof UniqueConstraintViolationError) {
+				this.logger.warn('Bookmark already exists', { userId: user.sub, url: data.url })
 				throw new BookmarkAlreadyExistsError()
 			}
+			this.logger.error('Error creating bookmark', { error })
 			throw error
 		}
 	}
@@ -112,6 +122,7 @@ export class BookmarkService {
 		const website = await this.websiteRepository.findByDomain(domain, queryRunner)
 
 		if (!website) {
+			this.logger.info('Website not found, creating new one', { domain })
 			const newWebsite = await this.websiteRepository.create(
 				{
 					domain,
@@ -157,7 +168,12 @@ export class BookmarkService {
 	 * @returns A list of bookmarks belonging to the user.
 	 */
 	async get(user: AccessTokenPayload, options: PaginationOptions, filters?: BookmarkFilters) {
+		this.logger.info('Fetching bookmarks', { userId: user.sub, options, filters })
 		const bookmarks = await this.bookmarkRepository.findByUserId(user.sub, options, filters)
+		this.logger.info('Bookmarks fetched successfully', {
+			count: bookmarks.data.length,
+			total: bookmarks.meta.total
+		})
 		return bookmarks
 	}
 
@@ -169,9 +185,13 @@ export class BookmarkService {
 	 * @returns The deleted bookmark.
 	 */
 	async delete(user: AccessTokenPayload, bookmarkId: string) {
+		this.logger.info('Deleting bookmark', { bookmarkId, userId: user.sub })
 		const bookmark = await this.bookmarkRepository.findById(bookmarkId)
 
-		if (!bookmark || bookmark.userId !== user.sub) throw new BookmarkNotFoundError()
+		if (!bookmark || bookmark.userId !== user.sub) {
+			this.logger.warn('Bookmark not found for deletion', { bookmarkId, userId: user.sub })
+			throw new BookmarkNotFoundError()
+		}
 
 		const unitOfWork = container.resolve<IUnitOfWork>(UNIT_OF_WORK)
 		await unitOfWork.begin()
@@ -183,9 +203,11 @@ export class BookmarkService {
 			}
 
 			await unitOfWork.commit()
+			this.logger.info('Bookmark deleted successfully', { bookmarkId })
 			return deletedBookmark
 		} catch (error) {
 			await unitOfWork.rollback()
+			this.logger.error('Error deleting bookmark', { error })
 			throw error
 		}
 	}
@@ -198,11 +220,16 @@ export class BookmarkService {
 	 * @returns The updated bookmark with favorite status.
 	 */
 	async markAsFavorite(user: AccessTokenPayload, bookmarkId: string) {
+		this.logger.info('Marking bookmark as favorite', { bookmarkId, userId: user.sub })
 		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
 
-		if (!existsBookmark) throw new BookmarkNotFoundError()
+		if (!existsBookmark) {
+			this.logger.warn('Bookmark not found to mark as favorite', { bookmarkId, userId: user.sub })
+			throw new BookmarkNotFoundError()
+		}
 
 		const result = await this.bookmarkRepository.updateFavoriteStatus(bookmarkId, true)
+		this.logger.info('Bookmark marked as favorite successfully', { bookmarkId })
 		return result
 	}
 
@@ -214,11 +241,16 @@ export class BookmarkService {
 	 * @returns The updated bookmark with favorite status removed.
 	 */
 	async unmarkAsFavorite(user: AccessTokenPayload, bookmarkId: string) {
+		this.logger.info('Unmarking bookmark as favorite', { bookmarkId, userId: user.sub })
 		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
 
-		if (!existsBookmark) throw new BookmarkNotFoundError()
+		if (!existsBookmark) {
+			this.logger.warn('Bookmark not found to unmark as favorite', { bookmarkId, userId: user.sub })
+			throw new BookmarkNotFoundError()
+		}
 
 		const result = await this.bookmarkRepository.updateFavoriteStatus(bookmarkId, false)
+		this.logger.info('Bookmark unmarked as favorite successfully', { bookmarkId })
 		return result
 	}
 
@@ -230,8 +262,16 @@ export class BookmarkService {
 	 * @param data - The data to update.
 	 */
 	async update(user: AccessTokenPayload, bookmarkId: string, data: UpdateBookmarkRequestBody) {
+		this.logger.info('Updating bookmark', {
+			bookmarkId,
+			userId: user.sub,
+			updateFields: Object.keys(data)
+		})
 		const bookmark = await this.bookmarkRepository.findById(bookmarkId)
-		if (!bookmark || bookmark.userId !== user.sub) throw new BookmarkNotFoundError()
+		if (!bookmark || bookmark.userId !== user.sub) {
+			this.logger.warn('Bookmark not found for update', { bookmarkId, userId: user.sub })
+			throw new BookmarkNotFoundError()
+		}
 
 		if (data.tags) {
 			await this.tagService.checkTagsOwnership(user.sub, data.tags)
@@ -259,15 +299,20 @@ export class BookmarkService {
 			}
 
 			await unitOfWork.commit()
+			this.logger.info('Bookmark updated successfully', { bookmarkId })
 		} catch (error) {
 			await unitOfWork.rollback()
+			this.logger.error('Error updating bookmark', { error })
 			throw error
 		}
 	}
 
 	async registerAccess(user: AccessTokenPayload, bookmarkId: string) {
 		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
-		if (!existsBookmark) throw new BookmarkNotFoundError()
+		if (!existsBookmark) {
+			this.logger.warn('Bookmark not found to register access', { bookmarkId, userId: user.sub })
+			throw new BookmarkNotFoundError()
+		}
 
 		await this.bookmarkRepository.registerAccess(bookmarkId)
 	}
@@ -280,8 +325,12 @@ export class BookmarkService {
 	 * @param collectionId - The ID of the collection to associate.
 	 */
 	async updateCollection(user: AccessTokenPayload, bookmarkId: string, collectionId: string) {
+		this.logger.info('Updating bookmark collection', { bookmarkId, collectionId, userId: user.sub })
 		const bookmark = await this.bookmarkRepository.findById(bookmarkId)
-		if (!bookmark || bookmark.userId !== user.sub) throw new BookmarkNotFoundError()
+		if (!bookmark || bookmark.userId !== user.sub) {
+			this.logger.warn('Bookmark not found for collection update', { bookmarkId, userId: user.sub })
+			throw new BookmarkNotFoundError()
+		}
 
 		if (bookmark.collectionId === collectionId) return
 
@@ -297,8 +346,10 @@ export class BookmarkService {
 			await this.collectionRepository.updateBookmarkCount(collectionId, 1, unitOfWork)
 
 			await unitOfWork.commit()
+			this.logger.info('Bookmark collection updated successfully', { bookmarkId, collectionId })
 		} catch (error) {
 			await unitOfWork.rollback()
+			this.logger.error('Error updating bookmark collection', { error })
 			throw error
 		}
 	}
@@ -310,8 +361,15 @@ export class BookmarkService {
 	 * @param bookmarkId - The ID of the bookmark.
 	 */
 	async removeCollection(user: AccessTokenPayload, bookmarkId: string) {
+		this.logger.info('Removing bookmark collection', { bookmarkId, userId: user.sub })
 		const bookmark = await this.bookmarkRepository.findById(bookmarkId)
-		if (!bookmark || bookmark.userId !== user.sub) throw new BookmarkNotFoundError()
+		if (!bookmark || bookmark.userId !== user.sub) {
+			this.logger.warn('Bookmark not found for collection removal', {
+				bookmarkId,
+				userId: user.sub
+			})
+			throw new BookmarkNotFoundError()
+		}
 
 		if (!bookmark.collectionId) return
 
@@ -323,8 +381,10 @@ export class BookmarkService {
 			await this.collectionRepository.updateBookmarkCount(bookmark.collectionId, -1, unitOfWork)
 
 			await unitOfWork.commit()
+			this.logger.info('Bookmark collection removed successfully', { bookmarkId })
 		} catch (error) {
 			await unitOfWork.rollback()
+			this.logger.error('Error removing bookmark collection', { error })
 			throw error
 		}
 	}
