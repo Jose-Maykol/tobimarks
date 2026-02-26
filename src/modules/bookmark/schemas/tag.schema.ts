@@ -1,17 +1,14 @@
 import * as v from 'valibot'
 
+import { APP_COLORS } from '@/common/constants/colors'
+
 export const CreateTagSchema = v.object({
 	name: v.pipe(
 		v.string('Name is required'),
 		v.minLength(1, 'Name cannot be empty'),
 		v.maxLength(100, 'Name cannot exceed 100 characters')
 	),
-	// TODO: CREATE AN ENUM FOR TAG STYLES
-	color: v.pipe(
-		v.string('Color is required'),
-		v.minLength(1, 'Color cannot be empty'),
-		v.maxLength(100, 'Color cannot exceed 100 characters')
-	)
+	color: v.picklist(APP_COLORS, 'Invalid color')
 })
 
 export const UpdateTagSchema = v.object({
@@ -20,9 +17,5 @@ export const UpdateTagSchema = v.object({
 		v.minLength(1, 'Name cannot be empty'),
 		v.maxLength(100, 'Name cannot exceed 100 characters')
 	),
-	color: v.pipe(
-		v.string('Color is required'),
-		v.minLength(1, 'Color cannot be empty'),
-		v.maxLength(100, 'Color cannot exceed 100 characters')
-	)
+	color: v.picklist(APP_COLORS, 'Invalid color')
 })

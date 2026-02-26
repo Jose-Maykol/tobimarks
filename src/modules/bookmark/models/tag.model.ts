@@ -1,9 +1,11 @@
+import type { AppColor } from '@/common/constants/colors'
+
 export interface Tag {
 	id: string
 	userId: string
 	name: string
 	slug: string
-	color: string | null
+	color: AppColor | null
 	embedding: number[] | null
 	createdAt: Date
 	updatedAt: Date
