@@ -17,7 +17,7 @@ const app = express()
 const apiRouter = express.Router()
 
 const RATE_LIMIT_WINDOW_MS: number = 15 * 60 * 1000
-const RATE_LIMIT_MAX_REQUESTS: number = 100
+const RATE_LIMIT_MAX_REQUESTS: number = 500
 const RATE_LIMIT_MESSAGE: string = 'Too many requests, please try again later.'
 
 app.use(
