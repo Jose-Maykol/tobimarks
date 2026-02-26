@@ -7,16 +7,22 @@ import type { ITagRepository } from '../repositories/tag.repository'
 import type { CreateTagRequestBody, UpdateTagRequestBody } from '../types/tags.types'
 
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
-import { EMBEDDING_SERVICE } from '@/core/di/tokens'
+import { EMBEDDING_SERVICE, LOGGER } from '@/core/di/tokens'
 import type { IEmbeddingService } from '@/core/embedding/embedding.service'
+import type { ILogger } from '@/core/logger/logger'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
 @injectable()
 export class TagService {
+	private readonly logger: ILogger
+
 	constructor(
 		@inject(TAG_REPOSITORY) private readonly tagRepository: ITagRepository,
-		@inject(EMBEDDING_SERVICE) private readonly embeddingService: IEmbeddingService
-	) {}
+		@inject(EMBEDDING_SERVICE) private readonly embeddingService: IEmbeddingService,
+		@inject(LOGGER) logger: ILogger
+	) {
+		this.logger = logger.child({ context: 'TagService' })
+	}
 
 	/**
 	 * Retrieves all tags created by a specific user.
@@ -25,7 +31,9 @@ export class TagService {
 	 * @returns A promise that resolves to the list of tags belonging to the user.
 	 */
 	async getByUserId(userId: string) {
+		this.logger.info('Fetching tags by user', { userId })
 		const tags = await this.tagRepository.findByUserId(userId)
+		this.logger.info('Tags fetched successfully', { userId, count: tags.length })
 		return tags
 	}
 
@@ -40,10 +48,12 @@ export class TagService {
 	 */
 	async checkTagsOwnership(userId: string, tagIds: string[]) {
 		if (tagIds.length === 0) return true
+		this.logger.info('Checking tags ownership', { userId, count: tagIds.length })
 
 		const allTagsExist = await this.tagRepository.existsByUserIdAndIds(userId, tagIds)
 
 		if (!allTagsExist) {
+			this.logger.warn('Tag ownership check failed', { userId, tagIds })
 			throw new TagNotFoundError()
 		}
 	}
@@ -59,6 +69,7 @@ export class TagService {
 	 * @throws TagAlreadyExistsError - If a tag with the same name already exists.
 	 */
 	async create(user: AccessTokenPayload, data: CreateTagRequestBody) {
+		this.logger.info('Creating new tag', { userId: user.sub, name: data.name })
 		const slugName = slugify(data.name, { lower: true, strict: true })
 		const embedding = await this.embeddingService.generateEmbedding(data.name)
 
@@ -71,11 +82,14 @@ export class TagService {
 
 		try {
 			const createdTag = await this.tagRepository.create(newTag)
+			this.logger.info('Tag created successfully', { tagId: createdTag.id })
 			return createdTag
 		} catch (error) {
 			if (error instanceof UniqueConstraintViolationError) {
+				this.logger.warn('Tag already exists', { userId: user.sub, name: data.name })
 				throw new TagAlreadyExistsError()
 			}
+			this.logger.error('Error creating tag', { error })
 			throw error
 		}
 	}
@@ -92,8 +106,12 @@ export class TagService {
 	 * @throws TagNotFoundError - If the tag does not exist or does not belong to the user.
 	 */
 	async update(user: AccessTokenPayload, tagId: string, data: UpdateTagRequestBody) {
+		this.logger.info('Updating tag', { tagId, userId: user.sub, name: data.name })
 		const tagExists = await this.tagRepository.existsByIdAndUserId(tagId, user.sub)
-		if (!tagExists) throw new TagNotFoundError()
+		if (!tagExists) {
+			this.logger.warn('Tag not found for update', { tagId, userId: user.sub })
+			throw new TagNotFoundError()
+		}
 
 		const slugName = slugify(data.name)
 		const embedding = await this.embeddingService.generateEmbedding(data.name)
@@ -105,6 +123,7 @@ export class TagService {
 		}
 
 		const updatedTag = await this.tagRepository.update(tagId, updateData)
+		this.logger.info('Tag updated successfully', { tagId })
 		return updatedTag!
 	}
 
@@ -118,8 +137,13 @@ export class TagService {
 	 * @throws TagNotFoundError - If the tag does not exist or does not belong to the user.
 	 */
 	async delete(user: AccessTokenPayload, id: string): Promise<void> {
+		this.logger.info('Deleting tag', { tagId: id, userId: user.sub })
 		const tagExists = await this.tagRepository.existsByIdAndUserId(id, user.sub)
-		if (!tagExists) throw new TagNotFoundError()
+		if (!tagExists) {
+			this.logger.warn('Tag not found for deletion', { tagId: id, userId: user.sub })
+			throw new TagNotFoundError()
+		}
 		await this.tagRepository.delete(id)
+		this.logger.info('Tag deleted successfully', { tagId: id })
 	}
 }
