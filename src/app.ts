@@ -69,6 +69,11 @@ apiRouter.use('/tags', (await import('./modules/bookmark/routes/tag.routes')).ta
 
 apiRouter.use('/websites', (await import('./modules/bookmark/routes/website.routes')).websiteRoutes)
 
+apiRouter.use(
+	'/statistics',
+	(await import('./modules/statistics/routes/statistics.routes')).statisticsRoutes
+)
+
 app.use('/api', apiRouter)
 
 app.use(errorHandlerMiddleware(logger))

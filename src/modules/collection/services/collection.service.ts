@@ -5,7 +5,11 @@ import {
 	CollectionAlreadyExistsError,
 	CollectionNotFoundError
 } from '../exceptions/collection.exceptions'
-import type { CreateCollectionDto, Collection } from '../models/collection.model'
+import type {
+	CreateCollectionDto,
+	Collection,
+	UpdateCollectionDto
+} from '../models/collection.model'
 import type { ICollectionRepository } from '../repositories/collection.repository'
 import type {
 	CreateCollectionRequestBody,

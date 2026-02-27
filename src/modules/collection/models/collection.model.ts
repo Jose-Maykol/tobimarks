@@ -13,6 +13,11 @@ export interface Collection {
 	updatedAt: Date
 }
 
-export type CreateCollectionDto = Pick<Collection, 'userId' | 'name' | 'description' | 'color' | 'icon'>
+export type CreateCollectionDto = Pick<
+	Collection,
+	'userId' | 'name' | 'description' | 'color' | 'icon'
+>
 
-export type UpdateCollectionDto = Partial<Pick<Collection, 'name' | 'description' | 'color' | 'icon'>>
+export type UpdateCollectionDto = Partial<
+	Pick<Collection, 'name' | 'description' | 'color' | 'icon'>
+>
