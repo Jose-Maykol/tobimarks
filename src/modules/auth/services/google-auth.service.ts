@@ -1,5 +1,5 @@
 import { OAuth2Client } from 'google-auth-library'
-import { injectable } from 'tsyringe'
+import { inject, injectable } from 'tsyringe'
 
 import {
 	GoogleAuthException,
@@ -10,9 +10,17 @@ import {
 import type { GoogleAuthPayload } from '../types/auth.types'
 
 import { env } from '@/core/config/env.config'
+import { LOGGER } from '@/core/di/tokens'
+import type { ILogger } from '@/core/logger/logger'
+
 @injectable()
 export class GoogleAuthService {
 	private readonly googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID)
+	private readonly logger: ILogger
+
+	constructor(@inject(LOGGER) logger: ILogger) {
+		this.logger = logger.child({ context: 'GoogleAuthService' })
+	}
 
 	/**
 	 * Verifies the provided Google ID token and extracts user information.
@@ -25,6 +33,7 @@ export class GoogleAuthService {
 	 * @throws InvalidGoogleTokenSignatureException - If the token signature is invalid.
 	 */
 	async verifyIdToken(idToken: string): Promise<GoogleAuthPayload> {
+		this.logger.info('Verifying Google ID token')
 		try {
 			const ticket = await this.googleClient.verifyIdToken({
 				idToken,
@@ -34,18 +43,22 @@ export class GoogleAuthService {
 			const payload = ticket.getPayload()
 
 			if (!payload) {
+				this.logger.warn('Google ID token verification failed: Missing payload')
 				throw new GoogleAuthException()
 			}
 
 			const { sub: googleId, email, name, picture } = payload
 
 			if (!email) {
+				this.logger.warn('Google ID token verification failed: Missing email')
 				throw new GoogleEmailMissingException()
 			}
 			if (!name) {
+				this.logger.warn('Google ID token verification failed: Missing name')
 				throw new GoogleNameMissingException()
 			}
 
+			this.logger.info('Google ID token verified successfully', { email })
 			return {
 				googleId,
 				email,
@@ -54,11 +67,14 @@ export class GoogleAuthService {
 			}
 		} catch (err) {
 			if (err instanceof InvalidGoogleTokenSignatureException) {
+				this.logger.warn('Invalid Google token signature')
 				throw err
 			}
 			if (err instanceof Error && err.message.includes('Invalid token signature')) {
+				this.logger.warn('Invalid Google token signature pattern detected')
 				throw new InvalidGoogleTokenSignatureException()
 			}
+			this.logger.error('Error verifying Google ID token', { error: err })
 			throw err
 		}
 	}
