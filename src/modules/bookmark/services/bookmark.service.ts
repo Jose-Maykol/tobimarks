@@ -308,6 +308,7 @@ export class BookmarkService {
 	}
 
 	async registerAccess(user: AccessTokenPayload, bookmarkId: string) {
+		this.logger.info('Registering access for bookmark', { bookmarkId, userId: user.sub })
 		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)
 		if (!existsBookmark) {
 			this.logger.warn('Bookmark not found to register access', { bookmarkId, userId: user.sub })
@@ -315,6 +316,7 @@ export class BookmarkService {
 		}
 
 		await this.bookmarkRepository.registerAccess(bookmarkId)
+		this.logger.info('Access registered successfully', { bookmarkId })
 	}
 
 	/**

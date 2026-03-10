@@ -1,6 +1,6 @@
 import axios from 'axios'
 import * as cheerio from 'cheerio'
-import { injectable } from 'tsyringe'
+import { inject, injectable } from 'tsyringe'
 
 import {
 	UrlFetchFailedException,
@@ -10,8 +10,17 @@ import {
 } from '../exceptions/metadata-extractor.exceptions'
 import type { MetadataExtractorResponse } from '../types/metadata.types'
 
+import { LOGGER } from '@/core/di/tokens'
+import type { ILogger } from '@/core/logger/logger'
+
 @injectable()
 export class MetadataExtractorService {
+	private readonly logger: ILogger
+
+	constructor(@inject(LOGGER) logger: ILogger) {
+		this.logger = logger.child({ context: 'MetadataExtractorService' })
+	}
+
 	/**
 	 * Extracts metadata from the given URL, including title, description, Open Graph data, favicon URL, and canonical URL.
 	 *
@@ -23,6 +32,7 @@ export class MetadataExtractorService {
 	 * @throws UrlTimeoutException - If the request to the URL times out.
 	 */
 	async extractFromUrl(url: string): Promise<MetadataExtractorResponse> {
+		this.logger.info('Extracting metadata from URL', { url })
 		try {
 			const { data: html } = await axios.get(url, {
 				timeout: 3000,
@@ -46,21 +56,25 @@ export class MetadataExtractorService {
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
 				if (error.response) {
-					if (error.response) {
-						if (error.response.status === 403) {
-							throw new UrlForbiddenException()
-						}
-						if (error.response.status === 404) {
-							throw new UrlNotFoundException()
-						}
-						throw new UrlFetchFailedException()
+					if (error.response.status === 403) {
+						this.logger.warn('URL forbidden', { url })
+						throw new UrlForbiddenException()
 					}
+					if (error.response.status === 404) {
+						this.logger.warn('URL not found', { url })
+						throw new UrlNotFoundException()
+					}
+					this.logger.error('URL fetch failed with status', { url, status: error.response.status })
+					throw new UrlFetchFailedException()
 				} else if (error.code === 'ECONNABORTED') {
+					this.logger.warn('URL timeout', { url })
 					throw new UrlTimeoutException()
 				} else {
+					this.logger.error('URL fetch failed', { url, error: error.message })
 					throw new UrlFetchFailedException()
 				}
 			}
+			this.logger.error('Unknown error extracting metadata', { url, error })
 			throw error
 		}
 	}
