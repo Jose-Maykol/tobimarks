@@ -1,12 +1,12 @@
 import type { PaginationMeta } from './pagination.type'
 
 /**
- * Standard structure for successful API responses.
- * @template T - Type of the response data.
- * @property success - Indicates the request was successful.
- * @property data - The response data.
- * @property message - Optional message describing the response.
- * @property meta - Optional pagination metadata.
+ * Estructura estándar para respuestas exitosas de la API.
+ * @template T - Tipo de los datos de la respuesta.
+ * @property success - Indica que la solicitud fue exitosa.
+ * @property data - Los datos de la respuesta.
+ * @property message - Mensaje opcional que describe la respuesta.
+ * @property meta - Metadatos opcionales de paginación.
  */
 export interface ApiSuccessResponse<T> {
 	success: true
@@ -16,10 +16,10 @@ export interface ApiSuccessResponse<T> {
 }
 
 /**
- * Standard structure for error API responses.
- * @property success - Indicates the request was not successful.
- * @property message - Human-readable error message.
- * @property errorCode - Application-specific error code.
+ * Estructura estándar para respuestas de error de la API.
+ * @property success - Indica que la solicitud no fue exitosa.
+ * @property message - Mensaje de error legible para humanos.
+ * @property errorCode - Código de error específico de la aplicación.
  */
 export type ApiErrorResponse = {
 	success: false
