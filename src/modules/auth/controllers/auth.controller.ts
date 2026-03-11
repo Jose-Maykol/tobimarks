@@ -10,13 +10,10 @@ import {
 	InvalidGoogleTokenSignatureException
 } from '../exceptions/auth.exceptions'
 import { AuthService } from '../services/auth.service'
-import type { GoogleAuthRequestBody } from '../types/auth.types'
+import type { GoogleAuthRequestBody, RefreshTokenRequestBody } from '../types/auth.types'
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
-/**
- * Controller for handling authentication-related HTTP requests.
- */
 @injectable()
 export class AuthController {
 	constructor(@inject(AUTH_SERVICE) private readonly authService: AuthService) {}
@@ -29,13 +26,21 @@ export class AuthController {
 	 * @param next - The next middleware function to handle errors.
 	 */
 	async googleAuth(
-		req: Request<Record<string, never>, Record<string, never>, GoogleAuthRequestBody>,
+		req: Request<Record<string, never>, Record<string, unknown>, GoogleAuthRequestBody>,
 		res: Response,
 		next: NextFunction
 	): Promise<void> {
 		try {
-			const { idToken } = req.body
-			const tokens = await this.authService.authenticateWithGoogle(idToken)
+			const { idToken, deviceId, deviceName } = req.body
+			const ipAddress = req.ip || req.socket.remoteAddress
+			const userAgent = req.get('user-agent')
+
+			const tokens = await this.authService.authenticateWithGoogle(idToken, {
+				deviceId: deviceId ?? undefined,
+				deviceName: deviceName ?? undefined,
+				ipAddress,
+				userAgent
+			})
 			res.status(StatusCodes.OK).json(
 				ApiResponseBuilder.success({
 					accessToken: tokens.accessToken,
@@ -70,8 +75,33 @@ export class AuthController {
 	 * @param res - The HTTP response object to send the new access token.
 	 * @param next - The next middleware function to handle errors.
 	 */
-	async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
-		// Implementation for refreshing token
+	async refreshToken(
+		req: Request<Record<string, never>, Record<string, unknown>, RefreshTokenRequestBody>,
+		res: Response,
+		next: NextFunction
+	): Promise<void> {
+		try {
+			const { refreshToken: token, deviceId, deviceName } = req.body
+
+			const ipAddress = req.ip || req.socket.remoteAddress
+			const userAgent = req.get('user-agent')
+
+			const tokens = await this.authService.refreshAccessToken(token, {
+				deviceId,
+				deviceName,
+				ipAddress,
+				userAgent
+			})
+
+			res.status(StatusCodes.OK).json(
+				ApiResponseBuilder.success({
+					accessToken: tokens.accessToken,
+					refreshToken: tokens.refreshToken
+				})
+			)
+		} catch (err) {
+			next(err)
+		}
 	}
 
 	/**
@@ -81,7 +111,19 @@ export class AuthController {
 	 * @param res - The HTTP response object to confirm logout.
 	 * @param next - The next middleware function to handle errors.
 	 */
-	async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
-		// Implementation for logging out
+	async logout(
+		req: Request<Record<string, never>, Record<string, unknown>, RefreshTokenRequestBody>,
+		res: Response,
+		next: NextFunction
+	): Promise<void> {
+		try {
+			const { refreshToken } = req.body
+
+			await this.authService.logout(refreshToken)
+
+			res.status(StatusCodes.OK).json(ApiResponseBuilder.success({ message: 'Logged out' }))
+		} catch (err) {
+			next(err)
+		}
 	}
 }

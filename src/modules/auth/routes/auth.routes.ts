@@ -3,7 +3,7 @@ import { container } from 'tsyringe'
 
 import { AuthController } from '../controllers/auth.controller'
 import { AUTH_CONTROLLER } from '../di/tokens'
-import { GoogleAuthSchema } from '../squemas/auth.schema'
+import { GoogleAuthSchema, RefreshTokenSchema } from '../squemas/auth.schema'
 
 import { validateRequest } from '@/common/middlewares/validation.middleware'
 
@@ -15,8 +15,15 @@ router.post(
 	validateRequest({ body: GoogleAuthSchema }),
 	authController.googleAuth.bind(authController)
 )
-router.post('/refresh', authController.refreshToken.bind(authController))
-router.post('/logout', authController.logout.bind(authController))
-//router.get('/me', authController.getMe.bind(authController))
+router.post(
+	'/refresh',
+	validateRequest({ body: RefreshTokenSchema }),
+	authController.refreshToken.bind(authController)
+)
+router.post(
+	'/logout',
+	validateRequest({ body: RefreshTokenSchema }),
+	authController.logout.bind(authController)
+)
 
 export const authRouter = router
