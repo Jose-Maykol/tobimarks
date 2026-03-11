@@ -15,6 +15,16 @@ declare module 'express' {
 	}
 }
 
+/**
+ * Middleware que autentica las solicitudes verificando el token Bearer en el encabezado Authorization.
+ *
+ * Si tiene éxito, adjunta el payload del usuario decodificado a `req.user`.
+ * Si alguna validación falla (encabezado ausente, token ausente, token inválido), devuelve una respuesta 401 Unauthorized.
+ *
+ * @param req - El objeto de solicitud HTTP.
+ * @param res - El objeto de respuesta HTTP.
+ * @param next - La siguiente función de middleware en la pila.
+ */
 export const authMiddleware: RequestHandler = async (
 	req: ExpressRequest,
 	res: Response,

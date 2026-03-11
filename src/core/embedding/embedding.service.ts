@@ -5,11 +5,30 @@ import { env } from '../config/env.config'
 import { LOGGER } from '../di/tokens'
 import type { ILogger } from '../logger/logger'
 
+/**
+ * Interfaz para el servicio de generación de embeddings.
+ * Proporciona métodos para convertir texto en vectores numéricos.
+ */
 export interface IEmbeddingService {
+	/**
+	 * Genera un vector de embedding para una única entrada de texto.
+	 * @param text - El texto de entrada.
+	 * @returns Promesa con el vector de embedding normalizado.
+	 */
 	generateEmbedding(text: string): Promise<number[]>
+
+	/**
+	 * Genera vectores de embedding para múltiples entradas de texto.
+	 * @param texts - Array de textos de entrada.
+	 * @returns Promesa con un array de vectores de embedding normalizados.
+	 */
 	generateEmbeddings(texts: string[]): Promise<number[][]>
 }
 
+/**
+ * Servicio que utiliza Google Generative AI para generar embeddings de texto.
+ * Los vectores generados son normalizados para su uso en búsquedas vectoriales.
+ */
 @injectable()
 export class EmbeddingService implements IEmbeddingService {
 	private genAI: GoogleGenAI
@@ -24,11 +43,11 @@ export class EmbeddingService implements IEmbeddingService {
 	}
 
 	/**
-	 * Generates an embedding vector for a single text input.
+	 * Genera un vector de embedding para una única entrada de texto.
 	 *
-	 * @param text - The input text to generate the embedding for.
-	 * @returns A promise that resolves to a normalized embedding vector.
-	 * @throws Error - If the embedding generation fails.
+	 * @param text - El texto de entrada para generar el embedding.
+	 * @returns Una promesa que se resuelve con un vector de embedding normalizado.
+	 * @throws Error - Si la generación del embedding falla o los datos son inválidos.
 	 */
 	async generateEmbedding(text: string): Promise<number[]> {
 		try {
@@ -57,11 +76,11 @@ export class EmbeddingService implements IEmbeddingService {
 	}
 
 	/**
-	 * Generates embedding vectors for multiple text inputs.
+	 * Genera vectores de embedding para múltiples entradas de texto.
 	 *
-	 * @param texts - An array of input texts to generate embeddings for.
-	 * @returns A promise that resolves to an array of normalized embedding vectors.
-	 * @throws Error - If the embedding generation fails for any input.
+	 * @param texts - Un array de textos de entrada.
+	 * @returns Una promesa que se resuelve con un array de vectores normalizados.
+	 * @throws Error - Si la generación falla para cualquier entrada.
 	 */
 	async generateEmbeddings(texts: string[]): Promise<number[][]> {
 		try {
@@ -92,10 +111,10 @@ export class EmbeddingService implements IEmbeddingService {
 	}
 
 	/**
-	 * Normalizes a vector to have a unit norm.
+	 * Normaliza un vector para que tenga una norma unitaria.
 	 *
-	 * @param values - The input vector to normalize.
-	 * @returns The normalized vector.
+	 * @param values - El vector de entrada a normalizar.
+	 * @returns El vector normalizado.
 	 */
 	private normalizeVector(values: number[]): number[] {
 		const norm = Math.sqrt(values.reduce((sum, val) => sum + val * val, 0))

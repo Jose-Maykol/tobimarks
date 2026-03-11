@@ -7,7 +7,12 @@ import { fileURLToPath } from 'url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const MIGRATIONS_DIR = join(__dirname, '..', 'migrations')
 
-// Parse --files=001,003,007
+/**
+ * Obtiene el filtro de archivos desde los argumentos de la línea de comandos.
+ * Permite ejecutar migraciones específicas usando el flag --files=001,002.
+ *
+ * @returns Array de nombres/prefijos de archivos o null si no hay filtro.
+ */
 function getFilesFilter(): string[] | null {
 	const arg = process.argv.find((a) => a.startsWith('--files='))
 	if (!arg) return null
@@ -17,6 +22,13 @@ function getFilesFilter(): string[] | null {
 		.map((s) => s.trim())
 }
 
+/**
+ * Script de migración de base de datos.
+ * - Crea la tabla `schema_migrations` si no existe.
+ * - Lee archivos .sql de la carpeta /migrations.
+ * - Ejecuta las migraciones pendientes en orden alfabético.
+ * - Registra cada migración aplicada para evitar ejecuciones duplicadas.
+ */
 async function migrate() {
 	const { Pool } = pg
 
@@ -31,6 +43,7 @@ async function migrate() {
 	const client = await pool.connect()
 
 	try {
+		// Crear tabla de control de versiones si no existe
 		await client.query(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
         id SERIAL PRIMARY KEY,
@@ -41,7 +54,7 @@ async function migrate() {
 
 		const filter = getFilesFilter()
 
-		// Read and sort migration files
+		// Leer y ordenar archivos de migración
 		const allFiles = (await readdir(MIGRATIONS_DIR)).filter((f) => f.endsWith('.sql')).sort()
 
 		const files = filter
@@ -49,10 +62,11 @@ async function migrate() {
 			: allFiles
 
 		if (files.length === 0) {
-			console.log('No migration files matched the given filter.')
+			console.log('No migration files matched the specified filter.')
 			return
 		}
 
+		// Obtener migraciones ya aplicadas
 		const { rows: applied } = await client.query<{ filename: string }>(
 			'SELECT filename FROM schema_migrations'
 		)
@@ -61,32 +75,32 @@ async function migrate() {
 		let ran = 0
 		for (const file of files) {
 			if (appliedSet.has(file)) {
-				console.log(`Skipping (already applied): ${file}`)
+				console.log(`Skipping applied migration: ${file}`)
 				continue
 			}
 
 			const filePath = join(MIGRATIONS_DIR, file)
 			const sql = await readFile(filePath, 'utf-8')
 
-			console.log(`Running migration: ${file}`)
+			console.log(`Executing migration: ${file}`)
 			await client.query('BEGIN')
 			try {
 				await client.query(sql)
 				await client.query('INSERT INTO schema_migrations (filename) VALUES ($1)', [file])
 				await client.query('COMMIT')
-				console.log(`Applied: ${file}`)
+				console.log(`Successfully applied: ${file}`)
 				ran++
 			} catch (err) {
 				await client.query('ROLLBACK')
-				console.error(`Failed: ${file}`)
+				console.error(`Migration failed: ${file}`)
 				throw err
 			}
 		}
 
 		if (ran === 0) {
-			console.log('All migrations already applied. Nothing to do.')
+			console.log('All migrations are up to date.')
 		} else {
-			console.log(`\nMigration complete. ${ran} file(s) applied.`)
+			console.log(`\nMigration process finished. ${ran} file(s) applied.`)
 		}
 	} finally {
 		client.release()
@@ -95,6 +109,6 @@ async function migrate() {
 }
 
 migrate().catch((err) => {
-	console.error('Migration failed:', err)
+	console.error('Migration execution failed:', err)
 	process.exit(1)
 })

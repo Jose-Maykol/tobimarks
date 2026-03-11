@@ -1,5 +1,9 @@
 import * as v from 'valibot'
 
+/**
+ * Esquema de validación para los parámetros de consulta de paginación.
+ * Valida y transforma los campos 'page' y 'limit' desde strings a números.
+ */
 export const PaginationQuerySchema = v.object({
 	page: v.optional(
 		v.pipe(
@@ -11,6 +15,7 @@ export const PaginationQuerySchema = v.object({
 		),
 		'1'
 	),
+	/** Límite de elementos por página, por defecto 10, máximo 100 */
 	limit: v.optional(
 		v.pipe(
 			v.string(),
