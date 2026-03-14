@@ -6,10 +6,6 @@ import { LOGGER } from '../di/tokens'
 import type { ILogger } from '../logger/logger'
 import type { DatabaseResponse, IQueryRunner } from '../types/database.type'
 
-/**
- * Interfaz que define el contrato para el contexto de la base de datos.
- * Extiende IQueryRunner para proporcionar capacidades de ejecución de consultas.
- */
 export interface IDatabaseContext extends IQueryRunner {
 	/**
 	 * Ejecuta una consulta SQL en la base de datos.
