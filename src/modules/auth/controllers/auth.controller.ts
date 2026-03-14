@@ -14,16 +14,20 @@ import type { GoogleAuthRequestBody, RefreshTokenRequestBody } from '../types/au
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
+/**
+ * Controlador para manejar las solicitudes de autenticación.
+ * Proporciona métodos para la autenticación con Google y la gestión de tokens.
+ */
 @injectable()
 export class AuthController {
 	constructor(@inject(AUTH_SERVICE) private readonly authService: AuthService) {}
 
 	/**
-	 * Handles Google authentication by verifying the ID token and returning tokens.
+	 * Maneja la autenticación de Google verificando el ID token y devolviendo tokens de acceso.
 	 *
-	 * @param req - The HTTP request object containing the Google ID token in the body.
-	 * @param res - The HTTP response object to send the tokens.
-	 * @param next - The next middleware function to handle errors.
+	 * @param req - El objeto de solicitud HTTP que contiene el ID token de Google en el cuerpo.
+	 * @param res - El objeto de respuesta HTTP para enviar los tokens.
+	 * @param next - La siguiente función de middleware para manejar errores.
 	 */
 	async googleAuth(
 		req: Request<Record<string, never>, Record<string, unknown>, GoogleAuthRequestBody>,
@@ -69,11 +73,11 @@ export class AuthController {
 	}
 
 	/**
-	 * Refreshes the authentication token using a refresh token.
+	 * Refresca el token de autenticación utilizando un token de actualización.
 	 *
-	 * @param req - The HTTP request object containing the refresh token.
-	 * @param res - The HTTP response object to send the new access token.
-	 * @param next - The next middleware function to handle errors.
+	 * @param req - El objeto de solicitud HTTP que contiene el token de actualización.
+	 * @param res - El objeto de respuesta HTTP para enviar el nuevo token de acceso.
+	 * @param next - La siguiente función de middleware para manejar errores.
 	 */
 	async refreshToken(
 		req: Request<Record<string, never>, Record<string, unknown>, RefreshTokenRequestBody>,
@@ -105,11 +109,11 @@ export class AuthController {
 	}
 
 	/**
-	 * Logs out the user by invalidating the refresh token.
+	 * Cierra la sesión del usuario invalidando el token de actualización.
 	 *
-	 * @param req - The HTTP request object containing the refresh token.
-	 * @param res - The HTTP response object to confirm logout.
-	 * @param next - The next middleware function to handle errors.
+	 * @param req - El objeto de solicitud HTTP que contiene el token de actualización.
+	 * @param res - El objeto de respuesta HTTP para confirmar el cierre de sesión.
+	 * @param next - La siguiente función de middleware para manejar errores.
 	 */
 	async logout(
 		req: Request<Record<string, never>, Record<string, unknown>, RefreshTokenRequestBody>,
