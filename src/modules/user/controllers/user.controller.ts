@@ -9,10 +9,21 @@ import type { UpdateUserSettingsRequestBody } from '../types/user.types'
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
+/**
+ * Controlador para gestionar las operaciones relacionadas con el usuario.
+ * Proporciona métodos para obtener el perfil y actualizar la configuración.
+ */
 @injectable()
 export class UserController {
 	constructor(@inject(USER_SERVICE) private readonly userService: UserService) {}
 
+	/**
+	 * Recupera el perfil completo del usuario autenticado.
+	 *
+	 * @param req - El objeto de solicitud HTTP.
+	 * @param res - El objeto de respuesta HTTP.
+	 * @param next - La siguiente función de middleware.
+	 */
 	async getProfile(
 		req: Request<Record<string, never>, Record<string, never>, Record<string, never>>,
 		res: Response,
@@ -33,6 +44,14 @@ export class UserController {
 			next(error)
 		}
 	}
+
+	/**
+	 * Actualiza los ajustes o configuración del usuario.
+	 *
+	 * @param req - El objeto de solicitud HTTP con los nuevos ajustes en el cuerpo.
+	 * @param res - El objeto de respuesta HTTP.
+	 * @param next - La siguiente función de middleware.
+	 */
 	async updateSettings(
 		req: Request<Record<string, never>, Record<string, never>, UpdateUserSettingsRequestBody>,
 		res: Response,
