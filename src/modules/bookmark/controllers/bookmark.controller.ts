@@ -24,17 +24,21 @@ import type {
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
+/**
+ * Controlador para gestionar los marcadores (bookmarks).
+ * Proporciona métodos para crear, obtener, actualizar, eliminar y organizar marcadores.
+ */
 @injectable()
 export class BookmarkController {
 	constructor(@inject(BOOKMARK_SERVICE) private readonly bookmarkService: BookmarkService) {}
 
 	/**
-	 * Handles the creation of a new bookmark.
+	 * Maneja la creación de un nuevo marcador.
 	 *
-	 * @param req - The HTTP request containing the user and bookmark data.
-	 * @param res - The HTTP response to send the created bookmark.
-	 * @param next - The next middleware function for error handling.
-	 * @returns A JSON response with the created bookmark.
+	 * @param req - La solicitud HTTP que contiene los datos del usuario y del marcador.
+	 * @param res - La respuesta HTTP para enviar el marcador creado.
+	 * @param next - La siguiente función de middleware para el manejo de errores.
+	 * @returns Una respuesta JSON con el marcador creado.
 	 */
 	async create(
 		req: Request<Record<string, never>, Record<string, never>, CreateBookmarkRequestBody>,
@@ -89,12 +93,12 @@ export class BookmarkController {
 	}
 
 	/**
-	 * Retrieves all bookmarks for the authenticated user.
+	 * Recupera todos los marcadores del usuario autenticado.
 	 *
-	 * @param req - The HTTP request containing the authenticated user.
-	 * @param res - The HTTP response to send the retrieved bookmarks.
-	 * @param next - The next middleware function for error handling.
-	 * @returns A JSON response with the list of bookmarks.
+	 * @param req - La solicitud HTTP que contiene al usuario autenticado.
+	 * @param res - La respuesta HTTP para enviar los marcadores recuperados.
+	 * @param next - La siguiente función de middleware para el manejo de errores.
+	 * @returns Una respuesta JSON con la lista de marcadores.
 	 */
 	async get(req: Request, res: Response, next: NextFunction) {
 		try {
@@ -134,12 +138,12 @@ export class BookmarkController {
 	}
 
 	/**
-	 * Deletes a bookmark for the authenticated user by its ID.
+	 * Elimina un marcador del usuario autenticado por su ID.
 	 *
-	 * @param req - The HTTP request containing the authenticated user and bookmark ID.
-	 * @param res - The HTTP response to confirm the deletion.
-	 * @param next - The next middleware function for error handling.
-	 * @returns A JSON response confirming the bookmark deletion.
+	 * @param req - La solicitud HTTP que contiene al usuario autenticado y el ID del marcador.
+	 * @param res - La respuesta HTTP para confirmar la eliminación.
+	 * @param next - La siguiente función de middleware para el manejo de errores.
+	 * @returns Una respuesta JSON confirmando la eliminación del marcador.
 	 */
 	async delete(
 		req: Request<{ id: string }, Record<string, never>, Record<string, never>>,
@@ -171,12 +175,12 @@ export class BookmarkController {
 	}
 
 	/**
-	 * Marks a bookmark as a favorite for the authenticated user.
+	 * Marca un marcador como favorito para el usuario autenticado.
 	 *
-	 * @param req - The HTTP request containing the authenticated user and bookmark ID.
-	 * @param res - The HTTP response to confirm the favorite status update.
-	 * @param next - The next middleware function for error handling.
-	 * @returns A JSON response confirming the bookmark was marked as favorite.
+	 * @param req - La solicitud HTTP que contiene al usuario autenticado y el ID del marcador.
+	 * @param res - La respuesta HTTP para confirmar la actualización del estado de favorito.
+	 * @param next - La siguiente función de middleware para el manejo de errores.
+	 * @returns Una respuesta JSON confirmando que el marcador fue marcado como favorito.
 	 */
 	async markAsFavorite(
 		req: Request<{ id: string }, Record<string, never>, Record<string, never>>,
@@ -209,12 +213,12 @@ export class BookmarkController {
 	}
 
 	/**
-	 * Removes the favorite status from a bookmark for the authenticated user.
+	 * Elimina el estado de favorito de un marcador para el usuario autenticado.
 	 *
-	 * @param req - The HTTP request containing the authenticated user and bookmark ID.
-	 * @param res - The HTTP response to confirm the favorite status removal.
-	 * @param next - The next middleware function for error handling.
-	 * @returns A JSON response confirming the bookmark was unmarked as favorite.
+	 * @param req - La solicitud HTTP que contiene al usuario autenticado y el ID del marcador.
+	 * @param res - La respuesta HTTP para confirmar la eliminación del estado de favorito.
+	 * @param next - La siguiente función de middleware para el manejo de errores.
+	 * @returns Una respuesta JSON confirmando que el marcador fue desmarcado como favorito.
 	 */
 	async unmarkAsFavorite(
 		req: Request<{ id: string }, Record<string, never>, Record<string, never>>,
@@ -246,6 +250,13 @@ export class BookmarkController {
 		}
 	}
 
+	/**
+	 * Actualiza los datos de un marcador.
+	 *
+	 * @param req - La solicitud HTTP que contiene el ID del marcador y los datos a actualizar.
+	 * @param res - La respuesta HTTP para confirmar la actualización.
+	 * @param next - La siguiente función de middleware.
+	 */
 	async update(
 		req: Request<{ id: string }, Record<string, never>, UpdateBookmarkRequestBody>,
 		res: Response,
@@ -274,6 +285,13 @@ export class BookmarkController {
 		}
 	}
 
+	/**
+	 * Registra un acceso al marcador (incrementa el contador y actualiza la fecha).
+	 *
+	 * @param req - La solicitud HTTP que contiene el ID del marcador.
+	 * @param res - La respuesta HTTP.
+	 * @param next - La siguiente función de middleware.
+	 */
 	async registerAccess(
 		req: Request<{ id: string }, Record<string, never>, Record<string, never>>,
 		res: Response,
@@ -296,6 +314,13 @@ export class BookmarkController {
 		}
 	}
 
+	/**
+	 * Mapea un marcador a una colección.
+	 *
+	 * @param req - La solicitud HTTP que contiene el ID del marcador y el ID de la colección.
+	 * @param res - La respuesta HTTP.
+	 * @param next - La siguiente función de middleware.
+	 */
 	async updateCollection(
 		req: Request<{ id: string }, Record<string, never>, UpdateBookmarkCollectionRequestBody>,
 		res: Response,
@@ -319,6 +344,13 @@ export class BookmarkController {
 		}
 	}
 
+	/**
+	 * Remueve un marcador de su colección actual.
+	 *
+	 * @param req - La solicitud HTTP que contiene el ID del marcador.
+	 * @param res - La respuesta HTTP.
+	 * @param next - La siguiente función de middleware.
+	 */
 	async removeCollection(
 		req: Request<{ id: string }, Record<string, never>, Record<string, never>>,
 		res: Response,

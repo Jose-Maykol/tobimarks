@@ -9,17 +9,21 @@ import type { CreateTagRequestBody, UpdateTagRequestBody } from '../types/tags.t
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
+/**
+ * Controlador para gestionar las etiquetas (tags).
+ * Proporciona métodos para obtener, crear, actualizar y eliminar etiquetas.
+ */
 @injectable()
 export class TagController {
 	constructor(@inject(TAG_SERVICE) private readonly tagService: TagService) {}
 
 	/**
-	 * Retrieves all tags associated with the authenticated user.
+	 * Recupera todas las etiquetas asociadas con el usuario autenticado.
 	 *
-	 * @param req - The HTTP request object.
-	 * @param res - The HTTP response object.
-	 * @param next - The next middleware function.
-	 * @returns A JSON response containing the user's tags.
+	 * @param req - El objeto de solicitud HTTP.
+	 * @param res - El objeto de respuesta HTTP.
+	 * @param next - La siguiente función de middleware.
+	 * @returns Una respuesta JSON que contiene las etiquetas del usuario.
 	 */
 	async getByUserId(
 		req: Request<Record<string, never>, Record<string, never>, Record<string, never>>,
@@ -37,12 +41,12 @@ export class TagController {
 	}
 
 	/**
-	 * Creates a new tag for the authenticated user.
+	 * Crea una nueva etiqueta para el usuario autenticado.
 	 *
-	 * @param req - The HTTP request object containing the tag data in the body.
-	 * @param res - The HTTP response object.
-	 * @param next - The next middleware function.
-	 * @returns A JSON response containing the created tag.
+	 * @param req - El objeto de solicitud HTTP que contiene los datos de la etiqueta en el cuerpo.
+	 * @param res - El objeto de respuesta HTTP.
+	 * @param next - La siguiente función de middleware.
+	 * @returns Una respuesta JSON que contiene la etiqueta creada.
 	 */
 	async create(
 		req: Request<Record<string, never>, Record<string, never>, CreateTagRequestBody>,
@@ -70,6 +74,14 @@ export class TagController {
 		}
 	}
 
+	/**
+	 * Actualiza una etiqueta existente.
+	 *
+	 * @param req - El objeto de solicitud HTTP que contiene el ID de la etiqueta y los nuevos datos.
+	 * @param res - El objeto de respuesta HTTP.
+	 * @param next - La siguiente función de middleware.
+	 * @returns Una respuesta JSON con la etiqueta actualizada.
+	 */
 	async update(
 		req: Request<{ id: string }, Record<string, never>, UpdateTagRequestBody>,
 		res: Response,
@@ -102,6 +114,14 @@ export class TagController {
 		}
 	}
 
+	/**
+	 * Elimina una etiqueta del usuario autenticado.
+	 *
+	 * @param req - El objeto de solicitud HTTP que contiene el ID de la etiqueta.
+	 * @param res - El objeto de respuesta HTTP.
+	 * @param next - La siguiente función de middleware.
+	 * @returns Una respuesta JSON confirmando la eliminación.
+	 */
 	async delete(
 		req: Request<{ id: string }, Record<string, never>, Record<string, never>>,
 		res: Response,
