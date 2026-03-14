@@ -16,10 +16,21 @@ import type {
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
+/**
+ * Controlador para gestionar las colecciones de marcadores.
+ * Proporciona métodos para crear, listar, obtener por ID y actualizar colecciones.
+ */
 @injectable()
 export class CollectionController {
 	constructor(@inject(COLLECTION_SERVICE) private readonly collectionService: CollectionService) {}
 
+	/**
+	 * Crea una nueva colección para el usuario autenticado.
+	 *
+	 * @param req - La solicitud HTTP con los datos de la colección.
+	 * @param res - La respuesta HTTP con la colección creada.
+	 * @param next - La siguiente función de middleware para el manejo de errores.
+	 */
 	async create(
 		req: Request<Record<string, never>, Record<string, never>, CreateCollectionRequestBody>,
 		res: Response,
@@ -52,6 +63,13 @@ export class CollectionController {
 		}
 	}
 
+	/**
+	 * Recupera todas las colecciones del usuario autenticado de forma paginada.
+	 *
+	 * @param req - La solicitud HTTP con los parámetros de paginación.
+	 * @param res - La respuesta HTTP con la lista de colecciones y metadatos.
+	 * @param next - La siguiente función de middleware.
+	 */
 	async get(req: Request, res: Response, next: NextFunction) {
 		try {
 			const user = req.user!
@@ -83,6 +101,13 @@ export class CollectionController {
 		}
 	}
 
+	/**
+	 * Obtiene los detalles de una colección específica por su ID.
+	 *
+	 * @param req - La solicitud HTTP con el ID de la colección en los parámetros.
+	 * @param res - La respuesta HTTP con los detalles de la colección.
+	 * @param next - La siguiente función de middleware.
+	 */
 	async getById(req: Request<{ id: string }>, res: Response, next: NextFunction) {
 		try {
 			const user = req.user!
@@ -114,6 +139,13 @@ export class CollectionController {
 		}
 	}
 
+	/**
+	 * Actualiza los datos de una colección existente.
+	 *
+	 * @param req - La solicitud HTTP con el ID de la colección y los nuevos datos.
+	 * @param res - La respuesta HTTP con la colección actualizada.
+	 * @param next - La siguiente función de middleware.
+	 */
 	async update(
 		req: Request<{ id: string }, Record<string, never>, UpdateCollectionRequestBody>,
 		res: Response,
