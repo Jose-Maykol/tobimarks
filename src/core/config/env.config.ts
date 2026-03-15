@@ -14,6 +14,14 @@ export interface EnvVariables {
 	DB_NAME: string
 	DB_USER: string
 	DB_PASSWORD: string
+	REDIS_HOST: string
+	REDIS_PORT: number
+	REDIS_PASSWORD: string
+	REDIS_DB: number
+	REDIS_QUEUE_HOST: string
+	REDIS_QUEUE_PORT: number
+	REDIS_QUEUE_PASSWORD: string
+	REDIS_QUEUE_DB: number
 	GOOGLE_CLIENT_ID: string
 	GOOGLE_CLIENT_SECRET: string
 	JWT_SECRET: string
@@ -43,6 +51,25 @@ const envSchema = v.object({
 	DB_NAME: v.pipe(v.string(), v.minLength(1, 'DB_NAME is required')),
 	DB_USER: v.pipe(v.string(), v.minLength(1, 'DB_USER is required')),
 	DB_PASSWORD: v.pipe(v.string(), v.minLength(1, 'DB_PASSWORD is required')),
+	// Redis
+	REDIS_HOST: v.optional(v.pipe(v.string(), v.minLength(1)), 'localhost'),
+	REDIS_PORT: v.optional(
+		v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1)),
+		'6379'
+	),
+	REDIS_PASSWORD: v.optional(v.string(), ''),
+	REDIS_DB: v.optional(v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(0)), '0'),
+	// Redis Queue
+	REDIS_QUEUE_HOST: v.optional(v.pipe(v.string(), v.minLength(1)), 'localhost'),
+	REDIS_QUEUE_PORT: v.optional(
+		v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1)),
+		'6380'
+	),
+	REDIS_QUEUE_PASSWORD: v.optional(v.string(), ''),
+	REDIS_QUEUE_DB: v.optional(
+		v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(0)),
+		'0'
+	),
 	// Google
 	GOOGLE_CLIENT_ID: v.pipe(v.string(), v.minLength(1, 'GOOGLE_CLIENT_ID is required')),
 	GOOGLE_CLIENT_SECRET: v.pipe(v.string(), v.minLength(1, 'GOOGLE_CLIENT_SECRET is required')),

@@ -6,7 +6,8 @@ import type { CreateUserDto, ProfileUserDto, User, UserSettings } from '../model
 import type { IUserRepository } from '../repositories/user.repository'
 import type { UpdateUserSettingsRequestBody } from '../types/user.types'
 
-import { LOGGER } from '@/core/di/tokens'
+import type { ICacheService } from '@/core/cache/cache.service'
+import { CACHE_SERVICE, LOGGER } from '@/core/di/tokens'
 import type { ILogger } from '@/core/logger/logger'
 
 @injectable()
@@ -15,6 +16,7 @@ export class UserService {
 
 	constructor(
 		@inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
+		@inject(CACHE_SERVICE) private readonly cacheService: ICacheService,
 		@inject(LOGGER) logger: ILogger
 	) {
 		this.logger = logger.child({ context: 'UserService' })
@@ -38,8 +40,22 @@ export class UserService {
 			this.logger.warn('Profile fetch failed: userId is missing')
 			throw new UserNotFoundError()
 		}
+
+		const cacheKey = `user:profile:${userId}`
+
+		const cachedProfile = await this.cacheService.get<ProfileUserDto>(cacheKey)
+		if (cachedProfile) {
+			this.logger.debug('Profile fetched from cache', { userId })
+			return cachedProfile
+		}
+
 		const profile = await this.userRepository.findById(userId)
-		this.logger.info('Profile fetched successfully', { userId })
+
+		if (profile) {
+			await this.cacheService.set(cacheKey, profile, 3600)
+			this.logger.info('Profile fetched from DB and cached', { userId })
+		}
+
 		return profile
 	}
 
@@ -60,7 +76,10 @@ export class UserService {
 			throw new UserNotFoundError()
 		}
 		const profile = await this.userRepository.updateSettings(userId, data as Partial<UserSettings>)
-		this.logger.info('User settings updated successfully', { userId })
+
+		await this.cacheService.delete(`user:profile:${userId}`)
+
+		this.logger.info('User settings updated and cache invalidated', { userId })
 		return profile
 	}
 }
