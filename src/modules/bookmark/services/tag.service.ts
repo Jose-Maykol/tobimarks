@@ -146,4 +146,30 @@ export class TagService {
 		await this.tagRepository.delete(id)
 		this.logger.info('Tag deleted successfully', { tagId: id })
 	}
+
+	/**
+	 * Finds tags that are similar to a given text using vector embeddings.
+	 *
+	 * @param userId - The user ID whose tags will be searched.
+	 * @param text - The text to compare against the tags.
+	 * @param threshold - The similarity threshold (0 to 1). Higher means more similar. Default 0.7.
+	 * @returns A promise that resolves to an array of tag IDs.
+	 */
+	async findSimilarTagsForText(
+		userId: string,
+		text: string,
+		threshold: number = 0.7
+	): Promise<string[]> {
+		this.logger.info('Finding similar tags for text', {
+			userId,
+			textLength: text.length,
+			threshold
+		})
+
+		const embedding = await this.embeddingService.generateEmbedding(text)
+		const tagIds = await this.tagRepository.findSimilar(userId, embedding, threshold)
+
+		this.logger.info('Similar tags search completed', { userId, foundCount: tagIds.length })
+		return tagIds
+	}
 }

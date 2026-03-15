@@ -15,6 +15,7 @@ export interface ITagRepository {
 	existsByUserIdAndIds(userId: string, ids: string[]): Promise<boolean>
 	update(id: string, data: Partial<Tag>): Promise<Tag | null>
 	delete(id: string): Promise<Pick<Tag, 'id'> | null>
+	findSimilar(userId: string, embedding: number[], threshold?: number): Promise<string[]>
 }
 
 @injectable()
@@ -159,5 +160,23 @@ export class TagRepository implements ITagRepository {
 
 		const result = await this.dbContext.query<Pick<Tag, 'id'>>(query, values)
 		return result.rows[0] || null
+	}
+
+	async findSimilar(
+		userId: string,
+		embedding: number[],
+		threshold: number = 0.7
+	): Promise<string[]> {
+		const query = `
+			SELECT id
+			FROM tags
+			WHERE user_id = $1
+			  AND embedding IS NOT NULL
+			  AND 1 - (embedding <=> $2::vector) >= $3
+			ORDER BY embedding <=> $2::vector ASC
+		`
+		const vectorStr = `[${embedding.join(', ')}]`
+		const result = await this.dbContext.query<{ id: string }>(query, [userId, vectorStr, threshold])
+		return result.rows.map((row) => row.id)
 	}
 }

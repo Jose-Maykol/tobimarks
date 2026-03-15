@@ -27,9 +27,12 @@ import type { CreateBookmarkRequestBody, UpdateBookmarkRequestBody } from '../ty
 import type { PaginationOptions } from '@/common/types/pagination.type'
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
 import type { IUnitOfWork } from '@/core/database/unit-of-work'
-import { UNIT_OF_WORK, LOGGER } from '@/core/di/tokens'
+import { UNIT_OF_WORK, LOGGER, QUEUE_SERVICE } from '@/core/di/tokens'
 import type { ILogger } from '@/core/logger/logger'
+import type { IQueueService } from '@/core/queue/queue.service'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
+import { USER_SERVICE } from '@/modules/user/di/tokens'
+import type { UserService } from '@/modules/user/services/user.service'
 
 @injectable()
 export class BookmarkService {
@@ -41,9 +44,74 @@ export class BookmarkService {
 		@inject(WEBSITE_REPOSITORY) private websiteRepository: IWebsiteRepository,
 		@inject(TAG_SERVICE) private tagService: TagService,
 		@inject(COLLECTION_REPOSITORY) private collectionRepository: ICollectionRepository,
+		@inject(USER_SERVICE) private userService: UserService,
+		@inject(QUEUE_SERVICE) private queueService: IQueueService,
 		@inject(LOGGER) logger: ILogger
 	) {
 		this.logger = logger.child({ context: 'BookmarkService' })
+
+		this.queueService.registerQueue('ai-tags-generation', async (job) => {
+			const { bookmarkId, userId } = job.data as { bookmarkId: string; userId: string }
+			this.logger.info('Processing AI auto-tags generation job', { bookmarkId, userId })
+
+			try {
+				const userTags = await this.tagService.getByUserId(userId)
+
+				if (userTags.length === 0) {
+					this.logger.info('User has no tags to match against. AI tags generation skipped.', {
+						userId
+					})
+					return { success: true, message: 'User has no tags' }
+				}
+
+				const bookmark = await this.bookmarkRepository.findById(bookmarkId)
+				if (!bookmark) {
+					this.logger.warn('Bookmark not found. AI tags generation skipped.', { bookmarkId })
+					return { success: false, message: 'Bookmark not found' }
+				}
+
+				const textParts = [
+					bookmark.title,
+					bookmark.description,
+					bookmark.ogTitle,
+					bookmark.ogDescription
+				].filter((part): part is string => typeof part === 'string' && part.trim().length > 0)
+
+				if (textParts.length === 0) {
+					this.logger.info(
+						'Bookmark has no textual content to analyze. AI auto-tags generation skipped.',
+						{ bookmarkId }
+					)
+					return { success: true, message: 'No textual content to analyze' }
+				}
+
+				const textToAnalyze = textParts.join(' ')
+				const similarTagIds = await this.tagService.findSimilarTagsForText(
+					userId,
+					textToAnalyze,
+					0.7
+				)
+
+				if (similarTagIds.length > 0) {
+					await this.bookmarkRepository.update(bookmarkId, { tags: similarTagIds })
+					this.logger.info('AI auto-tags assigned successfully', {
+						bookmarkId,
+						tagsCount: similarTagIds.length
+					})
+				} else {
+					this.logger.info('No similar tags found for AI auto-tags', { bookmarkId })
+				}
+
+				return { success: true, tagsAssigned: similarTagIds.length }
+			} catch (error) {
+				this.logger.error('Error during AI auto-tags generation', {
+					bookmarkId,
+					userId,
+					error: error instanceof Error ? error.message : String(error)
+				})
+				throw error
+			}
+		})
 	}
 
 	/**
@@ -91,6 +159,34 @@ export class BookmarkService {
 
 			await unitOfWork.commit()
 			this.logger.info('Bookmark created successfully', { bookmarkId: createdBookmark.id })
+
+			try {
+				const userProfile = await this.userService.getProfile(user.sub)
+				if (userProfile?.settings?.aiAutoTags) {
+					await this.queueService.addJob(
+						'ai-tags-generation',
+						'generate-tags',
+						{
+							bookmarkId: createdBookmark.id,
+							userId: user.sub
+						},
+						{
+							attempts: 3,
+							backoff: { type: 'exponential', delay: 2000 }
+						}
+					)
+					this.logger.info('AI auto-tags job enqueued successfully', {
+						bookmarkId: createdBookmark.id,
+						userId: user.sub
+					})
+				}
+			} catch (queueError) {
+				this.logger.error('Failed to enqueue AI auto-tags job', {
+					bookmarkId: createdBookmark.id,
+					error: queueError instanceof Error ? queueError.message : String(queueError)
+				})
+			}
+
 			return createdBookmark
 		} catch (error) {
 			await unitOfWork.rollback()
