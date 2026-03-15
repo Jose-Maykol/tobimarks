@@ -18,7 +18,8 @@ import type {
 
 import type { PaginationOptions, PaginatedResult } from '@/common/types/pagination.type'
 import { UniqueConstraintViolationError } from '@/core/database/database.exceptions'
-import { LOGGER } from '@/core/di/tokens'
+import { EMBEDDING_SERVICE, LOGGER } from '@/core/di/tokens'
+import type { IEmbeddingService } from '@/core/embedding/embedding.service'
 import type { ILogger } from '@/core/logger/logger'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
@@ -28,6 +29,7 @@ export class CollectionService {
 
 	constructor(
 		@inject(COLLECTION_REPOSITORY) private readonly collectionRepository: ICollectionRepository,
+		@inject(EMBEDDING_SERVICE) private readonly embeddingService: IEmbeddingService,
 		@inject(LOGGER) logger: ILogger
 	) {
 		this.logger = logger.child({ context: 'CollectionService' })
@@ -35,12 +37,16 @@ export class CollectionService {
 
 	async create(user: AccessTokenPayload, data: CreateCollectionRequestBody): Promise<Collection> {
 		this.logger.info('Creating new collection', { userId: user.sub, name: data.name })
+		const textForEmbedding = `${data.name} ${data.description || ''}`.trim()
+		const embedding = await this.embeddingService.generateEmbedding(textForEmbedding)
+
 		const newCollection: CreateCollectionDto = {
 			userId: user.sub,
 			name: data.name,
 			description: data.description ?? null,
 			color: data.color ?? null,
-			icon: data.icon ?? 'folder'
+			icon: data.icon ?? 'folder',
+			embedding
 		}
 
 		try {
@@ -98,10 +104,28 @@ export class CollectionService {
 		}
 
 		const updateData: UpdateCollectionDto = {}
-		if (data.name !== undefined) updateData.name = data.name
-		if (data.description !== undefined) updateData.description = data.description
+
+		let textChanged = false
+		let newName = existsCollection.name
+		let newDescription = existsCollection.description
+
+		if (data.name !== undefined) {
+			updateData.name = data.name
+			newName = data.name
+			textChanged = true
+		}
+		if (data.description !== undefined) {
+			updateData.description = data.description
+			newDescription = data.description
+			textChanged = true
+		}
 		if (data.color !== undefined) updateData.color = data.color
 		if (data.icon !== undefined) updateData.icon = data.icon
+
+		if (textChanged) {
+			const textForEmbedding = `${newName} ${newDescription || ''}`.trim()
+			updateData.embedding = await this.embeddingService.generateEmbedding(textForEmbedding)
+		}
 
 		try {
 			const result = await this.collectionRepository.update(collectionId, updateData)
@@ -118,5 +142,34 @@ export class CollectionService {
 			this.logger.error('Error updating collection', { error })
 			throw error
 		}
+	}
+
+	/**
+	 * Finds collections that are similar to a given text using vector embeddings.
+	 *
+	 * @param userId - The user ID whose collections will be searched.
+	 * @param text - The text to compare against the collections.
+	 * @param threshold - The similarity threshold (0 to 1). Default 0.7.
+	 * @returns A promise that resolves to an array of collection IDs.
+	 */
+	async findSimilarCollectionForText(
+		userId: string,
+		text: string,
+		threshold: number = 0.7
+	): Promise<string[]> {
+		this.logger.info('Finding similar collections for text', {
+			userId,
+			textLength: text.length,
+			threshold
+		})
+
+		const embedding = await this.embeddingService.generateEmbedding(text)
+		const collectionIds = await this.collectionRepository.findSimilar(userId, embedding, threshold)
+
+		this.logger.info('Similar collections search completed', {
+			userId,
+			foundCount: collectionIds.length
+		})
+		return collectionIds
 	}
 }

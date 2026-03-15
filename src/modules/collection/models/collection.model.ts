@@ -9,15 +9,16 @@ export interface Collection {
 	color: AppColor | null
 	icon: AppIcon | null
 	bookmarksCount: number
+	embedding?: number[]
 	createdAt: Date
 	updatedAt: Date
 }
 
 export type CreateCollectionDto = Pick<
 	Collection,
-	'userId' | 'name' | 'description' | 'color' | 'icon'
+	'userId' | 'name' | 'description' | 'color' | 'icon' | 'embedding'
 >
 
 export type UpdateCollectionDto = Partial<
-	Pick<Collection, 'name' | 'description' | 'color' | 'icon'>
+	Pick<Collection, 'name' | 'description' | 'color' | 'icon' | 'embedding'>
 >

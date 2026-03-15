@@ -19,6 +19,7 @@ export interface ICollectionRepository {
 	findByIdAndUserId(id: string, userId: string): Promise<Collection | null>
 	update(id: string, data: UpdateCollectionDto): Promise<Collection>
 	updateBookmarkCount(id: string, increment: number, queryRunner?: IQueryRunner): Promise<void>
+	findSimilar(userId: string, embedding: number[], threshold?: number): Promise<string[]>
 }
 
 @injectable()
@@ -27,16 +28,18 @@ export class CollectionRepository implements ICollectionRepository {
 
 	async create(params: CreateCollectionDto): Promise<Collection> {
 		const query = `
-			INSERT INTO collections (user_id, name, description, color, icon, bookmarks_count)
-			VALUES ($1, $2, $3, $4, $5, 0)
+			INSERT INTO collections (user_id, name, description, color, icon, bookmarks_count, embedding)
+			VALUES ($1, $2, $3, $4, $5, 0, $6)
 			RETURNING id, user_id AS "userId", name, description, color, icon, bookmarks_count AS "bookmarksCount", created_at AS "createdAt", updated_at AS "updatedAt"
 		`
+		const embeddingVector = params.embedding ? `[${params.embedding.join(', ')}]` : null
 		const values = [
 			params.userId,
 			params.name,
 			params.description || null,
 			params.color || null,
-			params.icon || 'folder'
+			params.icon || 'folder',
+			embeddingVector
 		]
 
 		try {
@@ -119,6 +122,12 @@ export class CollectionRepository implements ICollectionRepository {
 			values.push(data.icon)
 		}
 
+		if (data.embedding !== undefined) {
+			updates.push('embedding = $' + (values.length + 1))
+			const embeddingVector = data.embedding ? `[${data.embedding.join(', ')}]` : null
+			values.push(embeddingVector)
+		}
+
 		updates.push('updated_at = NOW()')
 
 		const query = `
@@ -145,5 +154,23 @@ export class CollectionRepository implements ICollectionRepository {
 			WHERE id = $2
 		`
 		await db.query(query, [increment, id])
+	}
+
+	async findSimilar(
+		userId: string,
+		embedding: number[],
+		threshold: number = 0.7
+	): Promise<string[]> {
+		const query = `
+			SELECT id
+			FROM collections
+			WHERE user_id = $1
+			  AND embedding IS NOT NULL
+			  AND 1 - (embedding <=> $2::vector) >= $3
+			ORDER BY embedding <=> $2::vector ASC
+		`
+		const vectorStr = `[${embedding.join(', ')}]`
+		const result = await this.dbContext.query<{ id: string }>(query, [userId, vectorStr, threshold])
+		return result.rows.map((row) => row.id)
 	}
 }
