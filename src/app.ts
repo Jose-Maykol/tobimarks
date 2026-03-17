@@ -8,6 +8,7 @@ import { container } from 'tsyringe'
 
 import { errorHandlerMiddleware } from './common/middlewares/error-handler.middleware'
 import { httpLoggerMiddleware } from './common/middlewares/http-logger.middleware'
+import { env } from './core/config/env.config'
 import { LOGGER } from './core/di/tokens'
 import type { ILogger } from './core/logger/logger'
 import { authRouter } from './modules/auth/routes/auth.routes'
@@ -22,7 +23,7 @@ const RATE_LIMIT_MESSAGE: string = 'Too many requests, please try again later.'
 
 app.use(
 	cors({
-		origin: 'http://localhost:5173',
+		origin: env.CORS_ORIGIN,
 		credentials: true
 	})
 )

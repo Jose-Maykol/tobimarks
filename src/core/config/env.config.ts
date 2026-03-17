@@ -8,6 +8,7 @@ export type Environment = 'DEVELOPMENT' | 'PRODUCTION' | 'TEST'
 
 export interface EnvVariables {
 	NODE_ENV: Environment
+	CORS_ORIGIN: string
 	PORT: number
 	DB_HOST: string
 	DB_PORT: number
@@ -50,6 +51,7 @@ const envSchema = v.object({
 		v.picklist(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']),
 		'info'
 	),
+	CORS_ORIGIN: v.optional(v.string(), 'http://localhost:5173'),
 	PORT: v.optional(
 		v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(1000), v.maxValue(65535)),
 		'3000'
