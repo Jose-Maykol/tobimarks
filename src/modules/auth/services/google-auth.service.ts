@@ -23,14 +23,14 @@ export class GoogleAuthService {
 	}
 
 	/**
-	 * Verifies the provided Google ID token and extracts user information.
+	 * Verifica el token de ID de Google proporcionado y extrae la información del usuario.
 	 *
-	 * @param idToken - The Google ID token to verify.
-	 * @returns A promise resolving to the user's Google authentication payload.
-	 * @throws GoogleAuthException - If the ID token is invalid.
-	 * @throws GoogleEmailMissingException - If the email is missing in the payload.
-	 * @throws GoogleNameMissingException - If the name is missing in the payload.
-	 * @throws InvalidGoogleTokenSignatureException - If the token signature is invalid.
+	 * @param idToken - El token de ID de Google a verificar.
+	 * @returns Una promesa que se resuelve en la carga útil de autenticación de Google del usuario.
+	 * @throws GoogleAuthException - Si el token de ID es inválido.
+	 * @throws GoogleEmailMissingException - Si falta el correo electrónico en la carga útil.
+	 * @throws GoogleNameMissingException - Si falta el nombre en la carga útil.
+	 * @throws InvalidGoogleTokenSignatureException - Si la firma del token es inválida.
 	 */
 	async verifyIdToken(idToken: string): Promise<GoogleAuthPayload> {
 		this.logger.info('Verifying Google ID token')

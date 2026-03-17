@@ -9,8 +9,8 @@ import { LOGGER } from '@/core/di/tokens'
 import type { ILogger } from '@/core/logger/logger'
 
 /**
- * Service responsible for generating, validating, and hashing authentication tokens.
- * Provides methods for working with JWT access tokens and opaque refresh tokens.
+ * Servicio encargado de generar, validar y realizar el hash de los tokens de autenticación.
+ * Proporciona métodos para trabajar con tokens de acceso JWT y tokens de refresco opacos.
  */
 @injectable()
 export class TokenService {
@@ -21,9 +21,9 @@ export class TokenService {
 	}
 
 	/**
-	 * Generate a JWT access token with the provided payload.
-	 * @param payload Object containing claims to include in the JWT.
-	 * @returns Promise that resolves to a signed JWT access token as a string.
+	 * Genera un token de acceso JWT con la carga útil proporcionada.
+	 * @param payload Objeto que contiene las reclamaciones (claims) a incluir en el JWT.
+	 * @returns Promesa que se resuelve en un token de acceso JWT firmado como string.
 	 */
 	async generateAccessToken(payload: AccessTokenPayload): Promise<string> {
 		this.logger.info('Generating access token', { payload: { sub: payload.sub } })
@@ -37,9 +37,9 @@ export class TokenService {
 	}
 
 	/**
-	 * Validate a JWT access token and return its decoded payload.
-	 * @param token JWT access token to validate.
-	 * @returns Promise that resolves to the decoded payload if valid, or an error message string if invalid.
+	 * Valida un token de acceso JWT y devuelve su carga útil decodificada.
+	 * @param token Token de acceso JWT a validar.
+	 * @returns Promesa que se resuelve en la carga útil decodificada si es válida, o un mensaje de error si no lo es.
 	 */
 	async validateAccessToken(token: string): Promise<AccessTokenPayload | string> {
 		this.logger.info('Validating access token')
@@ -55,8 +55,8 @@ export class TokenService {
 	}
 
 	/**
-	 * Generate a cryptographically secure opaque refresh token.
-	 * @returns Promise that resolves to a random refresh token string.
+	 * Genera un token de refresco opaco criptográficamente seguro.
+	 * @returns Promesa que se resuelve en un string de token de refresco aleatorio.
 	 */
 	async generateRefreshToken(): Promise<string> {
 		this.logger.info('Generating refresh token')
@@ -66,9 +66,9 @@ export class TokenService {
 	}
 
 	/**
-	 * Hash a refresh token using SHA-256 and encode as base64url.
-	 * @param token Plain refresh token string to hash.
-	 * @returns Promise that resolves to the hashed token string.
+	 * Realiza el hash de un token de refresco utilizando SHA-256 y lo codifica como base64url.
+	 * @param token String del token de refresco en plano para realizar el hash.
+	 * @returns Promesa que se resuelve en el string del token hasheado.
 	 */
 	async hashRefreshToken(token: string): Promise<string> {
 		this.logger.info('Hashing refresh token')
@@ -78,10 +78,10 @@ export class TokenService {
 	}
 
 	/**
-	 * Validate a refresh token by comparing its hash to a stored hash using a timing-safe comparison.
-	 * @param token Plain refresh token string to validate.
-	 * @param hashedToken Previously stored hashed token string.
-	 * @returns Promise that resolves to true if the token is valid, false otherwise.
+	 * Valida un token de refresco comparando su hash con un hash almacenado utilizando una comparación segura contra ataques de tiempo.
+	 * @param token String del token de refresco en plano a validar.
+	 * @param hashedToken String del token hasheado almacenado previamente.
+	 * @returns Promesa que se resuelve en true si el token es válido, false en caso contrario.
 	 */
 	async validateRefreshToken(token: string, hashedToken: string): Promise<boolean> {
 		this.logger.info('Validating refresh token hash')

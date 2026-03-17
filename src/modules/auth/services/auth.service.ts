@@ -28,32 +28,34 @@ export class AuthService {
 	}
 
 	/**
-	 * Authenticates a user using a Google ID token.
+	 * Autentica a un usuario utilizando un token de ID de Google.
 	 *
-	 * @param idToken - The Google ID token to authenticate the user.
-	 * @returns A promise resolving to an object containing access and refresh tokens.
-	 * @throws GoogleAuthException - If the ID token is invalid.
-	 * @throws GoogleEmailMissingException - If the email is missing in the payload.
-	 * @throws GoogleNameMissingException - If the name is missing in the payload.
-	 * @throws InvalidGoogleTokenSignatureException - If the token signature is invalid.
+	 * @param idToken - El token de ID de Google para autenticar al usuario.
+	 * @param deviceMeta - Metadatos del dispositivo para el registro de la sesión.
+	 * @returns Una promesa que se resuelve en un objeto que contiene los tokens de acceso y refresco.
+	 * @throws GoogleAuthException - Si el token de ID es inválido.
+	 * @throws GoogleEmailMissingException - Si el correo electrónico falta en la carga útil.
+	 * @throws GoogleNameMissingException - Si el nombre falta en la carga útil.
+	 * @throws InvalidGoogleTokenSignatureException - Si la firma del token es inválida.
 	 */
 	async authenticateWithGoogle(idToken: string, deviceMeta: DeviceMetadata) {
-		this.logger.info('Authenticating with Google')
+		this.logger.info('Beginning Google authentication')
 		const { googleId, email, name, picture } = await this.googleAuthService.verifyIdToken(idToken)
+		this.logger.debug('Google token verified', { email, googleId })
 
 		let user = await this.userService.findByGoogleId(googleId)
 
 		if (user === null) {
-			this.logger.info('User not found, creating new user', { email })
+			this.logger.info('No existing user found. Creating new profile.', { email })
 			user = await this.userService.create({
 				googleId,
 				email,
 				displayName: name,
 				avatarUrl: picture ?? null
 			})
-			this.logger.info('User created successfully', { userId: user.id })
+			this.logger.info('New user profile created', { userId: user.id, email })
 		} else {
-			this.logger.info('User found', { userId: user.id })
+			this.logger.info('Existing user found', { userId: user.id, email })
 		}
 
 		const accessToken = await this.tokenService.generateAccessToken({
@@ -81,11 +83,11 @@ export class AuthService {
 	}
 
 	/**
-	 * Refreshes the access token using a refresh token.
+	 * Refresca el token de acceso utilizando un token de refresco.
 	 *
-	 * @param refreshToken - The refresh token in plain text to generate a new access token.
-	 * @param deviceMeta - Information about the client device that requests the refresh.
-	 * @returns A promise resolving to an object containing the new access and refresh tokens.
+	 * @param refreshToken - El token de refresco en texto plano para generar un nuevo token de acceso.
+	 * @param deviceMeta - Información sobre el dispositivo del cliente que solicita el refresco.
+	 * @returns Una promesa que se resuelve en un objeto que contiene los nuevos tokens de acceso y refresco.
 	 */
 	async refreshAccessToken(refreshToken: string, deviceMeta: DeviceMetadata) {
 		this.logger.info('Refreshing access token')
@@ -137,9 +139,9 @@ export class AuthService {
 	}
 
 	/**
-	 * Logs out a user by invalidating their refresh token.
+	 * Cierra la sesión de un usuario invalidando su token de refresco.
 	 *
-	 * @param refreshToken - The refresh token to invalidate.
+	 * @param refreshToken - El token de refresco a invalidar.
 	 */
 	async logout(refreshToken: string) {
 		this.logger.info('Logging out user')
