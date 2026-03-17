@@ -36,7 +36,14 @@ export interface EnvVariables {
  */
 const envSchema = v.object({
 	// Servidor
-	NODE_ENV: v.optional(v.picklist(['DEVELOPMENT', 'PRODUCTION', 'TEST']), 'DEVELOPMENT'),
+	NODE_ENV: v.optional(
+		v.pipe(
+			v.string(),
+			v.transform((val) => val.toUpperCase()),
+			v.picklist(['DEVELOPMENT', 'PRODUCTION', 'TEST'])
+		),
+		'DEVELOPMENT'
+	),
 	LOG_LEVEL: v.optional(
 		v.picklist(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']),
 		'info'
