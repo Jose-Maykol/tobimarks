@@ -23,14 +23,15 @@ export class UserService {
 	}
 
 	async findByGoogleId(googleId: string): Promise<User | null> {
-		this.logger.info('Fetching user by Google ID', { googleId })
+		this.logger.info('Searching for user by Google ID', { googleId })
 		const user = await this.userRepository.findByGoogleId(googleId)
+
 		if (user) {
-			this.logger.info('User found', { userId: user.id })
+			this.logger.info('User found with Google ID', { userId: user.id })
 		} else {
-			this.logger.info('User not found')
-			throw new UserNotFoundError()
+			this.logger.info('User not found for Google ID', { googleId })
 		}
+
 		return user
 	}
 
