@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS bookmarks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     website_id UUID NOT NULL REFERENCES websites(id),
-    category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
     collection_id UUID REFERENCES collections(id) ON DELETE SET NULL,
 
     url TEXT NOT NULL,
@@ -41,9 +40,6 @@ CREATE INDEX IF NOT EXISTS idx_bookmarks_user_favorite ON bookmarks (user_id, is
 
 -- Index on user_archived to optimize queries filtering archived bookmarks for a specific user
 CREATE INDEX IF NOT EXISTS idx_bookmarks_user_archived ON bookmarks (user_id, is_archived) WHERE is_archived = true;
-
--- Index on user_category to optimize queries filtering bookmarks by category for a specific user
-CREATE INDEX IF NOT EXISTS idx_bookmarks_user_category ON bookmarks (user_id, category_id);
 
 -- Index on user_created_at to optimize queries sorting bookmarks by creation date for a specific user
 CREATE INDEX IF NOT EXISTS idx_bookmarks_user_created_at ON bookmarks (user_id, created_at DESC);

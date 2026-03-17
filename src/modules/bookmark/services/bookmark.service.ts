@@ -224,7 +224,6 @@ export class BookmarkService {
 
 			const newBookmark: CreateBookmarkDto = {
 				userId: user.sub,
-				categoryId: null,
 				websiteId: website.id,
 				collectionId: data.collectionId ?? null,
 				url: this.normalizeUrl(urlBookmark, canonicalUrl),

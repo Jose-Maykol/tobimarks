@@ -43,7 +43,6 @@ export class BookmarkRepository implements IBookmarkRepository {
       INSERT INTO bookmarks (
         user_id, 
         website_id, 
-        category_id, 
         url, 
         title, 
         description, 
@@ -55,7 +54,7 @@ export class BookmarkRepository implements IBookmarkRepository {
         is_archived
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
       )
       RETURNING 
         id, 
@@ -66,7 +65,6 @@ export class BookmarkRepository implements IBookmarkRepository {
 		const values = [
 			params.userId,
 			params.websiteId,
-			params.categoryId,
 			params.url || null,
 			params.title,
 			params.description,
@@ -97,7 +95,6 @@ export class BookmarkRepository implements IBookmarkRepository {
         id, 
         user_id AS "userId", 
         website_id AS "websiteId", 
-        category_id AS "categoryId", 
         url, 
         title, 
         og_title AS "ogTitle", 

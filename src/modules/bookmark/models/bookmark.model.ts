@@ -5,7 +5,6 @@ export interface Bookmark {
 	id: string
 	userId: string
 	websiteId: string
-	categoryId: string | null
 	url: string
 	title: string | null
 	description: string | null
@@ -27,7 +26,6 @@ export type CreateBookmarkDto = Pick<
 	Bookmark,
 	| 'userId'
 	| 'websiteId'
-	| 'categoryId'
 	| 'url'
 	| 'title'
 	| 'description'
