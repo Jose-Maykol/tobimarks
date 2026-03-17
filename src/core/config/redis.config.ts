@@ -11,6 +11,7 @@ export const redisCacheConfig: RedisOptions = {
 	port: env.REDIS_PORT,
 	password: env.REDIS_PASSWORD || undefined,
 	db: env.REDIS_DB,
+	tls: env.REDIS_USE_TLS ? {} : undefined,
 	maxRetriesPerRequest: 3,
 	keyPrefix: 'tobimarks:',
 	retryStrategy(times: number) {

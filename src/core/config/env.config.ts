@@ -18,10 +18,12 @@ export interface EnvVariables {
 	REDIS_PORT: number
 	REDIS_PASSWORD: string
 	REDIS_DB: number
+	REDIS_USE_TLS: boolean
 	REDIS_QUEUE_HOST: string
 	REDIS_QUEUE_PORT: number
 	REDIS_QUEUE_PASSWORD: string
 	REDIS_QUEUE_DB: number
+	REDIS_QUEUE_USE_TLS: boolean
 	GOOGLE_CLIENT_ID: string
 	GOOGLE_CLIENT_SECRET: string
 	JWT_SECRET: string
@@ -66,6 +68,13 @@ const envSchema = v.object({
 	),
 	REDIS_PASSWORD: v.optional(v.string(), ''),
 	REDIS_DB: v.optional(v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(0)), '0'),
+	REDIS_USE_TLS: v.optional(
+		v.pipe(
+			v.string(),
+			v.transform((val) => val === 'true')
+		),
+		'false'
+	),
 	// Redis Queue
 	REDIS_QUEUE_HOST: v.optional(v.pipe(v.string(), v.minLength(1)), 'localhost'),
 	REDIS_QUEUE_PORT: v.optional(
@@ -76,6 +85,13 @@ const envSchema = v.object({
 	REDIS_QUEUE_DB: v.optional(
 		v.pipe(v.string(), v.transform(Number), v.number(), v.minValue(0)),
 		'0'
+	),
+	REDIS_QUEUE_USE_TLS: v.optional(
+		v.pipe(
+			v.string(),
+			v.transform((val) => val === 'true')
+		),
+		'false'
 	),
 	// Google
 	GOOGLE_CLIENT_ID: v.pipe(v.string(), v.minLength(1, 'GOOGLE_CLIENT_ID is required')),

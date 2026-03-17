@@ -14,6 +14,7 @@ const queueConnectionOptions = {
 	port: env.REDIS_QUEUE_PORT,
 	password: env.REDIS_QUEUE_PASSWORD || undefined,
 	db: env.REDIS_QUEUE_DB,
+	tls: env.REDIS_QUEUE_USE_TLS ? {} : undefined,
 	maxRetriesPerRequest: null
 }
 
