@@ -31,6 +31,7 @@ export interface EnvVariables {
 	JWT_EXPIRES_IN: number
 	GEMINI_API_KEY: string
 	LOG_LEVEL: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent'
+	ENABLE_EMAIL_WHITELIST: boolean
 }
 
 /**
@@ -108,7 +109,15 @@ const envSchema = v.object({
 		v.minValue(1, 'JWT_EXPIRES_IN must be a value greater than 0')
 	),
 	// AI
-	GEMINI_API_KEY: v.pipe(v.string(), v.minLength(1, 'GEMINI_API_KEY is required'))
+	GEMINI_API_KEY: v.pipe(v.string(), v.minLength(1, 'GEMINI_API_KEY is required')),
+	// Feature Flags
+	ENABLE_EMAIL_WHITELIST: v.optional(
+		v.pipe(
+			v.string(),
+			v.transform((val) => val === 'true')
+		),
+		'false'
+	)
 })
 
 /**
