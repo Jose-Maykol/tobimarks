@@ -2,11 +2,22 @@ import { injectable, inject } from 'tsyringe'
 
 import { GoogleAuthService } from './google-auth.service'
 import type { TokenService } from './token.service'
-import { GOOGLE_AUTH_SERVICE, TOKEN_SERVICE, REFRESH_TOKEN_REPOSITORY } from '../di/tokens'
-import { InvalidRefreshTokenException, TokenExpiredException } from '../exceptions/auth.exceptions'
+import {
+	GOOGLE_AUTH_SERVICE,
+	TOKEN_SERVICE,
+	REFRESH_TOKEN_REPOSITORY,
+	ALLOWED_EMAIL_REPOSITORY
+} from '../di/tokens'
+import {
+	EmailNotWhitelistedException,
+	InvalidRefreshTokenException,
+	TokenExpiredException
+} from '../exceptions/auth.exceptions'
+import type { IAllowedEmailRepository } from '../repositories/allowed-email.repository'
 import type { IRefreshTokenRepository } from '../repositories/refresh-token.repository'
 import type { DeviceMetadata } from '../types/auth.types'
 
+import { env } from '@/core/config/env.config'
 import { LOGGER } from '@/core/di/tokens'
 import type { ILogger } from '@/core/logger/logger'
 import { USER_SERVICE } from '@/modules/user/di/tokens'
@@ -22,6 +33,8 @@ export class AuthService {
 		@inject(TOKEN_SERVICE) private readonly tokenService: TokenService,
 		@inject(REFRESH_TOKEN_REPOSITORY)
 		private readonly refreshTokenRepository: IRefreshTokenRepository,
+		@inject(ALLOWED_EMAIL_REPOSITORY)
+		private readonly allowedEmailRepository: IAllowedEmailRepository,
 		@inject(LOGGER) logger: ILogger
 	) {
 		this.logger = logger.child({ context: 'AuthService' })
@@ -42,6 +55,16 @@ export class AuthService {
 		this.logger.info('Beginning Google authentication')
 		const { googleId, email, name, picture } = await this.googleAuthService.verifyIdToken(idToken)
 		this.logger.debug('Google token verified', { email, googleId })
+
+		if (env.ENABLE_EMAIL_WHITELIST) {
+			this.logger.info('Email whitelist is enabled, checking email')
+			const isAllowed = await this.allowedEmailRepository.isEmailAllowed(email)
+			if (!isAllowed) {
+				this.logger.warn('Email is not whitelisted', { email })
+				throw new EmailNotWhitelistedException()
+			}
+			this.logger.info('Email is whitelisted', { email })
+		}
 
 		let user = await this.userService.findByGoogleId(googleId)
 

@@ -9,7 +9,8 @@ export enum AuthErrorCode {
 	INVALID_GOOGLE_TOKEN_SIGNATURE = 'INVALID_GOOGLE_TOKEN_SIGNATURE',
 	GOOGLE_ID_TOKEN_INVALID = 'GOOGLE_ID_TOKEN_INVALID',
 	GOOGLE_EMAIL_MISSING = 'GOOGLE_EMAIL_MISSING',
-	GOOGLE_NAME_MISSING = 'GOOGLE_NAME_MISSING'
+	GOOGLE_NAME_MISSING = 'GOOGLE_NAME_MISSING',
+	EMAIL_NOT_WHITELISTED = 'EMAIL_NOT_WHITELISTED'
 }
 
 export class AuthHeaderMissingException extends BaseException {
@@ -63,5 +64,11 @@ export class InvalidRefreshTokenException extends BaseException {
 export class TokenExpiredException extends BaseException {
 	constructor(message: string = 'The token has expired') {
 		super(message, AuthErrorCode.TOKEN_EXPIRED)
+	}
+}
+
+export class EmailNotWhitelistedException extends BaseException {
+	constructor(message: string = 'Email is not authorized to access this application') {
+		super(message, AuthErrorCode.EMAIL_NOT_WHITELISTED)
 	}
 }
