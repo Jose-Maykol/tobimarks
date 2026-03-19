@@ -5,9 +5,11 @@ import {
 	AUTH_SERVICE,
 	GOOGLE_AUTH_SERVICE,
 	TOKEN_SERVICE,
-	REFRESH_TOKEN_REPOSITORY
+	REFRESH_TOKEN_REPOSITORY,
+	ALLOWED_EMAIL_REPOSITORY
 } from './tokens'
 import { AuthController } from '../controllers/auth.controller'
+import { AllowedEmailRepository } from '../repositories/allowed-email.repository'
 import { RefreshTokenRepository } from '../repositories/refresh-token.repository'
 import { AuthService } from '../services/auth.service'
 import { GoogleAuthService } from '../services/google-auth.service'
@@ -19,4 +21,5 @@ export const registerAuthDependencies = () => {
 	container.register(AUTH_CONTROLLER, { useClass: AuthController })
 	container.register(TOKEN_SERVICE, { useClass: TokenService })
 	container.register(REFRESH_TOKEN_REPOSITORY, { useClass: RefreshTokenRepository })
+	container.register(ALLOWED_EMAIL_REPOSITORY, { useClass: AllowedEmailRepository })
 }
