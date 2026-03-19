@@ -23,6 +23,11 @@ import type { IEmbeddingService } from '@/core/embedding/embedding.service'
 import type { ILogger } from '@/core/logger/logger'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
+/**
+ * Servicio encargado de la gestión de colecciones de marcadores.
+ * Permite crear, recuperar, actualizar y buscar colecciones.
+ * Utiliza embeddings vectoriales para permitir búsquedas por similitud.
+ */
 @injectable()
 export class CollectionService {
 	private readonly logger: ILogger
@@ -35,6 +40,15 @@ export class CollectionService {
 		this.logger = logger.child({ context: 'CollectionService' })
 	}
 
+	/**
+	 * Crea una nueva colección para el usuario autenticado.
+	 * Genera automáticamente un embedding basado en el nombre y la descripción.
+	 *
+	 * @param user - Información del usuario autenticado (payload del token).
+	 * @param data - Los datos requeridos para crear la colección.
+	 * @returns La colección creada.
+	 * @throws CollectionAlreadyExistsError - Si ya existe una colección con el mismo nombre para el usuario.
+	 */
 	async create(user: AccessTokenPayload, data: CreateCollectionRequestBody): Promise<Collection> {
 		this.logger.info('Creating new collection', { userId: user.sub, name: data.name })
 		const textForEmbedding = `${data.name} ${data.description || ''}`.trim()
@@ -63,6 +77,13 @@ export class CollectionService {
 		}
 	}
 
+	/**
+	 * Obtiene una lista paginada de colecciones para el usuario autenticado.
+	 *
+	 * @param user - Información del usuario autenticado (payload del token).
+	 * @param options - Opciones de paginación (página, límite).
+	 * @returns Un resultado paginado con las colecciones.
+	 */
 	async get(
 		user: AccessTokenPayload,
 		options: PaginationOptions
@@ -73,6 +94,14 @@ export class CollectionService {
 		return result
 	}
 
+	/**
+	 * Obtiene una colección específica por su ID, asegurando que pertenezca al usuario.
+	 *
+	 * @param user - Información del usuario autenticado (payload del token).
+	 * @param id - Identificador único de la colección.
+	 * @returns La colección encontrada.
+	 * @throws CollectionNotFoundError - Si la colección no existe o no pertenece al usuario.
+	 */
 	async getById(user: AccessTokenPayload, id: string): Promise<Collection> {
 		this.logger.info('Fetching collection by ID', { collectionId: id, userId: user.sub })
 		const collection = await this.collectionRepository.findByIdAndUserId(id, user.sub)
@@ -84,6 +113,17 @@ export class CollectionService {
 		return collection
 	}
 
+	/**
+	 * Actualiza una colección existente.
+	 * Si el nombre o la descripción cambian, se regenera el embedding vectorial.
+	 *
+	 * @param user - Información del usuario autenticado (payload del token).
+	 * @param collectionId - Identificador único de la colección a actualizar.
+	 * @param data - Los datos a actualizar.
+	 * @returns La colección actualizada.
+	 * @throws CollectionNotFoundError - Si la colección no existe o no pertenece al usuario.
+	 * @throws CollectionAlreadyExistsError - Si el nuevo nombre ya está en uso por otra colección del usuario.
+	 */
 	async update(
 		user: AccessTokenPayload,
 		collectionId: string,
@@ -145,12 +185,12 @@ export class CollectionService {
 	}
 
 	/**
-	 * Finds collections that are similar to a given text using vector embeddings.
+	 * Busca colecciones similares a un texto dado utilizando embeddings vectoriales.
 	 *
-	 * @param userId - The user ID whose collections will be searched.
-	 * @param text - The text to compare against the collections.
-	 * @param threshold - The similarity threshold (0 to 1). Default 0.7.
-	 * @returns A promise that resolves to an array of collection IDs.
+	 * @param userId - El ID del usuario cuyas colecciones se buscarán.
+	 * @param text - El texto para comparar con las colecciones.
+	 * @param threshold - El umbral de similitud (0 a 1). Por defecto 0.7.
+	 * @returns Una promesa que se resuelve con un array de IDs de colecciones.
 	 */
 	async findSimilarCollectionForText(
 		userId: string,
