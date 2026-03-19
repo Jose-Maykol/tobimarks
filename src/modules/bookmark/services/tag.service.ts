@@ -12,6 +12,11 @@ import type { IEmbeddingService } from '@/core/embedding/embedding.service'
 import type { ILogger } from '@/core/logger/logger'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
+/**
+ * Servicio encargado de la gestión de etiquetas (tags).
+ * Proporciona funcionalidad para crear, actualizar, eliminar y buscar etiquetas,
+ * así como para verificar la propiedad de las mismas.
+ */
 @injectable()
 export class TagService {
 	private readonly logger: ILogger
@@ -25,10 +30,10 @@ export class TagService {
 	}
 
 	/**
-	 * Retrieves all tags created by a specific user.
+	 * Obtiene todas las etiquetas creadas por un usuario específico.
 	 *
-	 * @param userId - The unique identifier of the user.
-	 * @returns A promise that resolves to the list of tags belonging to the user.
+	 * @param userId - El identificador único del usuario.
+	 * @returns Una promesa que se resuelve con la lista de etiquetas del usuario.
 	 */
 	async getByUserId(userId: string) {
 		this.logger.info('Fetching tags by user', { userId })
@@ -38,13 +43,13 @@ export class TagService {
 	}
 
 	/**
-	 * Verifies that all provided tag IDs belong to the specified user.
-	 * Throws an error if any tag does not belong to the user.
+	 * Verifica que todos los IDs de etiquetas proporcionados pertenezcan al usuario especificado.
+	 * Lanza un error si alguna etiqueta no pertenece al usuario.
 	 *
-	 * @param userId - The unique identifier of the user.
-	 * @param tagIds - The list of tag IDs to verify ownership.
-	 * @returns A promise that resolves to true if all tags belong to the user.
-	 * @throws TagNotFoundError - If any tag does not belong to the user.
+	 * @param userId - El identificador único del usuario.
+	 * @param tagIds - La lista de IDs de etiquetas para verificar la propiedad.
+	 * @returns Una promesa que se resuelve en true si todas las etiquetas pertenecen al usuario.
+	 * @throws TagNotFoundError - Si alguna etiqueta no pertenece al usuario.
 	 */
 	async checkTagsOwnership(userId: string, tagIds: string[]) {
 		if (tagIds.length === 0) return true
@@ -59,14 +64,14 @@ export class TagService {
 	}
 
 	/**
-	 * Creates a new tag for the authenticated user.
-	 * Generates a slug from the tag name to ensure uniqueness.
-	 * Generates an embedding for the tag name using the embedding service.
+	 * Crea una nueva etiqueta para el usuario autenticado.
+	 * Genera un slug a partir del nombre de la etiqueta para asegurar la unicidad.
+	 * Genera un embedding para el nombre de la etiqueta utilizando el servicio de embeddings.
 	 *
-	 * @param user - The authenticated user's information (token payload).
-	 * @param data - The data required to create the tag, including its name.
-	 * @returns A promise that resolves to the created tag.
-	 * @throws TagAlreadyExistsError - If a tag with the same name already exists.
+	 * @param user - Información del usuario autenticado (payload del token).
+	 * @param data - Los datos requeridos para crear la etiqueta, incluyendo su nombre.
+	 * @returns Una promesa que se resuelve con la etiqueta creada.
+	 * @throws TagAlreadyExistsError - Si ya existe una etiqueta con el mismo nombre.
 	 */
 	async create(user: AccessTokenPayload, data: CreateTagRequestBody) {
 		this.logger.info('Creating new tag', { userId: user.sub, name: data.name })
@@ -95,15 +100,15 @@ export class TagService {
 	}
 
 	/**
-	 * Updates an existing tag for the authenticated user.
-	 * Ensures the tag belongs to the user before updating.
-	 * Generates a new slug and embedding from the updated tag name.
+	 * Actualiza una etiqueta existente para el usuario autenticado.
+	 * Asegura que la etiqueta pertenezca al usuario antes de actualizar.
+	 * Genera un nuevo slug y embedding a partir del nombre actualizado de la etiqueta.
 	 *
-	 * @param user - The authenticated user's information (token payload).
-	 * @param tagId - The unique identifier of the tag to update.
-	 * @param data - The data to update the tag, including its name.
-	 * @returns A promise that resolves to the updated tag.
-	 * @throws TagNotFoundError - If the tag does not exist or does not belong to the user.
+	 * @param user - Información del usuario autenticado (payload del token).
+	 * @param tagId - El identificador único de la etiqueta a actualizar.
+	 * @param data - Los datos para actualizar la etiqueta, incluyendo su nombre.
+	 * @returns Una promesa que se resuelve con la etiqueta actualizada.
+	 * @throws TagNotFoundError - Si la etiqueta no existe o no pertenece al usuario.
 	 */
 	async update(user: AccessTokenPayload, tagId: string, data: UpdateTagRequestBody) {
 		this.logger.info('Updating tag', { tagId, userId: user.sub, name: data.name })
@@ -128,13 +133,13 @@ export class TagService {
 	}
 
 	/**
-	 * Deletes an existing tag for the authenticated user.
-	 * Ensures the tag belongs to the user before deletion.
+	 * Elimina una etiqueta existente para el usuario autenticado.
+	 * Asegura que la etiqueta pertenezca al usuario antes de la eliminación.
 	 *
-	 * @param user - The authenticated user's information (token payload).
-	 * @param id - The unique identifier of the tag to delete.
-	 * @returns A promise that resolves when the tag is deleted.
-	 * @throws TagNotFoundError - If the tag does not exist or does not belong to the user.
+	 * @param user - Información del usuario autenticado (payload del token).
+	 * @param id - El identificador único de la etiqueta a eliminar.
+	 * @returns Una promesa que se resuelve cuando la etiqueta es eliminada.
+	 * @throws TagNotFoundError - Si la etiqueta no existe o no pertenece al usuario.
 	 */
 	async delete(user: AccessTokenPayload, id: string): Promise<void> {
 		this.logger.info('Deleting tag', { tagId: id, userId: user.sub })
@@ -148,12 +153,12 @@ export class TagService {
 	}
 
 	/**
-	 * Finds tags that are similar to a given text using vector embeddings.
+	 * Busca etiquetas que sean similares a un texto dado utilizando embeddings vectoriales.
 	 *
-	 * @param userId - The user ID whose tags will be searched.
-	 * @param text - The text to compare against the tags.
-	 * @param threshold - The similarity threshold (0 to 1). Higher means more similar. Default 0.7.
-	 * @returns A promise that resolves to an array of tag IDs.
+	 * @param userId - El ID del usuario cuyas etiquetas se buscarán.
+	 * @param text - El texto para comparar con las etiquetas.
+	 * @param threshold - El umbral de similitud (0 a 1). Mayor significa más similar. Por defecto 0.7.
+	 * @returns Una promesa que se resuelve con un array de IDs de etiquetas.
 	 */
 	async findSimilarTagsForText(
 		userId: string,

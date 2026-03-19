@@ -91,22 +91,54 @@ export class MetadataExtractorService {
 		}
 	}
 
+	/**
+	 * Extrae el título de la página desde la etiqueta <title>.
+	 *
+	 * @param $ - La instancia de Cheerio cargada con el HTML.
+	 * @returns El título de la página o null si no se encuentra.
+	 */
 	private extractTitle($: cheerio.CheerioAPI): string | null {
 		return $('title').text().trim() || null
 	}
 
+	/**
+	 * Extrae la descripción de la página desde la metaetiqueta 'description'.
+	 *
+	 * @param $ - La instancia de Cheerio cargada con el HTML.
+	 * @returns La descripción de la página o null si no se encuentra.
+	 */
 	private extractDescription($: cheerio.CheerioAPI): string | null {
 		return $('meta[name="description"]').attr('content') || null
 	}
 
+	/**
+	 * Extrae el título de Open Graph (og:title) desde las metaetiquetas.
+	 *
+	 * @param $ - La instancia de Cheerio cargada con el HTML.
+	 * @returns El título de og:title o null si no se encuentra.
+	 */
 	private extractOgTitle($: cheerio.CheerioAPI): string | null {
 		return $('meta[property="og:title"]').attr('content') || null
 	}
 
+	/**
+	 * Extrae la descripción de Open Graph (og:description) desde las metaetiquetas.
+	 *
+	 * @param $ - La instancia de Cheerio cargada con el HTML.
+	 * @returns La descripción de og:description o null si no se encuentra.
+	 */
 	private extractOgDescription($: cheerio.CheerioAPI): string | null {
 		return $('meta[property="og:description"]').attr('content') || null
 	}
 
+	/**
+	 * Extrae la URL de la imagen de Open Graph (og:image) desde las metaetiquetas.
+	 * Asegura que la URL devuelta sea absoluta.
+	 *
+	 * @param $ - La instancia de Cheerio cargada con el HTML.
+	 * @param baseUrl - La URL base para resolver rutas relativas.
+	 * @returns La URL absoluta de la imagen o null si no se encuentra.
+	 */
 	private extractOgImage($: cheerio.CheerioAPI, baseUrl: string): string | null {
 		const ogImage = $('meta[property="og:image"]').attr('content')
 		if (!ogImage) return null
@@ -114,6 +146,15 @@ export class MetadataExtractorService {
 		return new URL(ogImage, baseUrl).href
 	}
 
+	/**
+	 * Extrae la URL del favicon del sitio web.
+	 * Busca en las etiquetas link con rel 'icon' o 'shortcut icon'.
+	 * Asegura que la URL devuelta sea absoluta.
+	 *
+	 * @param $ - La instancia de Cheerio cargada con el HTML.
+	 * @param baseUrl - La URL base para resolver rutas relativas.
+	 * @returns La URL absoluta del favicon o null si no se encuentra.
+	 */
 	private extractFaviconUrl($: cheerio.CheerioAPI, baseUrl: string): string | null {
 		const favicon =
 			$('link[rel="icon"]').attr('href') || $('link[rel="shortcut icon"]').attr('href')
@@ -126,6 +167,14 @@ export class MetadataExtractorService {
 		return absoluteFaviconUrl
 	}
 
+	/**
+	 * Extrae la URL canónica de la página desde la etiqueta link con rel 'canonical'.
+	 * Asegura que la URL devuelta sea absoluta.
+	 *
+	 * @param $ - La instancia de Cheerio cargada con el HTML.
+	 * @param baseUrl - La URL base para resolver rutas relativas.
+	 * @returns La URL absoluta canónica o null si no se encuentra.
+	 */
 	private extractCanonicalUrl($: cheerio.CheerioAPI, baseUrl: string): string | null {
 		const canonical = $('link[rel="canonical"]').attr('href')
 		if (!canonical) return null

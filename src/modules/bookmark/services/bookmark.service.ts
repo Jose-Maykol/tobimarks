@@ -35,6 +35,11 @@ import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 import { USER_SERVICE } from '@/modules/user/di/tokens'
 import type { UserService } from '@/modules/user/services/user.service'
 
+/**
+ * Servicio encargado de la gestión de marcadores (bookmarks).
+ * Proporciona funcionalidad para crear, obtener, actualizar, eliminar y organizar marcadores,
+ * además de gestionar favoritos y asociaciones con colecciones y etiquetas.
+ */
 @injectable()
 export class BookmarkService {
 	private readonly logger: ILogger
@@ -201,12 +206,12 @@ export class BookmarkService {
 	}
 
 	/**
-	 * Creates a new bookmark for the given user and URL.
-	 * Fetches metadata from the URL and associates it with a website.
+	 * Crea un nuevo marcador para el usuario y la URL proporcionados.
+	 * Extrae metadatos de la URL y los asocia con un sitio web.
 	 *
-	 * @param user - The user creating the bookmark.
-	 * @param data - The data required to create the bookmark.
-	 * @returns The created bookmark.
+	 * @param user - El usuario que crea el marcador.
+	 * @param data - Los datos requeridos para crear el marcador.
+	 * @returns El marcador creado.
 	 */
 	async create(user: AccessTokenPayload, data: CreateBookmarkRequestBody) {
 		this.logger.info('Creating new bookmark', { userId: user.sub, url: data.url })
@@ -304,11 +309,11 @@ export class BookmarkService {
 	}
 
 	/**
-	 * Finds an existing website by its domain or creates a new one.
+	 * Busca un sitio web existente por su dominio o crea uno nuevo.
 	 *
-	 * @param url - The URL of the website.
-	 * @param faviconUrl - The favicon URL of the website, if available.
-	 * @returns The found or newly created website.
+	 * @param url - La URL del sitio web.
+	 * @param faviconUrl - La URL del favicon del sitio web, si está disponible.
+	 * @returns El sitio web encontrado o recién creado.
 	 */
 	private async findOrCreateWebsite(
 		url: string,
@@ -338,11 +343,11 @@ export class BookmarkService {
 	}
 
 	/**
-	 * Normalizes a URL by comparing it with its canonical version.
+	 * Normaliza una URL comparándola con su versión canónica.
 	 *
-	 * @param originalUrl - The original URL provided.
-	 * @param canonicalUrl - The canonical URL, if available.
-	 * @returns The normalized URL, which is either the canonical URL or the original URL.
+	 * @param originalUrl - La URL original proporcionada.
+	 * @param canonicalUrl - La URL canónica, si está disponible.
+	 * @returns La URL normalizada, que es la URL canónica o la URL original.
 	 */
 	private normalizeUrl(originalUrl: string, canonicalUrl: string | null): string {
 		if (!canonicalUrl) return originalUrl
@@ -362,10 +367,10 @@ export class BookmarkService {
 	}
 
 	/**
-	 * Retrieves all bookmarks for the given user.
+	 * Obtiene todos los marcadores para el usuario dado.
 	 *
-	 * @param user - The user whose bookmarks are to be retrieved.
-	 * @returns A list of bookmarks belonging to the user.
+	 * @param user - El usuario cuyos marcadores se van a recuperar.
+	 * @returns Una lista de marcadores que pertenecen al usuario.
 	 */
 	async get(user: AccessTokenPayload, options: PaginationOptions, filters?: BookmarkFilters) {
 		this.logger.info('Fetching bookmarks', { userId: user.sub, options, filters })
@@ -378,11 +383,11 @@ export class BookmarkService {
 	}
 
 	/**
-	 * Deletes a bookmark for the given user by its ID.
+	 * Elimina un marcador para el usuario dado por su ID.
 	 *
-	 * @param user - The user requesting the deletion.
-	 * @param bookmarkId - The ID of the bookmark to delete.
-	 * @returns The deleted bookmark.
+	 * @param user - El usuario que solicita la eliminación.
+	 * @param bookmarkId - El ID del marcador a eliminar.
+	 * @returns El marcador eliminado.
 	 */
 	async delete(user: AccessTokenPayload, bookmarkId: string) {
 		this.logger.info('Deleting bookmark', { bookmarkId, userId: user.sub })
@@ -413,11 +418,11 @@ export class BookmarkService {
 	}
 
 	/**
-	 * Marks a bookmark as a favorite for the given user.
+	 * Marca un marcador como favorito para el usuario dado.
 	 *
-	 * @param user - The user marking the bookmark as favorite.
-	 * @param bookmarkId - The ID of the bookmark to mark as favorite.
-	 * @returns The updated bookmark with favorite status.
+	 * @param user - El usuario que marca el marcador como favorito.
+	 * @param bookmarkId - El ID del marcador a marcar como favorito.
+	 * @returns El marcador actualizado con el estado de favorito.
 	 */
 	async markAsFavorite(user: AccessTokenPayload, bookmarkId: string) {
 		this.logger.info('Marking bookmark as favorite', { bookmarkId, userId: user.sub })
@@ -434,11 +439,11 @@ export class BookmarkService {
 	}
 
 	/**
-	 * Removes the favorite status from a bookmark for the given user.
+	 * Quita el estado de favorito de un marcador para el usuario dado.
 	 *
-	 * @param user - The user unmarking the bookmark as favorite.
-	 * @param bookmarkId - The ID of the bookmark to unmark as favorite.
-	 * @returns The updated bookmark with favorite status removed.
+	 * @param user - El usuario que quita el marcador como favorito.
+	 * @param bookmarkId - El ID del marcador de la cual se quita el estado de favorito.
+	 * @returns El marcador actualizado con el estado de favorito quitado.
 	 */
 	async unmarkAsFavorite(user: AccessTokenPayload, bookmarkId: string) {
 		this.logger.info('Unmarking bookmark as favorite', { bookmarkId, userId: user.sub })
@@ -455,11 +460,11 @@ export class BookmarkService {
 	}
 
 	/**
-	 * Updates a bookmark for the given user.
+	 * Actualiza un marcador para el usuario dado.
 	 *
-	 * @param user - The user updating the bookmark.
-	 * @param bookmarkId - The ID of the bookmark to update.
-	 * @param data - The data to update.
+	 * @param user - El usuario que actualiza el marcador.
+	 * @param bookmarkId - El ID del marcador a actualizar.
+	 * @param data - Los datos a actualizar.
 	 */
 	async update(user: AccessTokenPayload, bookmarkId: string, data: UpdateBookmarkRequestBody) {
 		this.logger.info('Updating bookmark', {
@@ -520,11 +525,11 @@ export class BookmarkService {
 	}
 
 	/**
-	 * Updates the collection associated with a bookmark.
+	 * Actualiza la colección asociada a un marcador.
 	 *
-	 * @param user - The user updating the collection.
-	 * @param bookmarkId - The ID of the bookmark.
-	 * @param collectionId - The ID of the collection to associate.
+	 * @param user - El usuario que actualiza la colección.
+	 * @param bookmarkId - El ID del marcador.
+	 * @param collectionId - El ID de la colección a asociar.
 	 */
 	async updateCollection(user: AccessTokenPayload, bookmarkId: string, collectionId: string) {
 		this.logger.info('Updating bookmark collection', { bookmarkId, collectionId, userId: user.sub })
@@ -557,10 +562,10 @@ export class BookmarkService {
 	}
 
 	/**
-	 * Removes the collection association from a bookmark.
+	 * Elimina la asociación de colección de un marcador.
 	 *
-	 * @param user - The user removing the collection.
-	 * @param bookmarkId - The ID of the bookmark.
+	 * @param user - El usuario que elimina la colección.
+	 * @param bookmarkId - El ID del marcador.
 	 */
 	async removeCollection(user: AccessTokenPayload, bookmarkId: string) {
 		this.logger.info('Removing bookmark collection', { bookmarkId, userId: user.sub })
