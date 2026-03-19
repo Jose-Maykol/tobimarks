@@ -22,14 +22,14 @@ export class MetadataExtractorService {
 	}
 
 	/**
-	 * Extracts metadata from the given URL, including title, description, Open Graph data, favicon URL, and canonical URL.
+	 * Extrae metadatos de la URL dada, incluyendo título, descripción, datos de Open Graph, URL del favicon y URL canónica.
 	 *
-	 * @param url - The URL to fetch and extract metadata from.
-	 * @returns A promise that resolves to an object containing the extracted metadata.
-	 * @throws UrlFetchFailedException - If the URL fetch fails for an unknown reason.
-	 * @throws UrlForbiddenException - If the URL returns a 403 Forbidden status.
-	 * @throws UrlNotFoundException - If the URL returns a 404 Not Found status.
-	 * @throws UrlTimeoutException - If the request to the URL times out.
+	 * @param url - La URL de la cual obtener y extraer los metadatos.
+	 * @returns Una promesa que se resuelve en un objeto que contiene los metadatos extraídos.
+	 * @throws UrlFetchFailedException - Si la obtención de la URL falla por una razón desconocida.
+	 * @throws UrlForbiddenException - Si la URL devuelve un estado 403 Forbidden.
+	 * @throws UrlNotFoundException - Si la URL devuelve un estado 404 Not Found.
+	 * @throws UrlTimeoutException - Si la solicitud a la URL agota el tiempo de espera.
 	 */
 	async extractFromUrl(url: string): Promise<MetadataExtractorResponse> {
 		this.logger.info('Extracting metadata from URL', { url })
@@ -37,14 +37,16 @@ export class MetadataExtractorService {
 			const { data: html } = await axios.get(url, {
 				timeout: 3000,
 				headers: {
-					'User-Agent': 'Mozilla/5.0 (compatible; BookmarkBot/1.0)'
+					'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...',
+					'Accept-Language': 'es-ES,es;q=0.9',
+					Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,webp,*/*;q=0.8'
 				}
 			})
 
 			const $ = cheerio.load(html)
 			const baseUrl = new URL(url).origin
 
-			return {
+			const metadata: MetadataExtractorResponse = {
 				title: this.extractTitle($),
 				description: this.extractDescription($),
 				ogTitle: this.extractOgTitle($),
@@ -53,6 +55,16 @@ export class MetadataExtractorService {
 				faviconUrl: this.extractFaviconUrl($, baseUrl),
 				canonicalUrl: this.extractCanonicalUrl($, baseUrl)
 			}
+
+			this.logger.info('Metadata extracted successfully', {
+				url,
+				title: metadata.title,
+				hasDescription: !!metadata.description,
+				hasOgImage: !!metadata.ogImageUrl
+			})
+			this.logger.debug('Full metadata extracted', { url, metadata })
+
+			return metadata
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
 				if (error.response) {
