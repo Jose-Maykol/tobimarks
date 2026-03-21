@@ -17,6 +17,7 @@ import { scalarConfig } from './scalar'
 const app = express()
 const apiRouter = express.Router()
 
+// Configuración de límites de peticiones (15 minutos, 500 peticiones máximo)
 const RATE_LIMIT_WINDOW_MS: number = 15 * 60 * 1000
 const RATE_LIMIT_MAX_REQUESTS: number = 500
 const RATE_LIMIT_MESSAGE: string = 'Too many requests, please try again later.'
