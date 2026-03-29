@@ -13,5 +13,5 @@ CREATE TABLE IF NOT EXISTS collections (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Index on the embedding column to optimize vector similarity searches on collections
+-- Índice para optimizar búsquedas de similitud vectorial sobre el campo `embedding`, permitiendo encontrar colecciones similares (por ejemplo, para recomendaciones o agrupamientos).
 CREATE INDEX IF NOT EXISTS idx_collections_embedding ON collections USING ivfflat (embedding vector_l2_ops) WITH (lists = 100);

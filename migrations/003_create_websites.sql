@@ -9,15 +9,15 @@ CREATE TABLE IF NOT EXISTS websites (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Index to speed up lookups by the `name` column, useful for exact name searches.
+-- Índice para búsquedas rápidas por el campo `name`, útil para encontrar sitios web por su nombre exacto.
 CREATE INDEX IF NOT EXISTS idx_websites_name ON websites (name);
 
--- Enables trigram indexing for the `name` column, allowing efficient partial and fuzzy searches.
+-- Habilita búsquedas parciales y difusas sobre el campo `name` usando trigramas, facilitando la búsqueda por coincidencias aproximadas o fragmentos del nombre.
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX IF NOT EXISTS idx_websites_name_trgm ON websites USING gin(name gin_trgm_ops);
 
--- Optimizes queries that order websites by their creation date in descending order.
+-- Optimiza las consultas que ordenan los sitios web por fecha de creación descendente, útil para mostrar los sitios más recientes primero.
 CREATE INDEX IF NOT EXISTS idx_websites_created_at ON websites (created_at DESC);
 
--- Facilitates queries that rank websites by the number of associated bookmarks in descending order.
+-- Facilita las consultas que ordenan los sitios web según la cantidad de marcadores asociados, permitiendo listar los sitios más populares.
 CREATE INDEX IF NOT EXISTS idx_websites_bookmark_count ON websites (bookmark_count DESC);
