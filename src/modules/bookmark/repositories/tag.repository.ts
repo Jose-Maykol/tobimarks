@@ -24,18 +24,26 @@ export class TagRepository implements ITagRepository {
 
 	async create(data: CreateTagDto): Promise<Tag> {
 		const query = `
-			INSERT INTO tags (user_id, name, slug, embedding, color)
-			VALUES ($1, $2, $3, $4, $5)
+			INSERT INTO tags (user_id, name, description, slug, embedding, color)
+			VALUES ($1, $2, $3, $4, $5, $6)
 			RETURNING 
 				id, 
 				user_id AS "userId", 
 				name, 
+				description,
 				slug, 
 				color
 		`
 
 		const embeddingVector = data.embedding ? `[${data.embedding.join(', ')}]` : null
-		const values = [data.userId, data.name, data.slug, embeddingVector, data.color]
+		const values = [
+			data.userId,
+			data.name,
+			data.description || null,
+			data.slug,
+			embeddingVector,
+			data.color
+		]
 
 		try {
 			const result = await this.dbContext.query<Tag>(query, values)
@@ -55,6 +63,7 @@ export class TagRepository implements ITagRepository {
 			SELECT 
 				id, 
 				name, 
+				description,
 				slug,
 				color
 			FROM tags
@@ -73,6 +82,7 @@ export class TagRepository implements ITagRepository {
 				id, 
 				user_id AS "userId", 
 				name,
+				description,
 				slug,
 				created_at AS "createdAt",
 				updated_at AS "updatedAt"
@@ -126,6 +136,10 @@ export class TagRepository implements ITagRepository {
 			fields.push(`slug = $${index++}`)
 			values.push(data.slug)
 		}
+		if (data.description !== undefined) {
+			fields.push(`description = $${index++}`)
+			values.push(data.description)
+		}
 		if (data.embedding !== undefined) {
 			fields.push(`embedding = $${index++}`)
 			values.push(data.embedding)
@@ -141,6 +155,7 @@ export class TagRepository implements ITagRepository {
 				id, 
 				user_id AS "userId", 
 				name, 
+				description,
 				slug, 
 				created_at AS "createdAt", 
 				updated_at AS "updatedAt"
