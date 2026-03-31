@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS tags (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(50) NOT NULL,
+    description TEXT,
     slug VARCHAR(50) NOT NULL,
     color VARCHAR(100),
     embedding VECTOR(1536),
