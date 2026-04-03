@@ -1,7 +1,12 @@
 import { type ApiReferenceConfiguration } from '@scalar/express-api-reference'
 
+import { env } from './core/config/env.config'
 import { swaggerSpec } from './swagger'
 
+/**
+ * Base configuration for the Scalar API Reference.
+ * Provides a modern, clean interface for exploring the Tobimarks API.
+ */
 export const scalarConfig: ApiReferenceConfiguration = {
 	spec: {
 		content: swaggerSpec
@@ -9,75 +14,67 @@ export const scalarConfig: ApiReferenceConfiguration = {
 
 	theme: 'deepSpace',
 	layout: 'modern',
-	darkMode: false,
+	darkMode: true,
 
 	showSidebar: true,
-	hideDownloadButton: false,
+	hideDownloadButton: env.NODE_ENV === 'PRODUCTION',
 	hideTestRequestButton: false,
-	hideDarkModeToggle: true,
+	hideDarkModeToggle: false,
 	hideModels: false,
 
+	// Custom branding and metadata
 	metaData: {
-		title: 'Tobimarks API Documentation',
-		description: 'Comprehensive API documentation for the Tobimarks application',
-		ogDescription: 'Tobimarks API - Complete reference guide',
-		ogTitle: 'Tobimarks API Docs'
-	}
+		title: 'Tobimarks API Reference',
+		description:
+			'Comprehensive API documentation for Tobimarks - Your intelligent bookmark manager.',
+		ogDescription:
+			'Explore the Tobimarks API for managing bookmarks, collections, and AI insights.',
+		ogTitle: 'Tobimarks API Docs',
+		ogImage: 'https://tobimarks.com/og-image.png' // Adjust if you have a real URL
+	},
+
+	// Header configuration
+	customCss: `
+		.scalar-header {
+			border-bottom: 1px solid var(--scalar-border-color);
+		}
+	`
 }
 
-/* export const getScalarConfig = (env: 'development' | 'staging' | 'production' = 'development'): ApiReferenceConfiguration => {
-  const baseConfig = { ...scalarConfig }
-  
-  switch (env) {
-    case 'development':
-      return {
-        ...baseConfig,
-        darkMode: true,
-        hideDownloadButton: false,
-        servers: [
-          {
-            url: 'http://localhost:3000',
-            description: 'Development server',
-          },
-        ],
-      }
-    
-    case 'staging':
-      return {
-        ...baseConfig,
-        servers: [
-          {
-            url: 'https://staging-api.tobimarks.com',
-            description: 'Staging server',
-          },
-        ],
-      }
-    
-    case 'production':
-      return {
-        ...baseConfig,
-        hideDownloadButton: true,
-        servers: [
-          {
-            url: 'https://api.tobimarks.com',
-            description: 'Production server',
-          },
-        ],
-      }
-    
-    default:
-      return baseConfig
-  }
-} */
+/**
+ * Generates environment-specific Scalar configuration.
+ * Useful if you need to differentiate docs based on where they are hosted.
+ */
+export const getScalarConfig = (
+	currentEnv: typeof env.NODE_ENV = env.NODE_ENV
+): ApiReferenceConfiguration => {
+	const baseConfig = { ...scalarConfig }
 
-/* export const setAuthToken = (token: string): ApiReferenceConfiguration => {
-  return {
-    ...scalarConfig,
-    authentication: {
-      ...scalarConfig.authentication,
-      apiKey: {
-        token,
-      },
-    },
-  }
-} */
+	if (currentEnv === 'DEVELOPMENT') {
+		return {
+			...baseConfig,
+			darkMode: true,
+			servers: [
+				{
+					url: `http://localhost:${env.PORT}/api`,
+					description: 'Local Development Server'
+				}
+			]
+		}
+	}
+
+	if (currentEnv === 'PRODUCTION') {
+		return {
+			...baseConfig,
+			hideDownloadButton: true,
+			servers: [
+				{
+					url: 'https://api.tobimarks.com/api', // Adjust to your actual production URL
+					description: 'Production Server'
+				}
+			]
+		}
+	}
+
+	return baseConfig
+}
