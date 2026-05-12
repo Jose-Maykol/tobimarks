@@ -1,10 +1,3 @@
-/**
- * @file index.ts
- * @description Punto de entrada principal de la aplicación Tobimarks.
- * Se encarga de inicializar el contenedor de dependencias, cargar la configuración
- * y arrancar el servidor Express.
- */
-
 import 'reflect-metadata'
 import 'dotenv/config'
 
@@ -14,6 +7,7 @@ import { configureContainer } from './container'
 import { env } from './core/config/env.config'
 import { LOGGER } from './core/di/tokens'
 import type { ILogger } from './core/logger/logger'
+import { initializeJobs } from './jobs'
 
 /**
  * Inicializa y arranca el servidor de la aplicación.
@@ -26,6 +20,9 @@ import type { ILogger } from './core/logger/logger'
 async function startServer() {
 	// Configura el contenedor de dependencias (tsyringe)
 	configureContainer()
+
+	// Inicializa los procesadores de trabajos en segundo plano (Jobs)
+	initializeJobs()
 
 	const logger = container.resolve<ILogger>(LOGGER)
 
