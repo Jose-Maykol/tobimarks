@@ -8,6 +8,9 @@ import { LOGGER } from '@/core/di/tokens'
 import type { ILogger } from '@/core/logger/logger'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
+/**
+ * Caso de uso encargado de marcar un marcador como favorito.
+ */
 @injectable()
 export class MarkBookmarkAsFavoriteUseCase {
 	private readonly logger: ILogger
@@ -19,6 +22,14 @@ export class MarkBookmarkAsFavoriteUseCase {
 		this.logger = logger.child({ context: 'MarkBookmarkAsFavoriteUseCase' })
 	}
 
+	/**
+	 * Marca un marcador específico como favorito para el usuario autenticado.
+	 *
+	 * @param user - Información del usuario autenticado.
+	 * @param bookmarkId - El identificador único del marcador.
+	 * @returns Una promesa que se resuelve con el resultado de la actualización.
+	 * @throws BookmarkNotFoundError - Si el marcador no existe o no pertenece al usuario.
+	 */
 	async execute(user: AccessTokenPayload, bookmarkId: string) {
 		this.logger.info('Marking bookmark as favorite', { bookmarkId, userId: user.sub })
 		const existsBookmark = await this.bookmarkRepository.existsByIdAndUserId(bookmarkId, user.sub)

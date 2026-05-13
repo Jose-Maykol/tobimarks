@@ -11,6 +11,10 @@ import { UNIT_OF_WORK, LOGGER } from '@/core/di/tokens'
 import type { ILogger } from '@/core/logger/logger'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
+/**
+ * Caso de uso encargado de desvincular un marcador de su colección actual.
+ * Actualiza el marcador para que no tenga colección y decrementa el contador de la colección anterior.
+ */
 @injectable()
 export class RemoveBookmarkCollectionUseCase {
 	private readonly logger: ILogger
@@ -23,6 +27,14 @@ export class RemoveBookmarkCollectionUseCase {
 		this.logger = logger.child({ context: 'RemoveBookmarkCollectionUseCase' })
 	}
 
+	/**
+	 * Elimina la asociación de un marcador con cualquier colección.
+	 *
+	 * @param user - Información del usuario autenticado.
+	 * @param bookmarkId - El identificador único del marcador.
+	 * @returns Una promesa que se resuelve cuando la colección ha sido removida.
+	 * @throws BookmarkNotFoundError - Si el marcador no existe o no pertenece al usuario.
+	 */
 	async execute(user: AccessTokenPayload, bookmarkId: string) {
 		this.logger.info('Removing bookmark collection', { bookmarkId, userId: user.sub })
 		const bookmark = await this.bookmarkRepository.findById(bookmarkId)

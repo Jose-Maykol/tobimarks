@@ -20,6 +20,11 @@ import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 import { USER_SERVICE } from '@/modules/user/di/tokens'
 import type { UserService } from '@/modules/user/services/user.service'
 
+/**
+ * Caso de uso encargado de la creación de nuevos marcadores.
+ * Extrae metadatos de la URL, gestiona la asociación con sitios web y colecciones,
+ * y encola tareas de procesamiento de IA si es necesario.
+ */
 @injectable()
 export class CreateBookmarkUseCase {
 	private readonly logger: ILogger
@@ -36,6 +41,15 @@ export class CreateBookmarkUseCase {
 		this.logger = logger.child({ context: 'CreateBookmarkUseCase' })
 	}
 
+	/**
+	 * Ejecuta la creación de un marcador.
+	 * Realiza la extracción de metadatos, normalización de URL y gestión de base de datos dentro de una transacción.
+	 *
+	 * @param user - Información del usuario autenticado.
+	 * @param data - Datos necesarios para crear el marcador (URL, colección opcional).
+	 * @returns Una promesa que se resuelve con el marcador creado.
+	 * @throws BookmarkAlreadyExistsError - Si el marcador ya existe para el usuario.
+	 */
 	async execute(user: AccessTokenPayload, data: CreateBookmarkRequestBody) {
 		this.logger.info('Creating new bookmark', { userId: user.sub, url: data.url })
 		const urlBookmark = data.url

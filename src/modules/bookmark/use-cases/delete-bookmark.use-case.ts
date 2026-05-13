@@ -11,6 +11,10 @@ import { UNIT_OF_WORK, LOGGER } from '@/core/di/tokens'
 import type { ILogger } from '@/core/logger/logger'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
+/**
+ * Caso de uso encargado de la eliminación de marcadores.
+ * Realiza un borrado lógico (soft delete) del marcador y actualiza el contador de la colección asociada.
+ */
 @injectable()
 export class DeleteBookmarkUseCase {
 	private readonly logger: ILogger
@@ -23,6 +27,15 @@ export class DeleteBookmarkUseCase {
 		this.logger = logger.child({ context: 'DeleteBookmarkUseCase' })
 	}
 
+	/**
+	 * Ejecuta la eliminación de un marcador.
+	 * Verifica la propiedad del marcador antes de proceder con el borrado.
+	 *
+	 * @param user - Información del usuario autenticado.
+	 * @param bookmarkId - El identificador único del marcador a eliminar.
+	 * @returns Una promesa que se resuelve con el marcador eliminado.
+	 * @throws BookmarkNotFoundError - Si el marcador no existe o no pertenece al usuario.
+	 */
 	async execute(user: AccessTokenPayload, bookmarkId: string) {
 		this.logger.info('Deleting bookmark', { bookmarkId, userId: user.sub })
 		const bookmark = await this.bookmarkRepository.findById(bookmarkId)

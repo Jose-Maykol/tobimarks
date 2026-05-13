@@ -11,6 +11,10 @@ import { UNIT_OF_WORK, LOGGER } from '@/core/di/tokens'
 import type { ILogger } from '@/core/logger/logger'
 import type { AccessTokenPayload } from '@/modules/auth/types/auth.types'
 
+/**
+ * Caso de uso encargado de cambiar la colección a la que pertenece un marcador.
+ * Gestiona la actualización de contadores tanto en la colección antigua como en la nueva.
+ */
 @injectable()
 export class UpdateBookmarkCollectionUseCase {
 	private readonly logger: ILogger
@@ -23,6 +27,16 @@ export class UpdateBookmarkCollectionUseCase {
 		this.logger = logger.child({ context: 'UpdateBookmarkCollectionUseCase' })
 	}
 
+	/**
+	 * Actualiza la colección de un marcador.
+	 * Realiza el cambio dentro de una transacción para asegurar la consistencia de los contadores.
+	 *
+	 * @param user - Información del usuario autenticado.
+	 * @param bookmarkId - El identificador único del marcador.
+	 * @param collectionId - El identificador de la nueva colección.
+	 * @returns Una promesa que se resuelve cuando la colección ha sido actualizada.
+	 * @throws BookmarkNotFoundError - Si el marcador no existe o no pertenece al usuario.
+	 */
 	async execute(user: AccessTokenPayload, bookmarkId: string, collectionId: string) {
 		this.logger.info('Updating bookmark collection', { bookmarkId, collectionId, userId: user.sub })
 		const bookmark = await this.bookmarkRepository.findById(bookmarkId)
