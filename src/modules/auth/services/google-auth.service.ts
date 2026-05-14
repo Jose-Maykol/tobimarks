@@ -13,6 +13,10 @@ import { env } from '@/core/config/env.config'
 import { LOGGER } from '@/core/di/tokens'
 import type { ILogger } from '@/core/logger/logger'
 
+/**
+ * Servicio encargado de la integración directa con los servicios de autenticación de Google.
+ * Proporciona métodos para validar tokens de ID y extraer información segura del perfil del usuario.
+ */
 @injectable()
 export class GoogleAuthService {
 	private readonly googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID)

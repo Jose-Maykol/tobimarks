@@ -23,6 +23,11 @@ import type { ILogger } from '@/core/logger/logger'
 import { USER_SERVICE } from '@/modules/user/di/tokens'
 import type { UserService } from '@/modules/user/services/user.service'
 
+/**
+ * Servicio encargado de la lógica de autenticación y gestión de sesiones de usuario.
+ * Coordina la autenticación a través de Google, la creación de perfiles de usuario,
+ * y la gestión del ciclo de vida de los tokens de acceso y refresco.
+ */
 @injectable()
 export class AuthService {
 	private readonly logger: ILogger
@@ -50,6 +55,7 @@ export class AuthService {
 	 * @throws GoogleEmailMissingException - Si el correo electrónico falta en la carga útil.
 	 * @throws GoogleNameMissingException - Si el nombre falta en la carga útil.
 	 * @throws InvalidGoogleTokenSignatureException - Si la firma del token es inválida.
+	 * @throws EmailNotWhitelistedException - Si el correo electrónico no está en la lista blanca.
 	 */
 	async authenticateWithGoogle(idToken: string, deviceMeta: DeviceMetadata) {
 		this.logger.info('Beginning Google authentication')
@@ -111,6 +117,8 @@ export class AuthService {
 	 * @param refreshToken - El token de refresco en texto plano para generar un nuevo token de acceso.
 	 * @param deviceMeta - Información sobre el dispositivo del cliente que solicita el refresco.
 	 * @returns Una promesa que se resuelve en un objeto que contiene los nuevos tokens de acceso y refresco.
+	 * @throws InvalidRefreshTokenException - Si el token de refresco no es válido o no está activo.
+	 * @throws TokenExpiredException - Si el token de refresco ha expirado.
 	 */
 	async refreshAccessToken(refreshToken: string, deviceMeta: DeviceMetadata) {
 		this.logger.info('Refreshing access token')

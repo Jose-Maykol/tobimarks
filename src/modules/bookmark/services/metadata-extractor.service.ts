@@ -13,6 +13,11 @@ import type { MetadataExtractorResponse } from '../types/metadata.types'
 import { LOGGER } from '@/core/di/tokens'
 import type { ILogger } from '@/core/logger/logger'
 
+/**
+ * Servicio encargado de extraer metadatos de páginas web.
+ * Utiliza axios para obtener el HTML y cheerio para parsearlo y extraer
+ * información como el título, descripción, datos de Open Graph, favicons y URLs canónicas.
+ */
 @injectable()
 export class MetadataExtractorService {
 	private readonly logger: ILogger
