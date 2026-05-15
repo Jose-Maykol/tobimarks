@@ -1,3 +1,7 @@
+/**
+ * Lista de identificadores de iconos disponibles en la aplicación.
+ * Estos iconos se utilizan para representar diferentes tipos de recursos o categorías.
+ */
 export const APP_ICONS = [
 	'folder',
 	'star',
@@ -16,4 +20,7 @@ export const APP_ICONS = [
 	'shopping-cart'
 ] as const
 
+/**
+ * Tipo que representa uno de los identificadores de iconos permitidos en la aplicación.
+ */
 export type AppIcon = (typeof APP_ICONS)[number]
