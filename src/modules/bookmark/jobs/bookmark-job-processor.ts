@@ -3,9 +3,14 @@ import { inject, injectable } from 'tsyringe'
 import { COLLECTION_REPOSITORY, COLLECTION_SERVICE } from '../../collection/di/token'
 import type { ICollectionRepository } from '../../collection/repositories/collection.repository'
 import type { CollectionService } from '../../collection/services/collection.service'
-import { BOOKMARK_REPOSITORY, TAG_SERVICE } from '../di/token'
+import {
+	FIND_SIMILAR_TAGS_FOR_TEXT_USE_CASE,
+	GET_TAGS_BY_USER_ID_USE_CASE
+} from '../../tag/di/token'
+import type { FindSimilarTagsForTextUseCase } from '../../tag/use-cases/find-similar-tags-for-text.use-case'
+import type { GetTagsByUserIdUseCase } from '../../tag/use-cases/get-tags-by-user-id.use-case'
+import { BOOKMARK_REPOSITORY } from '../di/token'
 import type { IBookmarkRepository } from '../repositories/bookmark.repository'
-import type { TagService } from '../services/tag.service'
 
 import { QUEUE_SERVICE, LOGGER } from '@/core/di/tokens'
 import type { ILogger } from '@/core/logger/logger'
@@ -18,7 +23,9 @@ export class BookmarkJobProcessor {
 
 	constructor(
 		@inject(BOOKMARK_REPOSITORY) private bookmarkRepository: IBookmarkRepository,
-		@inject(TAG_SERVICE) private tagService: TagService,
+		@inject(GET_TAGS_BY_USER_ID_USE_CASE) private getTagsByUserIdUseCase: GetTagsByUserIdUseCase,
+		@inject(FIND_SIMILAR_TAGS_FOR_TEXT_USE_CASE)
+		private findSimilarTagsForTextUseCase: FindSimilarTagsForTextUseCase,
 		@inject(COLLECTION_REPOSITORY) private collectionRepository: ICollectionRepository,
 		@inject(COLLECTION_SERVICE) private collectionService: CollectionService,
 		@inject(QUEUE_SERVICE) private queueService: IQueueService,
@@ -39,7 +46,7 @@ export class BookmarkJobProcessor {
 			this.logger.info('Processing AI auto-tags generation job', { bookmarkId, userId })
 
 			try {
-				const userTags = await this.tagService.getByUserId(userId)
+				const userTags = await this.getTagsByUserIdUseCase.execute(userId)
 
 				if (userTags.length === 0) {
 					this.logger.info('User has no tags to match against. AI tags generation skipped.', {
@@ -70,7 +77,7 @@ export class BookmarkJobProcessor {
 				}
 
 				const textToAnalyze = textParts.join(' ')
-				const similarTagIds = await this.tagService.findSimilarTagsForText(
+				const similarTagIds = await this.findSimilarTagsForTextUseCase.execute(
 					userId,
 					textToAnalyze,
 					0.7

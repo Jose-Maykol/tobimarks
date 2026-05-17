@@ -2,12 +2,12 @@ import { inject, injectable, container } from 'tsyringe'
 
 import { COLLECTION_REPOSITORY } from '../../collection/di/token'
 import type { ICollectionRepository } from '../../collection/repositories/collection.repository'
-import { TAG_SERVICE } from '../di/token'
+import { CHECK_TAGS_OWNERSHIP_USE_CASE } from '../../tag/di/token'
+import type { CheckTagsOwnershipUseCase } from '../../tag/use-cases/check-tags-ownership.use-case'
 import { BOOKMARK_REPOSITORY } from '../di/token'
 import { BookmarkNotFoundError } from '../exceptions/bookmark.exceptions'
 import type { UpdateBookmarkDto } from '../models/bookmark.model'
 import type { IBookmarkRepository } from '../repositories/bookmark.repository'
-import type { TagService } from '../services/tag.service'
 import type { UpdateBookmarkRequestBody } from '../types/bookmark.types'
 
 import type { IUnitOfWork } from '@/core/database/unit-of-work'
@@ -25,7 +25,8 @@ export class UpdateBookmarkUseCase {
 
 	constructor(
 		@inject(BOOKMARK_REPOSITORY) private bookmarkRepository: IBookmarkRepository,
-		@inject(TAG_SERVICE) private tagService: TagService,
+		@inject(CHECK_TAGS_OWNERSHIP_USE_CASE)
+		private checkTagsOwnershipUseCase: CheckTagsOwnershipUseCase,
 		@inject(COLLECTION_REPOSITORY) private collectionRepository: ICollectionRepository,
 		@inject(LOGGER) logger: ILogger
 	) {
@@ -56,7 +57,7 @@ export class UpdateBookmarkUseCase {
 		}
 
 		if (data.tags) {
-			await this.tagService.checkTagsOwnership(user.sub, data.tags)
+			await this.checkTagsOwnershipUseCase.execute(user.sub, data.tags)
 		}
 
 		const updateData: UpdateBookmarkDto = {}

@@ -109,7 +109,7 @@ apiRouter.use(
 )
 
 // Gestión de etiquetas (tags) para marcadores
-apiRouter.use('/tags', (await import('./modules/bookmark/routes/tag.routes')).tagRoutes)
+apiRouter.use('/tags', (await import('./modules/tag/routes/tag.routes')).tagRoutes)
 
 // Gestión de usuarios y perfiles
 apiRouter.use('/users', (await import('./modules/user/routes/user.routes')).userRoutes)

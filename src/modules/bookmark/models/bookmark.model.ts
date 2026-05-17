@@ -1,5 +1,6 @@
-import type { TagSummaryDto } from './tag.model'
 import type { Website } from './website.model'
+
+import type { TagSummaryDto } from '@/modules/tag/models/tag.model'
 
 export interface Bookmark {
 	id: string

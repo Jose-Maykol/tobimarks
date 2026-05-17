@@ -23,7 +23,6 @@ import {
 	UrlNotFoundException,
 	UrlTimeoutException
 } from '../exceptions/metadata-extractor.exceptions'
-import { TagNotFoundError } from '../exceptions/tag.exceptions'
 import type {
 	CreateBookmarkRequestBody,
 	GetBookmarksQueryOutput,
@@ -41,6 +40,7 @@ import type { UpdateBookmarkCollectionUseCase } from '../use-cases/update-bookma
 import type { UpdateBookmarkUseCase } from '../use-cases/update-bookmark.use-case'
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
+import { TagNotFoundError } from '@/modules/tag/exceptions/tag.exceptions'
 
 /**
  * Controlador para gestionar los marcadores (bookmarks).

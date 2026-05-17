@@ -2,12 +2,26 @@ import type { NextFunction, Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { inject, injectable } from 'tsyringe'
 
-import { TAG_SERVICE } from '../di/token'
+import {
+	CREATE_TAG_USE_CASE,
+	DELETE_TAG_USE_CASE,
+	GET_TAGS_BY_USER_ID_USE_CASE,
+	UPDATE_TAG_USE_CASE
+} from '../di/token'
 import { TagNotFoundError } from '../exceptions/tag.exceptions'
-import type { TagService } from '../services/tag.service'
 import type { CreateTagRequestBody, UpdateTagRequestBody } from '../types/tags.types'
+import type { CreateTagUseCase } from '../use-cases/create-tag.use-case'
+import type { DeleteTagUseCase } from '../use-cases/delete-tag.use-case'
+import type { GetTagsByUserIdUseCase } from '../use-cases/get-tags-by-user-id.use-case'
+import type { UpdateTagUseCase } from '../use-cases/update-tag.use-case'
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
+import {
+	CREATE_TAG_USE_CASE,
+	DELETE_TAG_USE_CASE,
+	GET_TAGS_BY_USER_ID_USE_CASE,
+	UPDATE_TAG_USE_CASE
+} from '../di/token'
 
 /**
  * Controlador para gestionar las etiquetas (tags).
@@ -15,7 +29,13 @@ import { ApiResponseBuilder } from '@/common/utils/api-response'
  */
 @injectable()
 export class TagController {
-	constructor(@inject(TAG_SERVICE) private readonly tagService: TagService) {}
+	constructor(
+		@inject(GET_TAGS_BY_USER_ID_USE_CASE)
+		private readonly getTagsByUserIdUseCase: GetTagsByUserIdUseCase,
+		@inject(CREATE_TAG_USE_CASE) private readonly createTagUseCase: CreateTagUseCase,
+		@inject(UPDATE_TAG_USE_CASE) private readonly updateTagUseCase: UpdateTagUseCase,
+		@inject(DELETE_TAG_USE_CASE) private readonly deleteTagUseCase: DeleteTagUseCase
+	) {}
 
 	/**
 	 * Recupera todas las etiquetas asociadas con el usuario autenticado.
@@ -33,7 +53,7 @@ export class TagController {
 		try {
 			const user = req.user!
 			const userId = user.sub
-			const tags = await this.tagService.getByUserId(userId)
+			const tags = await this.getTagsByUserIdUseCase.execute(userId)
 			return res.status(StatusCodes.OK).json(ApiResponseBuilder.success({ tags }))
 		} catch (error) {
 			next(error)
@@ -56,7 +76,7 @@ export class TagController {
 		try {
 			const user = req.user!
 			const data = req.body
-			const createdTag = await this.tagService.create(user, data)
+			const createdTag = await this.createTagUseCase.execute(user, data)
 			return res.status(StatusCodes.CREATED).json(
 				ApiResponseBuilder.success(
 					{
@@ -91,7 +111,7 @@ export class TagController {
 			const user = req.user!
 			const tagId = req.params.id
 			const data = req.body
-			const updatedTag = await this.tagService.update(user, tagId, data)
+			const updatedTag = await this.updateTagUseCase.execute(user, tagId, data)
 			return res.status(StatusCodes.OK).json(
 				ApiResponseBuilder.success(
 					{
@@ -130,7 +150,7 @@ export class TagController {
 		try {
 			const user = req.user!
 			const tagId = req.params.id
-			await this.tagService.delete(user, tagId)
+			await this.deleteTagUseCase.execute(user, tagId)
 			return res
 				.status(StatusCodes.OK)
 				.json(ApiResponseBuilder.success(null, 'Tag deleted successfully'))

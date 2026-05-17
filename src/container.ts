@@ -3,6 +3,7 @@ import { registerAuthDependencies } from './modules/auth/di/container'
 import { registerBookmarkDependencies } from './modules/bookmark/di/container'
 import { registerCollectionDependencies } from './modules/collection/di/container'
 import { registerStatisticsDependencies } from './modules/statistics/di/container'
+import { registerTagDependencies } from './modules/tag/di/container'
 import { registerUserDependencies } from './modules/user/di/container'
 
 export const configureContainer = () => {
@@ -12,4 +13,5 @@ export const configureContainer = () => {
 	registerBookmarkDependencies()
 	registerCollectionDependencies()
 	registerStatisticsDependencies()
+	registerTagDependencies()
 }
