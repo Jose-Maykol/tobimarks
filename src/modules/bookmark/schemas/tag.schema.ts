@@ -8,6 +8,9 @@ export const CreateTagSchema = v.object({
 		v.minLength(1, 'Name cannot be empty'),
 		v.maxLength(100, 'Name cannot exceed 100 characters')
 	),
+	description: v.optional(
+		v.pipe(v.string(), v.maxLength(500, 'Description cannot exceed 500 characters'))
+	),
 	color: v.picklist(APP_COLORS, 'Invalid color')
 })
 
@@ -16,6 +19,9 @@ export const UpdateTagSchema = v.object({
 		v.string('Name is required'),
 		v.minLength(1, 'Name cannot be empty'),
 		v.maxLength(100, 'Name cannot exceed 100 characters')
+	),
+	description: v.optional(
+		v.pipe(v.string(), v.maxLength(500, 'Description cannot exceed 500 characters'))
 	),
 	color: v.picklist(APP_COLORS, 'Invalid color')
 })

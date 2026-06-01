@@ -134,36 +134,48 @@ export class CollectionService {
 			userId: user.sub,
 			updateFields: Object.keys(data)
 		})
-		const existsCollection = await this.collectionRepository.findByIdAndUserId(
+		const currentCollection = await this.collectionRepository.findByIdAndUserId(
 			collectionId,
 			user.sub
 		)
-		if (!existsCollection) {
+		if (!currentCollection) {
 			this.logger.warn('Collection not found for update', { collectionId, userId: user.sub })
 			throw new CollectionNotFoundError()
 		}
 
+		const patchedCollection: Collection = {
+			...currentCollection,
+			name: data.name ?? currentCollection.name,
+			description:
+				data.description !== undefined ? data.description : currentCollection.description,
+			color: data.color !== undefined ? data.color : currentCollection.color,
+			icon: data.icon !== undefined ? data.icon : currentCollection.icon
+		}
+
+		const nameChanged = patchedCollection.name !== currentCollection.name
+		const descriptionChanged = patchedCollection.description !== currentCollection.description
+		const colorChanged = patchedCollection.color !== currentCollection.color
+		const iconChanged = patchedCollection.icon !== currentCollection.icon
+
+		if (!nameChanged && !descriptionChanged && !colorChanged && !iconChanged) {
+			this.logger.info('No changes detected for collection update', { collectionId })
+			return currentCollection
+		}
+
 		const updateData: UpdateCollectionDto = {}
+		if (nameChanged) updateData.name = patchedCollection.name
+		if (descriptionChanged) updateData.description = patchedCollection.description
+		if (colorChanged) updateData.color = patchedCollection.color
+		if (iconChanged) updateData.icon = patchedCollection.icon
 
-		let textChanged = false
-		let newName = existsCollection.name
-		let newDescription = existsCollection.description
+		if (nameChanged || descriptionChanged) {
+			const textForEmbedding =
+				`${patchedCollection.name} ${patchedCollection.description || ''}`.trim()
 
-		if (data.name !== undefined) {
-			updateData.name = data.name
-			newName = data.name
-			textChanged = true
-		}
-		if (data.description !== undefined) {
-			updateData.description = data.description
-			newDescription = data.description
-			textChanged = true
-		}
-		if (data.color !== undefined) updateData.color = data.color
-		if (data.icon !== undefined) updateData.icon = data.icon
-
-		if (textChanged) {
-			const textForEmbedding = `${newName} ${newDescription || ''}`.trim()
+			this.logger.info('Generating new embedding for collection', {
+				collectionId,
+				text: textForEmbedding
+			})
 			updateData.embedding = await this.embeddingService.generateEmbedding(textForEmbedding)
 		}
 

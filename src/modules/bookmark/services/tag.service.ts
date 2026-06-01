@@ -76,10 +76,12 @@ export class TagService {
 	async create(user: AccessTokenPayload, data: CreateTagRequestBody) {
 		this.logger.info('Creating new tag', { userId: user.sub, name: data.name })
 		const slugName = slugify(data.name, { lower: true, strict: true })
-		const embedding = await this.embeddingService.generateEmbedding(data.name)
+		const embeddingText = data.description ? `${data.name} ${data.description}` : data.name
+		const embedding = await this.embeddingService.generateEmbedding(embeddingText)
 
 		const newTag = {
 			...data,
+			description: data.description ?? null,
 			slug: slugName,
 			userId: user.sub,
 			embedding
@@ -119,10 +121,14 @@ export class TagService {
 		}
 
 		const slugName = slugify(data.name)
-		const embedding = await this.embeddingService.generateEmbedding(data.name)
+		const embeddingText = data.description
+			? `Tag: ${data.name}. Description: ${data.description}`
+			: `Tag: ${data.name}`
+		const embedding = await this.embeddingService.generateEmbedding(embeddingText)
 
 		const updateData = {
 			...data,
+			description: data.description ?? null,
 			slug: slugName,
 			embedding
 		}

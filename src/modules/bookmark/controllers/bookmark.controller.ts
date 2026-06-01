@@ -2,7 +2,17 @@ import type { NextFunction, Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { inject, injectable } from 'tsyringe'
 
-import { BOOKMARK_SERVICE } from '../di/token'
+import {
+	CREATE_BOOKMARK_USE_CASE,
+	GET_BOOKMARKS_USE_CASE,
+	DELETE_BOOKMARK_USE_CASE,
+	MARK_BOOKMARK_AS_FAVORITE_USE_CASE,
+	UNMARK_BOOKMARK_AS_FAVORITE_USE_CASE,
+	UPDATE_BOOKMARK_USE_CASE,
+	REGISTER_BOOKMARK_ACCESS_USE_CASE,
+	UPDATE_BOOKMARK_COLLECTION_USE_CASE,
+	REMOVE_BOOKMARK_COLLECTION_USE_CASE
+} from '../di/token'
 import {
 	BookmarkAlreadyExistsError,
 	BookmarkNotFoundError
@@ -14,13 +24,21 @@ import {
 	UrlTimeoutException
 } from '../exceptions/metadata-extractor.exceptions'
 import { TagNotFoundError } from '../exceptions/tag.exceptions'
-import type { BookmarkService } from '../services/bookmark.service'
 import type {
 	CreateBookmarkRequestBody,
 	GetBookmarksQueryOutput,
 	UpdateBookmarkRequestBody,
 	UpdateBookmarkCollectionRequestBody
 } from '../types/bookmark.types'
+import type { CreateBookmarkUseCase } from '../use-cases/create-bookmark.use-case'
+import type { DeleteBookmarkUseCase } from '../use-cases/delete-bookmark.use-case'
+import type { GetBookmarksUseCase } from '../use-cases/get-bookmarks.use-case'
+import type { MarkBookmarkAsFavoriteUseCase } from '../use-cases/mark-bookmark-as-favorite.use-case'
+import type { RegisterBookmarkAccessUseCase } from '../use-cases/register-bookmark-access.use-case'
+import type { RemoveBookmarkCollectionUseCase } from '../use-cases/remove-bookmark-collection.use-case'
+import type { UnmarkBookmarkAsFavoriteUseCase } from '../use-cases/unmark-bookmark-as-favorite.use-case'
+import type { UpdateBookmarkCollectionUseCase } from '../use-cases/update-bookmark-collection.use-case'
+import type { UpdateBookmarkUseCase } from '../use-cases/update-bookmark.use-case'
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
 
@@ -30,7 +48,22 @@ import { ApiResponseBuilder } from '@/common/utils/api-response'
  */
 @injectable()
 export class BookmarkController {
-	constructor(@inject(BOOKMARK_SERVICE) private readonly bookmarkService: BookmarkService) {}
+	constructor(
+		@inject(CREATE_BOOKMARK_USE_CASE) private createBookmarkUseCase: CreateBookmarkUseCase,
+		@inject(GET_BOOKMARKS_USE_CASE) private getBookmarksUseCase: GetBookmarksUseCase,
+		@inject(DELETE_BOOKMARK_USE_CASE) private deleteBookmarkUseCase: DeleteBookmarkUseCase,
+		@inject(MARK_BOOKMARK_AS_FAVORITE_USE_CASE)
+		private markAsFavoriteUseCase: MarkBookmarkAsFavoriteUseCase,
+		@inject(UNMARK_BOOKMARK_AS_FAVORITE_USE_CASE)
+		private unmarkAsFavoriteUseCase: UnmarkBookmarkAsFavoriteUseCase,
+		@inject(UPDATE_BOOKMARK_USE_CASE) private updateBookmarkUseCase: UpdateBookmarkUseCase,
+		@inject(REGISTER_BOOKMARK_ACCESS_USE_CASE)
+		private registerAccessUseCase: RegisterBookmarkAccessUseCase,
+		@inject(UPDATE_BOOKMARK_COLLECTION_USE_CASE)
+		private updateCollectionUseCase: UpdateBookmarkCollectionUseCase,
+		@inject(REMOVE_BOOKMARK_COLLECTION_USE_CASE)
+		private removeCollectionUseCase: RemoveBookmarkCollectionUseCase
+	) {}
 
 	/**
 	 * Maneja la creación de un nuevo marcador.
@@ -48,7 +81,7 @@ export class BookmarkController {
 		try {
 			const user = req.user!
 			const body = req.body
-			const bookmark = await this.bookmarkService.create(user, body)
+			const bookmark = await this.createBookmarkUseCase.execute(user, body)
 			return res.status(StatusCodes.CREATED).json(
 				ApiResponseBuilder.success(
 					{
@@ -106,7 +139,7 @@ export class BookmarkController {
 			const query = req.query as unknown as GetBookmarksQueryOutput
 			const { page, limit, ...filters } = query
 
-			const paginatedBookmarks = await this.bookmarkService.get(
+			const paginatedBookmarks = await this.getBookmarksUseCase.execute(
 				user,
 				{ page: page!, limit: limit! },
 				filters
@@ -153,7 +186,7 @@ export class BookmarkController {
 		try {
 			const user = req.user!
 			const { id } = req.params
-			await this.bookmarkService.delete(user, id)
+			await this.deleteBookmarkUseCase.execute(user, id)
 			return res.status(StatusCodes.OK).json(
 				ApiResponseBuilder.success(
 					{
@@ -190,7 +223,7 @@ export class BookmarkController {
 		try {
 			const user = req.user!
 			const { id } = req.params
-			const result = await this.bookmarkService.markAsFavorite(user, id)
+			const result = await this.markAsFavoriteUseCase.execute(user, id)
 			return res.status(StatusCodes.OK).json(
 				ApiResponseBuilder.success(
 					{
@@ -228,7 +261,7 @@ export class BookmarkController {
 		try {
 			const user = req.user!
 			const { id } = req.params
-			const result = await this.bookmarkService.unmarkAsFavorite(user, id)
+			const result = await this.unmarkAsFavoriteUseCase.execute(user, id)
 			return res.status(StatusCodes.OK).json(
 				ApiResponseBuilder.success(
 					{
@@ -266,10 +299,10 @@ export class BookmarkController {
 			const user = req.user!
 			const data = req.body
 			const id = req.params.id
-			await this.bookmarkService.update(user, id, data)
+			await this.updateBookmarkUseCase.execute(user, id, data)
 			return res
 				.status(StatusCodes.OK)
-				.json(ApiResponseBuilder.success('Bookmark title updated successfully'))
+				.json(ApiResponseBuilder.success('Bookmark updated successfully'))
 		} catch (error) {
 			if (error instanceof BookmarkNotFoundError) {
 				return res
@@ -300,7 +333,7 @@ export class BookmarkController {
 		try {
 			const user = req.user!
 			const { id } = req.params
-			await this.bookmarkService.registerAccess(user, id)
+			await this.registerAccessUseCase.execute(user, id)
 			return res
 				.status(StatusCodes.OK)
 				.json(ApiResponseBuilder.success('Bookmark access registered successfully'))
@@ -330,7 +363,7 @@ export class BookmarkController {
 			const user = req.user!
 			const { collectionId } = req.body
 			const id = req.params.id
-			await this.bookmarkService.updateCollection(user, id, collectionId)
+			await this.updateCollectionUseCase.execute(user, id, collectionId)
 			return res
 				.status(StatusCodes.OK)
 				.json(ApiResponseBuilder.success('Bookmark collection updated successfully'))
@@ -359,7 +392,7 @@ export class BookmarkController {
 		try {
 			const user = req.user!
 			const id = req.params.id
-			await this.bookmarkService.removeCollection(user, id)
+			await this.removeCollectionUseCase.execute(user, id)
 			return res
 				.status(StatusCodes.OK)
 				.json(ApiResponseBuilder.success('Bookmark collection removed successfully'))
