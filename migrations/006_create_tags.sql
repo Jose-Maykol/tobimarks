@@ -13,11 +13,11 @@ CREATE TABLE IF NOT EXISTS tags (
     UNIQUE(user_id, slug)
 );
 
--- Index on user_id to optimize queries filtering tags by user (e.g., fetching all tags for a specific user)
+-- Índice para optimizar consultas que filtran etiquetas por usuario, como al listar todas las etiquetas de un usuario.
 CREATE INDEX IF NOT EXISTS idx_tags_user_id ON tags(user_id);
 
--- Index on user_id and name to optimize queries filtering tags by name for a specific user
+-- Índice para acelerar la búsqueda de etiquetas por nombre dentro del contexto de un usuario, útil para evitar duplicados o buscar etiquetas específicas.
 CREATE INDEX IF NOT EXISTS idx_tags_user_id_name ON tags(user_id, name);
 
--- Index on the embedding column to optimize vector similarity searches on tags
+-- Índice para permitir búsquedas eficientes de similitud vectorial sobre el campo `embedding`, facilitando la recomendación o agrupamiento de etiquetas similares.
 CREATE INDEX IF NOT EXISTS idx_tags_embedding ON tags USING ivfflat (embedding vector_l2_ops) WITH (lists = 100);

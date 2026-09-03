@@ -29,29 +29,29 @@ CREATE TABLE IF NOT EXISTS bookmarks (
     search_vector tsvector
 );
 
--- Unique constraint to prevent duplicate URLs per user (partial index, only for non-deleted)
+-- Restricción única para evitar URLs duplicadas por usuario en marcadores activos (no eliminados), previniendo duplicados.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_user_bookmark_url ON bookmarks (user_id, url) WHERE deleted_at IS NULL;
 
--- Index on user_id to optimize queries filtering by user (e.g., fetching all bookmarks for a specific user)
+-- Índice para acelerar consultas que filtran marcadores por usuario, como al listar todos los marcadores de un usuario específico.
 CREATE INDEX IF NOT EXISTS idx_bookmarks_user_id ON bookmarks (user_id);
 
--- Index on user_favorite to optimize queries filtering favorite bookmarks for a specific user
+-- Índice para optimizar la obtención de marcadores favoritos de un usuario, filtrando por el campo `is_favorite`.
 CREATE INDEX IF NOT EXISTS idx_bookmarks_user_favorite ON bookmarks (user_id, is_favorite) WHERE is_favorite = true;
 
--- Index on user_archived to optimize queries filtering archived bookmarks for a specific user
+-- Índice para facilitar la consulta de marcadores archivados de un usuario, filtrando por el campo `is_archived`.
 CREATE INDEX IF NOT EXISTS idx_bookmarks_user_archived ON bookmarks (user_id, is_archived) WHERE is_archived = true;
 
--- Index on user_created_at to optimize queries sorting bookmarks by creation date for a specific user
+-- Índice para ordenar rápidamente los marcadores de un usuario por fecha de creación, útil para mostrar los más recientes.
 CREATE INDEX IF NOT EXISTS idx_bookmarks_user_created_at ON bookmarks (user_id, created_at DESC);
 
--- Index on user_last_accessed to optimize queries sorting bookmarks by last accessed date for a specific user
+-- Índice para optimizar el ordenamiento de marcadores por la última fecha de acceso, útil para mostrar los más utilizados recientemente.
 CREATE INDEX IF NOT EXISTS idx_bookmarks_user_last_accessed ON bookmarks (user_id, last_accessed_at DESC);
 
--- Index on user_access_count to optimize queries sorting bookmarks by access count for a specific user
+-- Índice para facilitar el ordenamiento de marcadores por cantidad de accesos, permitiendo destacar los más visitados.
 CREATE INDEX IF NOT EXISTS idx_bookmarks_user_access_count ON bookmarks (user_id, access_count DESC);
 
--- Full-text search index on the search_vector column to optimize text search queries on bookmarks
+-- Índice para habilitar búsquedas de texto completo sobre los marcadores, mejorando la eficiencia de las búsquedas por contenido textual.
 CREATE INDEX IF NOT EXISTS idx_bookmarks_search_vector ON bookmarks USING gin(search_vector);
 
--- Index on collection_id to query bookmarks by collection quickly
+-- Índice para acelerar la consulta de marcadores por colección, útil para listar todos los marcadores de una colección específica.
 CREATE INDEX IF NOT EXISTS idx_bookmarks_collection_id ON bookmarks (collection_id);
