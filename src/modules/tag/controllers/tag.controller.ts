@@ -16,12 +16,6 @@ import type { GetTagsByUserIdUseCase } from '../use-cases/get-tags-by-user-id.us
 import type { UpdateTagUseCase } from '../use-cases/update-tag.use-case'
 
 import { ApiResponseBuilder } from '@/common/utils/api-response'
-import {
-	CREATE_TAG_USE_CASE,
-	DELETE_TAG_USE_CASE,
-	GET_TAGS_BY_USER_ID_USE_CASE,
-	UPDATE_TAG_USE_CASE
-} from '../di/token'
 
 /**
  * Controlador para gestionar las etiquetas (tags).
