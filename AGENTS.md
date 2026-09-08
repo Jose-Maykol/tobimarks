@@ -90,5 +90,4 @@ Antes de finalizar, revisa:
   `exactOptionalPropertyTypes` de TypeScript.
 - Las respuestas y errores mantienen el formato existente.
 - Las migraciones son idempotentes en la medida posible y están ordenadas.
-- No quedan imports sin usar, logs con secretos ni cambios de configuración
-  local sin intención.
+- No quedan imports sin usar, logs con secretos ni cambios de configuración local sin intención.
