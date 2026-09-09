@@ -1,4 +1,4 @@
-# 🔖 Tobimarks
+# Tobimarks
 
 <p align="center">
   <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
@@ -6,302 +6,387 @@
   <img src="https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
   <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" />
-  <img src="https://img.shields.io/badge/BullMQ-FF4500?style=for-the-badge&logo=redis&logoColor=white" alt="BullMQ" />
   <img src="https://img.shields.io/badge/Google%20Gemini-8E75C2?style=for-the-badge&logo=google-gemini&logoColor=white" alt="Google Gemini" />
-  <img src="https://img.shields.io/badge/Scalar-FF5733?style=for-the-badge&logo=swagger&logoColor=white" alt="Scalar" />
   <img src="https://img.shields.io/badge/License-ISC-blue.svg?style=for-the-badge" alt="License" />
 </p>
 
----
+> Guarda una URL. Tobimarks se encarga de enriquecerla y ayudarte a organizarla.
 
-**Tobimarks** es una API RESTful avanzada y de alto rendimiento diseñada para la gestión, enriquecimiento y organización inteligente de marcadores web (bookmarks). Aprovechando el poder de la Inteligencia Artificial con **Google Gemini** para análisis semántico y un robusto motor de tareas asíncronas con **BullMQ** y **Redis**, Tobimarks automatiza la extracción de metadatos, el categorizado inteligente y la sugerencia de colecciones.
+Tobimarks es una API REST y backend para gestionar bookmarks personales. Recibe
+una URL, obtiene la información relevante de la página y la convierte en un
+recurso fácil de organizar mediante colecciones, etiquetas, favoritos y
+actividad de acceso.
 
-El proyecto está diseñado bajo una arquitectura limpia (**Clean Architecture**) orientada a dominios y altamente desacoplada mediante inyección de dependencias, garantizando mantenibilidad, robustez y escalabilidad.
+La organización asistida por IA es opcional. Cuando está activada, Tobimarks
+utiliza Google Gemini para relacionar el contenido de cada bookmark con las
+etiquetas y colecciones que ya utiliza el usuario. Así, la clasificación se
+adapta a la forma en que cada persona organiza sus propios enlaces.
 
----
+Este repositorio contiene el backend y la API. No incluye una interfaz web.
 
-## 🌟 Características Principales
+## El Producto
 
-*   **📥 Captura y Extracción de Metadatos Activa**: Web scraping en segundo plano usando `Cheerio` y `Axios` para extraer de forma automática y asíncrona: Títulos, Descripciones, Imágenes Open Graph (`og:image`), Favicons y URLs canónicas limpias.
-*   **🧠 Inteligencia Artificial con Google Gemini**: Integración nativa con `@google/genai` para generar embeddings de alta dimensión del contenido de los marcadores.
-*   **⚡ Motor de Colas Asíncronas (BullMQ & Redis)**: Arquitectura de tareas desacoplada para evitar bloqueos del hilo principal de Express. Procesa de manera resiliente:
-    *   `ai-tags-generation`: Generación automática de etiquetas basadas en la similitud semántica del contenido con las etiquetas existentes del usuario (mediante embeddings y distancia coseno).
-    *   `ai-collections-generation`: Clasificación y auto-asignación sugerida de colecciones.
-*   **📂 Organización Dinámica**: Creación de colecciones personalizadas, asociación múltiple de etiquetas (tags), marcadores favoritos y soporte para archivado de enlaces.
-*   **🔐 Autenticación Robusta**: Autenticación segura mediante JSON Web Tokens (JWT) y soporte para Google OAuth. Gestión segura de sesiones activas y Refresh Tokens por dispositivo.
-*   **📊 Estadísticas Avanzadas**: Endpoint dedicado para obtener resúmenes cuantitativos de uso, favoritos y distribución de etiquetas.
-*   **📖 Documentación de Nueva Generación**: Documentación interactiva autogenerada mediante OpenAPI 3.0 con Swagger y visualizada elegantemente a través de la interfaz interactiva de **Scalar** en `/api-docs`.
+Guardar enlaces es sencillo. Encontrarlos y mantenerlos organizados con el
+tiempo es lo difícil. Tobimarks centraliza ese flujo:
 
----
+- Captura URLs y extrae sus metadatos automáticamente.
+- Normaliza la información del sitio y reutiliza su dominio en un catálogo de websites.
+- Permite organizar bookmarks en una colección y asociarles varias etiquetas.
+- Ofrece favoritos, registro de accesos, filtros, ordenamiento y estadísticas.
+- Puede clasificar bookmarks con IA sin bloquear el procesamiento principal de la API.
+- Mantiene los datos aislados por usuario.
 
-## 🛠 Tech Stack
+### Cómo funciona
 
-| Capa / Componente | Tecnología Principal | Propósito |
-| :--- | :--- | :--- |
-| **Back-end Core** | TypeScript / Node.js (v20+) | Tipado estático robusto y entorno de ejecución rápido |
-| **Framework Web** | Express 5.1 | Servidor HTTP moderno y flexible con soporte para promesas |
-| **Base de Datos** | PostgreSQL (vía `pg`) | Base de datos relacional para almacenamiento persistente |
-| **Colas de Tareas** | BullMQ & Redis | Procesamiento de trabajos pesados en segundo plano de manera confiable |
-| **Inyección de Dependencias** | `tsyringe` | Inversión de Control (IoC) para desacoplamiento total de clases |
-| **Validación de Datos** | `valibot` | Esquemas de validación de peticiones y variables de entorno rápidos y seguros |
-| **Inteligencia Artificial** | `@google/genai` | Generación de embeddings vectoriales de contenido web |
-| **Scraping / Metadatos** | `cheerio`, `axios`, `tldts` | Extracción de metadatos y normalización de URLs |
-| **Seguridad** | `helmet`, `cors`, `express-rate-limit` | Protección contra vulnerabilidades web comunes y ataques DDoS |
-| **Documentación** | `swagger-jsdoc` & Scalar | Especificación OpenAPI 3.0 y UI interactiva de referencia |
+1. El usuario inicia sesión mediante Google.
+2. Envía una URL a `POST /api/bookmarks` y, opcionalmente, una colección.
+3. Tobimarks consulta la página y extrae título, descripción, datos Open Graph,
+   imagen, favicon y URL canónica.
+4. Guarda el bookmark asociado al usuario y al dominio correspondiente.
+5. Si las opciones de IA están activadas, encola trabajos para buscar etiquetas
+   similares y asignar la colección más relevante.
 
----
+La extracción de metadatos forma parte de la creación del bookmark. La
+organización con IA se ejecuta posteriormente mediante trabajos en segundo
+plano.
 
-## 🏗 Arquitectura del Proyecto
+## Capacidades
 
-El proyecto sigue los principios de **Clean Architecture** estructurado por módulos de negocio, lo que permite separar las preocupaciones del negocio (casos de uso) de las tecnologías externas (HTTP, Base de datos, Colas).
+### Captura Y Enriquecimiento
 
-### Ciclo de Vida de una Petición con Tareas Asíncronas
+- Recibe y valida URLs.
+- Extrae título, descripción, `og:title`, `og:description`, `og:image`, favicon
+  y URL canónica.
+- Normaliza la URL cuando la página proporciona una versión canónica válida.
+- Agrupa los bookmarks por dominio en un catálogo de websites reutilizable.
 
-El siguiente diagrama ilustra cómo interactúan los componentes cuando un usuario crea un marcador. La API responde inmediatamente mientras las tareas pesadas de IA y embeddings se delegan de manera asíncrona mediante BullMQ y Redis.
+### Organización Personal
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Cliente as Cliente HTTP
-    participant API as Express API
-    participant DB as PostgreSQL
-    participant Redis as Redis Queue (BullMQ)
-    participant Worker as Job Processor
-    participant Gemini as Google Gemini AI
+- Crea colecciones con nombre, descripción, color e icono.
+- Crea etiquetas con nombre, descripción y color.
+- Asocia múltiples etiquetas a un bookmark.
+- Asigna o retira un bookmark de una colección.
+- Marca y desmarca favoritos.
+- Registra cuántas veces se accede a cada bookmark y cuándo ocurrió el último acceso.
 
-    Cliente->>API: POST /api/bookmarks { url }
-    Note over API: Valida URL (Valibot)<br/>Extrae metadatos básicos (Cheerio)
-    API->>DB: INSERT INTO bookmarks (url, title, og_image...)
-    DB-->>API: Retorna Bookmark Creado
-    API->>Redis: Encola Tareas ('ai-tags-generation', 'ai-collections-generation')
-    API-->>Cliente: 201 Created (Marcador creado, procesándose en 2do plano)
+### Organización Asistida Por IA
 
-    Note over Worker: Worker detecta tareas pendientes en Redis
-    Worker->>DB: Obtiene etiquetas y colecciones activas del usuario
-    Worker->>Gemini: Genera embeddings de textos del marcador
-    Gemini-->>Worker: Retorna vector de embeddings
-    Note over Worker: Calcula similitud del coseno (cosine similarity)
-    Worker->>DB: UPDATE bookmarks SET tags = [...], collection_id = ...
-    Note over Worker: Marca tareas como completadas en BullMQ
+La IA se controla desde las preferencias del usuario:
+
+- `aiAutoTags`: busca coincidencias entre el texto del bookmark y las etiquetas existentes.
+- `aiAutoCollections`: busca la colección más relevante cuando el bookmark aún no tiene una.
+
+La implementación actual:
+
+- Usa embeddings de Google Gemini y similitud semántica con un umbral predeterminado de `0.7`.
+- Asigna todas las etiquetas que superan el umbral.
+- Asigna únicamente la colección con mejor coincidencia.
+- No reemplaza una colección que ya fue asignada manualmente.
+- Omite el trabajo si el usuario no tiene etiquetas o colecciones, si el bookmark no existe
+  o si no hay texto suficiente para analizar.
+- Procesa los trabajos con BullMQ y Redis, con reintentos y backoff exponencial.
+
+La IA no crea una taxonomía global ni realiza una búsqueda semántica general de todos los
+bookmarks. Trabaja con las etiquetas y colecciones que pertenecen al usuario.
+
+### Consulta Y Actividad
+
+La API permite consultar bookmarks de forma paginada y filtrarlos por:
+
+- Estado de favorito.
+- Colección, incluyendo bookmarks sin colección.
+- Una o varias etiquetas.
+- Fecha de creación, último acceso o cantidad de accesos.
+- Accesos ocurridos durante la última semana, el último mes o todo el tiempo.
+
+También expone un resumen estadístico del uso de bookmarks, colecciones y etiquetas.
+
+## Casos De Uso
+
+- Mantener una biblioteca personal de recursos de desarrollo.
+- Organizar referencias de diseño, investigación o aprendizaje.
+- Guardar artículos para leer y separarlos por temas.
+- Clasificar enlaces de proyectos utilizando etiquetas propias.
+- Construir un cliente web o móvil sobre una API de bookmarks con organización asistida por IA.
+
+## Ejemplo Rápido
+
+Después de autenticarte y obtener un access token:
+
+```bash
+curl -X POST http://localhost:3000/api/bookmarks \
+  -H "Authorization: Bearer <access-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.typescriptlang.org/"}'
 ```
 
-### Estructura de Directorios
+La respuesta crea el bookmark con sus datos básicos. Si la organización automática está
+activada, las etiquetas y la colección se procesan en segundo plano.
 
-```text
-├── migrations/          # Scripts SQL de migración numerados para PostgreSQL
-├── scripts/             # Scripts Node.js para mantenimiento y base de datos
-│   ├── migrate.ts       # Script automatizado para aplicar migraciones pendientes
-│   └── reset.ts         # Script para restablecer la base de datos a su estado inicial
-├── src/
-│   ├── common/          # Utilidades, middlewares globales y filtros compartidos
-│   ├── core/            # Configuración base del sistema
-│   │   ├── config/      # Configuraciones validadas (env, database, redis)
-│   │   ├── database/    # Gestión de conexiones y cliente PostgreSQL
-│   │   ├── di/          # Configuración del contenedor IoC (Inversión de Control)
-│   │   └── logger/      # Servicio de logging estructurado con Pino
-│   ├── modules/         # Dominios principales de negocio
-│   │   ├── auth/        # Lógica de autenticación, JWT y Google OAuth
-│   │   ├── bookmark/    # Núcleo: Marcadores, metadatos, tags y colas de tareas
-│   │   ├── collection/  # Agrupación jerárquica de marcadores
-│   │   ├── statistics/  # Métricas agregadas y resúmenes de uso
-│   │   └── user/        # Gestión de perfiles y configuraciones de usuario
-│   ├── app.ts           # Inicialización de Express y registro de rutas globales
-│   ├── container.ts     # Registro global de dependencias (DI)
-│   ├── index.ts         # Punto de entrada de la aplicación
-│   ├── scalar.ts        # Renderizador interactivo de documentación Scalar
-│   └── swagger.ts       # Configuración de especificaciones OpenAPI
-├── package.json
-└── tsconfig.json
+## Referencia De La API
+
+Todas las rutas de negocio utilizan el prefijo `/api`. Las rutas de bookmarks, colecciones,
+etiquetas, websites, usuarios y estadísticas requieren un Bearer token. Las rutas de
+autenticación no requieren un token previo.
+
+La documentación interactiva está disponible en:
+
+**[http://localhost:3000/api-docs](http://localhost:3000/api-docs)**
+
+### Endpoints Principales
+
+| Módulo      |  Método  | Endpoint                        | Uso                                                     |
+| :---------- | :------: | :------------------------------ | :------------------------------------------------------ |
+| Auth        |  `POST`  | `/api/auth/google`              | Iniciar sesión o registrar al usuario mediante Google   |
+| Auth        |  `POST`  | `/api/auth/refresh`             | Renovar el access token                                 |
+| Auth        |  `POST`  | `/api/auth/logout`              | Revocar un refresh token                                |
+| Bookmarks   |  `POST`  | `/api/bookmarks`                | Crear un bookmark y extraer sus metadatos               |
+| Bookmarks   |  `GET`   | `/api/bookmarks`                | Listar bookmarks con paginación, filtros y ordenamiento |
+| Bookmarks   | `PATCH`  | `/api/bookmarks/:id`            | Actualizar título, etiquetas o colección                |
+| Bookmarks   | `DELETE` | `/api/bookmarks/:id`            | Eliminar lógicamente un bookmark                        |
+| Bookmarks   | `PATCH`  | `/api/bookmarks/:id/collection` | Asignar una colección                                   |
+| Bookmarks   | `DELETE` | `/api/bookmarks/:id/collection` | Retirar la colección                                    |
+| Bookmarks   | `PATCH`  | `/api/bookmarks/:id/favorite`   | Marcar como favorito                                    |
+| Bookmarks   | `DELETE` | `/api/bookmarks/:id/favorite`   | Quitar de favoritos                                     |
+| Bookmarks   | `PATCH`  | `/api/bookmarks/:id/access`     | Registrar un acceso                                     |
+| Collections |  `POST`  | `/api/collections`              | Crear una colección                                     |
+| Collections |  `GET`   | `/api/collections`              | Listar colecciones paginadas                            |
+| Collections |  `GET`   | `/api/collections/:id`          | Consultar una colección                                 |
+| Collections | `PATCH`  | `/api/collections/:id`          | Actualizar una colección                                |
+| Tags        |  `GET`   | `/api/tags`                     | Listar etiquetas del usuario                            |
+| Tags        |  `POST`  | `/api/tags`                     | Crear una etiqueta                                      |
+| Tags        | `PATCH`  | `/api/tags/:id`                 | Actualizar una etiqueta                                 |
+| Tags        | `DELETE` | `/api/tags/:id`                 | Eliminar una etiqueta                                   |
+| Websites    |  `GET`   | `/api/websites`                 | Listar websites asociados a los bookmarks del usuario   |
+| User        |  `GET`   | `/api/users/me`                 | Consultar el perfil autenticado                         |
+| User        | `PATCH`  | `/api/users/me/settings`        | Actualizar preferencias de IA                           |
+| Statistics  |  `GET`   | `/api/statistics/summary`       | Obtener el resumen de uso                               |
+
+Las respuestas siguen este formato general:
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Optional message",
+  "meta": {}
+}
 ```
 
----
+Los errores utilizan el formato:
 
-## 📋 Requisitos Previos
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "errorCode": "ERROR_CODE"
+}
+```
 
-Antes de comenzar, asegúrate de tener instalados los siguientes componentes:
+## Requisitos
 
-*   **Node.js**: Versión 20 o superior.
-*   **PostgreSQL**: Versión 15 o superior.
-*   **Redis**: Versión 6 o superior (Requerido para el motor de colas en segundo plano BullMQ).
-*   **Google Gemini**: Una clave de API de Gemini (`GEMINI_API_KEY`) para activar las funcionalidades de IA.
-*   **Google Cloud Console**: Un proyecto configurado para obtener credenciales OAuth (opcional para desarrollo básico).
+- Node.js 20 o superior.
+- PostgreSQL 15 o superior con soporte para `pgvector`.
+- Redis 6 o superior.
+- Un cliente OAuth de Google para aplicaciones web.
+- Una API key de Google Gemini.
 
----
+Las migraciones habilitan o utilizan las extensiones `uuid-ossp`, `pg_trgm` y `vector`.
+El servicio de PostgreSQL debe tener disponible `pgvector` antes de ejecutar las migraciones.
 
-## ⚙️ Variables de Entorno (.env)
+## Instalación Local
 
-El proyecto utiliza un sistema de validación estricta de variables de entorno mediante **Valibot** (`src/core/config/env.config.ts`). Si alguna variable requerida falta o tiene un formato no válido, la aplicación fallará con un mensaje claro al arrancar.
+### 1. Clonar E Instalar
 
-Copia el archivo de ejemplo para iniciar tu configuración:
+```bash
+git clone https://github.com/Jose-Maykol/tobimarks.git
+cd tobimarks
+npm install
+```
+
+### 2. Levantar Redis
+
+El archivo `docker-compose.yml` levanta dos instancias de Redis: una para caché y otra para
+las colas de BullMQ.
+
+```bash
+docker compose up -d
+```
+
+PostgreSQL debe estar disponible por separado y debe utilizar una instalación o imagen que
+incluya `pgvector`.
+
+### 3. Configurar El Entorno
 
 ```bash
 cp .env.example .env
 ```
 
-Configura las variables dentro del archivo `.env` según la siguiente tabla:
+En PowerShell puedes utilizar:
 
-| Variable | Requerido | Descripción | Ejemplo / Default |
-| :--- | :---: | :--- | :--- |
-| **Servidor y Entorno** | | | |
-| `PORT` | ❌ | Puerto de red de la API (debe estar entre 1000 y 65535) | `3000` |
-| `NODE_ENV` | ❌ | Entorno de ejecución (`DEVELOPMENT`, `PRODUCTION`, `TEST`) | `DEVELOPMENT` |
-| `CORS_ORIGIN` | ❌ | Origen permitido para peticiones CORS | `http://localhost:5173` |
-| `LOG_LEVEL` | ❌ | Nivel mínimo de logging (`fatal`, `error`, `warn`, `info`, `debug`) | `info` |
-| **Base de Datos** | | | |
-| `DB_HOST` |  | Host del servidor PostgreSQL | `localhost` |
-| `DB_PORT` | ❌ | Puerto del servidor PostgreSQL | `5432` |
-| `DB_NAME` |  | Nombre de la base de datos | `tobimarks` |
-| `DB_USER` |  | Nombre del usuario de PostgreSQL | `postgres` |
-| `DB_PASSWORD` |  | Contraseña del usuario de la base de datos | `tu_contraseña` |
-| **Redis Cache** | | | |
-| `REDIS_HOST` | ❌ | Host del servidor Redis principal | `localhost` |
-| `REDIS_PORT` | ❌ | Puerto del servidor Redis principal | `6379` |
-| `REDIS_PASSWORD` | ❌ | Contraseña de autenticación de Redis | `(Vacio)` |
-| `REDIS_DB` | ❌ | Número de base de datos de Redis para caché | `0` |
-| `REDIS_USE_TLS` | ❌ | Habilitar conexión SSL/TLS (`true`/`false`) | `false` |
-| **Redis Queue (BullMQ)** | | | |
-| `REDIS_QUEUE_HOST` | ❌ | Host de Redis dedicado a colas de BullMQ | `localhost` |
-| `REDIS_QUEUE_PORT` | ❌ | Puerto de Redis dedicado a colas de BullMQ | `6380` |
-| `REDIS_QUEUE_PASSWORD` | ❌ | Contraseña de Redis para colas | `(Vacio)` |
-| `REDIS_QUEUE_DB` | ❌ | Número de base de datos de Redis para colas | `0` |
-| `REDIS_QUEUE_USE_TLS`| ❌ | Habilitar SSL/TLS para la conexión de la cola | `false` |
-| **Google OAuth** | | | |
-| `GOOGLE_CLIENT_ID` |  | Client ID de Google Web Application | `your_client_id.apps.googleusercontent.com` |
-| `GOOGLE_CLIENT_SECRET`|  | Client Secret de la aplicación de Google | `your_client_secret` |
-| **Seguridad JWT** | | | |
-| `JWT_SECRET` |  | Frase secreta robusta para firmar los tokens de acceso | `una_clave_muy_segura_y_larga` |
-| `JWT_EXPIRES_IN` |  | Tiempo de expiración del token JWT en segundos | `3600` |
-| **Inteligencia Artificial**| | | |
-| `GEMINI_API_KEY` |  | API Key de Google Gemini AI | `AIzaSy...` |
-| **Feature Flags** | | | |
-| `ENABLE_EMAIL_WHITELIST`| ❌ | Restringir el registro a una lista blanca de correos | `false` |
-
-> *Nota: Las variables sin la marca ❌ son **estrictamente obligatorias**.*
-
----
-
-## 🚀 Empezando (Desarrollo Local)
-
-Sigue estos pasos para poner en marcha el proyecto de forma local.
-
-### 1. Clonar e Instalar Dependencias
-
-```bash
-git clone https://github.com/tu-usuario/tobimarks.git
-cd tobimarks
-npm install
+```powershell
+Copy-Item .env.example .env
 ```
 
-### 2. Levantar Servicios Requeridos
+Completa las credenciales de PostgreSQL, Google OAuth, JWT y Gemini. La aplicación valida
+las variables al arrancar y termina si falta alguna variable obligatoria.
 
-Asegúrate de que PostgreSQL y Redis estén corriendo. Si usas Docker, puedes levantarlos rápidamente con:
-
-```bash
-docker run --name tobimarks-postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=tobimarks -p 5432:5432 -d postgres:15
-docker run --name tobimarks-redis -p 6379:6379 -d redis:7
-```
-
-### 3. Configurar el archivo `.env`
-
-Copia el archivo `.env.example` como se describe en la sección anterior y completa tus credenciales. Asegúrate de crear la base de datos correspondiente en PostgreSQL si no se creó automáticamente.
-
-### 4. Ejecutar Migraciones de Base de Datos
-
-El proyecto cuenta con scripts automáticos que crean las tablas y administran el historial en la base de datos de forma segura:
+### 4. Ejecutar Las Migraciones
 
 ```bash
-# Aplicar todas las migraciones SQL pendientes en la base de datos
 npm run db:migrate
-
-# (Opcional) Si necesitas reiniciar la base de datos (borra tablas y vuelve a aplicar todo)
-npm run db:reset
 ```
 
-> *Tip: El comando de migraciones admite el parámetro `--files=001,002` para aplicar scripts específicos de forma manual si es necesario.*
+Para aplicar migraciones concretas por prefijo:
 
-### 5. Iniciar el Servidor de Desarrollo
+```bash
+npm run db:migrate -- --files=001,005
+```
 
-Inicia la aplicación en modo desarrollo con recarga en caliente automática (hot-reload):
+`npm run db:reset` elimina el esquema `public` con `CASCADE` y reaplica todas las migraciones.
+Utilízalo únicamente en una base de datos desechable.
+
+### 5. Iniciar La API
 
 ```bash
 npm run dev
 ```
 
-El servidor iniciará en: [http://localhost:3000](http://localhost:3000).
+La API quedará disponible en `http://localhost:3000` y la documentación interactiva en
+`http://localhost:3000/api-docs`.
 
----
+## Variables De Entorno
 
-## 📚 Referencia de la API
+Las variables reales deben mantenerse en `.env`, nunca en el repositorio.
 
-Tobimarks ofrece una suite completa de endpoints REST. Todos los endpoints REST se encuentran bajo el prefijo `/api`.
+| Variable                 | Requerida | Default                 | Propósito                                |
+| :----------------------- | :-------: | :---------------------- | :--------------------------------------- |
+| `PORT`                   |    No     | `3000`                  | Puerto HTTP de la API                    |
+| `NODE_ENV`               |    No     | `DEVELOPMENT`           | Entorno de ejecución                     |
+| `CORS_ORIGIN`            |    No     | `http://localhost:5173` | Origen permitido por CORS                |
+| `LOG_LEVEL`              |    No     | `info`                  | Nivel de logging                         |
+| `DB_HOST`                |    Sí     | -                       | Host de PostgreSQL                       |
+| `DB_PORT`                |    No     | `5432`                  | Puerto de PostgreSQL                     |
+| `DB_NAME`                |    Sí     | -                       | Nombre de la base de datos               |
+| `DB_USER`                |    Sí     | -                       | Usuario de PostgreSQL                    |
+| `DB_PASSWORD`            |    Sí     | -                       | Contraseña de PostgreSQL                 |
+| `REDIS_HOST`             |    No     | `localhost`             | Redis de caché                           |
+| `REDIS_PORT`             |    No     | `6379`                  | Puerto de Redis de caché                 |
+| `REDIS_PASSWORD`         |    No     | vacío                   | Contraseña de Redis de caché             |
+| `REDIS_DB`               |    No     | `0`                     | Base de datos de Redis de caché          |
+| `REDIS_USE_TLS`          |    No     | `false`                 | TLS para Redis de caché                  |
+| `REDIS_QUEUE_HOST`       |    No     | `localhost`             | Redis de BullMQ                          |
+| `REDIS_QUEUE_PORT`       |    No     | `6380`                  | Puerto de Redis de BullMQ                |
+| `REDIS_QUEUE_PASSWORD`   |    No     | vacío                   | Contraseña de Redis de BullMQ            |
+| `REDIS_QUEUE_DB`         |    No     | `0`                     | Base de datos de Redis de BullMQ         |
+| `REDIS_QUEUE_USE_TLS`    |    No     | `false`                 | TLS para Redis de BullMQ                 |
+| `GOOGLE_CLIENT_ID`       |    Sí     | -                       | Client ID de Google OAuth                |
+| `GOOGLE_CLIENT_SECRET`   |    Sí     | -                       | Client secret de Google OAuth            |
+| `JWT_SECRET`             |    Sí     | -                       | Secreto para firmar access tokens        |
+| `JWT_EXPIRES_IN`         |    Sí     | -                       | Expiración del JWT en segundos           |
+| `GEMINI_API_KEY`         |    Sí     | -                       | API key para embeddings de Gemini        |
+| `ENABLE_EMAIL_WHITELIST` |    No     | `false`                 | Restringir registros a emails permitidos |
 
-### 📖 Documentación Interactiva (Scalar)
+## Arquitectura
 
-Para explorar la documentación OpenAPI interactiva detallada con ejemplos prácticos y consola de pruebas incorporada, inicia el servidor y dirígete a:
+Tobimarks está organizado por módulos de negocio y utiliza una separación por capas inspirada
+en Clean Architecture. La implementación actual combina la API y los workers de BullMQ en el
+mismo proceso.
 
-👉 **[http://localhost:3000/api-docs](http://localhost:3000/api-docs)**
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as Cliente HTTP
+    participant API as Express API
+    participant Page as Página enlazada
+    participant DB as PostgreSQL
+    participant Redis as Redis/BullMQ
+    participant Worker as Worker
+    participant Gemini as Google Gemini
 
----
+    Client->>API: POST /api/bookmarks { url }
+    API->>Page: Solicita HTML y metadatos
+    Page-->>API: Título, descripción, Open Graph y favicon
+    API->>DB: Guarda bookmark y website
+    API->>Redis: Encola jobs de IA si están activados
+    API-->>Client: 201 Created
+    Redis->>Worker: Entrega job
+    Worker->>DB: Obtiene tags y collections del usuario
+    Worker->>Gemini: Genera embeddings del texto
+    Gemini-->>Worker: Embeddings normalizados
+    Worker->>DB: Asigna tags o la mejor collection
+```
 
-### Resumen de Endpoints Principales
+### Componentes
 
-A continuación se muestra un resumen rápido de las rutas disponibles:
+| Componente                | Tecnología              | Responsabilidad                                    |
+| :------------------------ | :---------------------- | :------------------------------------------------- |
+| API HTTP                  | Express 5 y TypeScript  | Rutas, validación y respuestas JSON                |
+| Persistencia              | PostgreSQL y `pg`       | Usuarios, bookmarks, colecciones, tags y actividad |
+| Similitud semántica       | `pgvector` y Gemini     | Embeddings para tags y colecciones                 |
+| Caché                     | Redis                   | Caché de perfiles y datos temporales               |
+| Trabajos                  | BullMQ y Redis dedicado | Organización con IA en segundo plano               |
+| Inyección de dependencias | `tsyringe`              | Composición de módulos y servicios                 |
+| Validación                | Valibot                 | Peticiones HTTP y configuración de entorno         |
+| Documentación             | OpenAPI y Scalar        | Referencia interactiva de la API                   |
 
-| Módulo | Endpoint | Método | Descripción |
-| :--- | :--- | :---: | :--- |
-| **Auth** | `/api/auth/google` | `POST` | Iniciar sesión / registrarse mediante Google OAuth |
-| | `/api/auth/refresh` | `POST` | Renovar el Access Token usando un Refresh Token |
-| | `/api/auth/logout` | `POST` | Cerrar sesión y revocar el Refresh Token activo |
-| **Bookmarks** | `/api/bookmarks` | `POST` | Crear un marcador (Scraping y embeddings en 2do plano) |
-| | `/api/bookmarks` | `GET` | Obtener marcadores paginados, filtrados y buscados |
-| | `/api/bookmarks/:id` | `PATCH` | Actualizar título, descripción o metadatos de un marcador |
-| | `/api/bookmarks/:id` | `DELETE` | Eliminar permanentemente un marcador |
-| | `/api/bookmarks/:id/collection`| `PATCH` | Asignar un marcador a una colección específica |
-| | `/api/bookmarks/:id/collection`| `DELETE`| Remover un marcador de su colección |
-| | `/api/bookmarks/:id/favorite` | `PATCH` | Marcar como favorito |
-| | `/api/bookmarks/:id/favorite` | `DELETE`| Quitar de favoritos |
-| | `/api/bookmarks/:id/access` | `PATCH` | Registrar un acceso directo al marcador (incrementa visitas) |
-| **Collections**| `/api/collections` | `POST` | Crear una nueva colección |
-| | `/api/collections` | `GET` | Listar todas las colecciones del usuario |
-| | `/api/collections/:id` | `GET` | Obtener detalles de una colección |
-| | `/api/collections/:id` | `PATCH` | Actualizar nombre o descripción de una colección |
-| **Tags** | `/api/tags` | `GET` | Listar las etiquetas creadas por el usuario |
-| | `/api/tags` | `POST` | Crear una etiqueta de manera manual |
-| | `/api/tags/:id` | `PATCH` | Actualizar el nombre o color de una etiqueta |
-| | `/api/tags/:id` | `DELETE` | Eliminar una etiqueta |
-| **Websites** | `/api/websites` | `GET` | Obtener sitios web únicos consolidados del usuario |
-| **User** | `/api/users/me` | `GET` | Obtener perfil del usuario autenticado |
-| | `/api/users/me/settings` | `PATCH` | Actualizar preferencias y configuraciones del usuario |
-| **Statistics** | `/api/statistics/summary` | `GET` | Obtener dashboard de uso (totales, favoritos, tags más usados) |
+### Estructura Principal
 
----
+```text
+├── migrations/             # Migraciones SQL numeradas
+├── scripts/                # Migración y reset de base de datos
+├── src/
+│   ├── common/             # Middlewares, respuestas y errores compartidos
+│   ├── core/               # Configuración, PostgreSQL, Redis, colas, IA y logging
+│   ├── modules/
+│   │   ├── auth/           # Google OAuth, JWT y refresh tokens
+│   │   ├── bookmark/       # Bookmarks, metadatos, websites y jobs de IA
+│   │   ├── collection/     # Colecciones del usuario
+│   │   ├── statistics/     # Resúmenes de uso
+│   │   ├── tag/            # Etiquetas y similitud semántica
+│   │   └── user/           # Perfil y preferencias
+│   ├── app.ts              # Aplicación Express y rutas
+│   ├── container.ts        # Registro global de dependencias
+│   ├── index.ts            # Punto de entrada
+│   ├── scalar.ts           # Configuración de Scalar
+│   └── swagger.ts          # Especificación OpenAPI
+├── .env.example
+├── docker-compose.yml
+└── package.json
+```
 
-## 🛠 Scripts Disponibles
+Para más detalle consulta:
 
-En el directorio raíz, puedes ejecutar los siguientes comandos:
+- [Arquitectura](ARCHITECTURE.md)
+- [Modelo de datos](DATABASE.md)
+- [Seguridad](SECURITY.md)
+- [Variables de entorno](.env.example)
 
-*   `npm run dev`: Inicia el servidor de desarrollo utilizando `tsx watch` que recarga el código al guardar cambios.
-*   `npm run build`: Compila el código TypeScript a JavaScript de alta fidelidad y optimizado en la carpeta `/dist` utilizando `tsup`.
-*   `npm run start`: Inicia el servidor optimizado para producción corriendo sobre Node.js. (Requiere haber ejecutado `npm run build` primero).
-*   `npm run db:migrate`: Aplica las migraciones de esquemas SQL pendientes a PostgreSQL.
-*   `npm run db:reset`: Ejecuta una reversión completa de las tablas del esquema e inicializa todo de nuevo.
+## Scripts
 
----
+| Comando              | Descripción                           |
+| :------------------- | :------------------------------------ |
+| `npm run dev`        | Inicia la API con recarga automática  |
+| `npm run build`      | Compila TypeScript en `dist/`         |
+| `npm run start`      | Inicia la API compilada en producción |
+| `npm run db:migrate` | Aplica migraciones pendientes         |
+| `npm run db:reset`   | Elimina y recrea el esquema completo  |
 
-## ⚠️ Solución de Problemas (Troubleshooting)
+## Seguridad Y Estado Actual
 
-### Error `ECONNREFUSED` hacia la Base de Datos
-*   **Causa**: La aplicación no logra conectar con PostgreSQL.
-*   **Solución**: Verifica que tu servidor de base de datos PostgreSQL esté activo. Comprueba que las credenciales (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASSWORD`) en tu archivo `.env` coincidan exactamente con tu servidor.
+- Las rutas protegidas utilizan JWT Bearer y verifican la propiedad del recurso por usuario.
+- Los refresh tokens se almacenan como hashes, no como texto plano.
+- La API aplica CORS, Helmet y rate limiting global.
+- El contenido textual de los metadatos puede enviarse a Google Gemini cuando la organización
+  automática está activada. Revisa la política de privacidad antes de utilizar datos sensibles.
+- El extractor de metadatos realiza solicitudes a URLs proporcionadas por el usuario. Revisa
+  [SECURITY.md](SECURITY.md) antes de exponer el servicio a tráfico no confiable.
+- El modelo de datos conserva `isArchived`, pero la API pública actual todavía no expone una
+  operación específica para cambiar ese estado.
+- No existe todavía una suite de tests automatizados ni un pipeline de CI en el repositorio.
+- La cobertura de anotaciones OpenAPI es parcial; la autorización efectiva se implementa en runtime.
 
-### Inyección de Dependencias no Resuelta (`tsyringe`)
-*   **Causa**: Error al arrancar la aplicación (`Cannot inject the dependency...`).
-*   **Solución**: Asegúrate de que las clases decoradas tengan `@injectable()` y estén debidamente registradas en `src/container.ts`. Asegúrate de que los tokens utilizados correspondan a los tokens inyectables correctos en `src/core/di/tokens.ts` o similares.
+## Licencia
 
-### Las colas de BullMQ no avanzan o se quedan estancadas
-*   **Causa**: No hay conexión activa a Redis o el worker de colas no está inicializado.
-*   **Solución**: Verifica que tu servidor Redis esté activo ejecutando `redis-cli ping` (debe responder `PONG`). Asegúrate de configurar correctamente los puertos y hosts de Redis para la cola (`REDIS_QUEUE_HOST` y `REDIS_QUEUE_PORT`).
-
-### Error de validación de variables de entorno al iniciar
-*   **Causa**: La aplicación arroja un log de nivel `fatal` indicando que la validación de entorno falló.
-*   **Solución**: Esto ocurre gracias a las validaciones estrictas de **Valibot**. Verifica la consola para saber exactamente qué variable falta o tiene un tipo incorrecto. Asegúrate de no tener comillas innecesarias o puertos fuera de los rangos válidos.
+El paquete declara la licencia ISC en `package.json`. Actualmente no hay un archivo `LICENSE`
+incluido en el repositorio.
