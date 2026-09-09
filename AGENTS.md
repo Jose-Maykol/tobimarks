@@ -13,6 +13,8 @@ Consulta estos documentos antes de cambiar código:
 - `CODING_RULES.md`: convenciones de TypeScript, Express, SQL, errores y logging.
 - `DATABASE.md`: tablas, relaciones, migraciones y reglas de persistencia.
 - `README.md`: instalación local, variables de entorno y endpoints públicos.
+- `SECURITY.md`: controles de seguridad actuales, configuración sensible y gaps
+  conocidos.
 - `openspec/config.yaml`: configuración del flujo OpenSpec del repositorio.
 
 ## Flujo De Trabajo
@@ -37,6 +39,13 @@ Para cambios no triviales, usa OpenSpec:
 - `/opsx-update` para revisar el plan durante la implementación.
 - `/opsx-sync` para sincronizar cambios de especificación.
 - `/opsx-archive` para archivar un cambio terminado.
+
+El schema predeterminado es `backend-spec-driven`. Sus diseños incluyen un
+perfil condicional para API/HTTP, autenticación, persistencia, jobs, integraciones,
+infraestructura, seguridad y observabilidad; conserva solo las superficies que
+aplican al cambio y exige fuentes y verificaciones. Para un cambio que no sea de
+backend, selecciona explícitamente `--schema spec-driven`. Los changes existentes
+conservan el schema fijado en su `.openspec.yaml`.
 
 ## Comandos
 

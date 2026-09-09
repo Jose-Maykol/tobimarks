@@ -1,0 +1,267 @@
+name: backend-spec-driven
+version: 1
+description: Backend-focused OpenSpec workflow - proposal → specs → design → tasks
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: Initial proposal document outlining the change
+    template: proposal.md
+    instruction: |
+      Create the proposal document that establishes WHY this change is needed.
+
+      Sections:
+      - **Why**: 1-2 sentences on the problem or opportunity. What problem does this solve? Why now?
+      - **What Changes**: Bullet list of changes. Be specific about new capabilities, modifications, or removals. Mark breaking changes with **BREAKING**.
+      - **Capabilities**: Identify which specs will be created or modified:
+        - **New Capabilities**: List capabilities being introduced. Each becomes a new `specs/<capability-path>/spec.md`. Use kebab-case for path segments you introduce (e.g., `user-auth` or `identity/user-auth`) and follow the project's existing spec organization.
+        - **Modified Capabilities**: List existing capabilities whose REQUIREMENTS are changing. Only include if spec-level behavior changes (not just implementation details). Each needs a delta spec file. Use the exact existing path under `openspec/specs/`. Leave empty if no requirement changes.
+      - **Impact**: Affected code, APIs, dependencies, or systems.
+
+      IMPORTANT: The Capabilities section is critical. It creates the contract between
+      proposal and specs phases. Research existing specs before filling this in.
+      Each capability listed here will need a corresponding spec file.
+
+      Every change must either declare at least one capability (new or
+      modified) or explicitly opt out of specs: `openspec validate` rejects a
+      change with zero deltas unless the change's `.openspec.yaml` sets
+      `skip_specs: true`. Use `skip_specs: true` only when no spec-level
+      behavior changes (pure refactor, tooling, docs) - specs describe
+      behavior, so if behavior does not change, no spec should change either.
+      Do not invent a requirement just to satisfy validation.
+
+      Keep it concise (1-2 pages). Focus on the "why" not the "how" -
+      implementation details belong in design.md.
+
+      This is the foundation - specs, design, and tasks all build on this.
+    requires: []
+
+  - id: specs
+    generates: 'specs/**/*.md'
+    description: Detailed specifications for the change
+    template: spec.md
+    instruction: |
+      Create specification files that define WHAT the system should do.
+
+      A spec is a behavior contract, not an implementation plan.
+
+      Good spec content:
+      - Observable behavior users or downstream systems rely on
+      - Inputs, outputs, and error conditions
+      - External constraints (security, privacy, reliability, compatibility)
+      - Scenarios that can be tested or explicitly validated
+
+      Avoid in specs:
+      - Internal class/function names
+      - Library or framework choices
+      - Step-by-step implementation details
+      - Detailed execution plans (those belong in design.md or tasks.md)
+
+      Quick test: if the implementation can change without changing externally
+      visible behavior, it likely does not belong in the spec.
+
+      Create one spec file per capability listed in the proposal's Capabilities section.
+      `<capability-path>` is the spec directory relative to `specs/` (for example,
+      `user-auth` or `identity/user-auth`). Preserve the full path:
+      - New capabilities: use the exact path from the proposal at `specs/<capability-path>/spec.md`. Any path segment newly introduced in the proposal must be kebab-case. Follow the project's existing organization; do not add a new domain level when the project uses a flat layout.
+      - Modified capabilities: use the exact existing path from `openspec/specs/<capability-path>/` when creating the delta at `specs/<capability-path>/spec.md`. Do not move or rename the capability.
+
+      There must be at least one spec file unless the change's `.openspec.yaml`
+      sets `skip_specs: true` (no spec-level behavior change) - `openspec validate`
+      rejects a zero-delta change without that marker. If the proposal lists no
+      capabilities and `skip_specs` is not set, revisit the proposal first.
+
+      Delta operations (use ## headers):
+      - **ADDED Requirements**: New capabilities
+      - **MODIFIED Requirements**: Changed behavior - MUST include full updated content
+      - **REMOVED Requirements**: Deprecated features - MUST include **Reason** and **Migration**
+      - **RENAMED Requirements**: Name changes only - use FROM:/TO: format
+
+      Format requirements:
+      - Each requirement: `### Requirement: <name>` followed by description
+      - Use SHALL/MUST for normative requirements (avoid should/may)
+      - Each scenario: `#### Scenario: <name>` with WHEN/THEN format
+      - **CRITICAL**: Scenarios MUST use exactly 4 hashtags (`####`). Using 3 hashtags or bullets will fail silently.
+      - Every requirement MUST have at least one scenario.
+
+      New capabilities only: start the delta spec with a `## Purpose` section -
+      one or two sentences (50+ characters, or `openspec validate --strict`
+      reports it as too brief) describing what the capability is for. Archive
+      copies it into the main spec it creates; without it the new main spec is
+      left with a `TBD ... Update Purpose after archive` placeholder to fill in
+      by hand. Do NOT add `## Purpose` to a delta for an existing capability -
+      that spec already has one and the delta's is ignored. To change an
+      existing capability's Purpose - including a leftover `TBD` placeholder -
+      edit `<planningHome.root>/openspec/specs/<capability-path>/spec.md`
+      directly. `planningHome.root` comes from the `openspec instructions ...
+      --json` response. Always use it rather than a repo-relative path: it
+      resolves to the store whenever the change lives in one - whether that
+      came from `--store`, a project `store:` pointer, or a global default
+      store - and to the current repository otherwise. Do not try to work out
+      which case applies; the field already has.
+
+      MODIFIED requirements workflow:
+      1. Locate the existing requirement in `<planningHome.root>/openspec/specs/<capability-path>/spec.md` (the same store-aware root as above)
+      2. Copy the ENTIRE requirement block (from `### Requirement:` through all scenarios)
+      3. Paste under `## MODIFIED Requirements` and edit to reflect new behavior
+      4. Ensure header text matches exactly (whitespace-insensitive)
+
+      Common pitfall: Using MODIFIED with partial content loses detail at archive time.
+      If adding new concerns without changing existing behavior, use ADDED instead.
+
+      Example (a new capability, so it opens with `## Purpose`):
+      ```
+      ## Purpose
+
+      Lets users take their data out of the product in a portable format.
+
+      ## ADDED Requirements
+
+      ### Requirement: User can export data
+      The system SHALL allow users to export their data in CSV format.
+
+      #### Scenario: Successful export
+      - **WHEN** user clicks "Export" button
+      - **THEN** system downloads a CSV file with all user data
+
+      ## REMOVED Requirements
+
+      ### Requirement: Legacy export
+      **Reason**: Replaced by new export system
+      **Migration**: Use new export endpoint at /api/v2/export
+      ```
+
+      Specs should be testable - each scenario is a potential test case.
+    requires:
+      - proposal
+
+  - id: design
+    generates: design.md
+    description: Backend technical design with conditional surface review
+    template: design.md
+    instruction: |
+      Create the design document that explains HOW to implement the backend change.
+      Read proposal.md and every completed spec before writing. Locate the primary
+      source files, existing interfaces and neighboring implementations; do not infer
+      behavior from names alone.
+
+      Start with a required "## Change Profile" table. It MUST contain one row for
+      each of these eight surfaces, with exactly "Yes" or "No" in Applies and concrete
+      source paths in Evidence:
+      - API/HTTP
+      - Auth/Authorization
+      - Persistence
+      - Jobs/Queues
+      - External Integrations
+      - Config/Infrastructure
+      - Security/Privacy
+      - Observability/Performance
+
+      Use the proposal, specs and affected source as evidence. Mark a surface Yes if
+      the change can alter its contract, data flow, trust boundary, operational
+      behavior or verification. If a surface is No but could reasonably be confused
+      with an affected surface, explain why in the profile or Context.
+
+      The template contains conditional blocks delimited by HTML comments such as
+      "<!-- IF: API/HTTP -->" and "<!-- END IF: API/HTTP -->". These are authoring
+      markers, not a renderer. Keep a block only when its profile row is Yes, remove
+      the block and both marker comments when it is No, and ensure no IF/END IF marker
+      remains in the final design.
+
+      For every surface marked Yes, fill its block with concrete decisions, affected
+      boundaries, source paths and verification. Do not leave generic headings or
+      empty checklists. Use the following scope:
+      - API/HTTP: route and middleware order, Valibot/body/params/query validation,
+        controller/use-case/service boundaries, response envelopes, status/error
+        codes, ownership, backward compatibility, OpenAPI annotations and JSDoc for
+        non-obvious public contracts.
+      - Auth/Authorization: actor and trust boundary, credential/token/session flow,
+        claims, expiry, rotation, revocation, ownership, permissions, abuse controls,
+        secret handling and failure responses.
+      - Persistence: migration and schema impact, constraints, indexes, SQL/query
+        changes, parameterization, ownership and soft-delete filters, UnitOfWork
+        boundaries, backfill, deployment order and rollback.
+      - Jobs/Queues: producer and consumer, stable queue/job names, serializable and
+        versionable payload, job IDs/deduplication, idempotency, retries/backoff,
+        concurrency, failure handling, shutdown and repeated jobs.
+      - External Integrations: provider contract, data sent/received, credentials,
+        timeout, retries, rate limits, errors/fallbacks, privacy and network risks
+        such as SSRF or egress restrictions.
+      - Config/Infrastructure: environment variables and validation, defaults,
+        .env.example, secret delivery, Docker/services, TLS, health checks, startup,
+        shutdown, deployment order and reversible changes.
+      - Security/Privacy: assets, trust boundaries, threats and mitigations, input
+        validation, authentication/authorization, CSRF/SSRF where relevant, personal
+        or sensitive data, retention, redaction and security verification.
+      - Observability/Performance: structured logs without secrets, metrics/tracing
+        when available, cache behavior, latency and resource limits, concurrency,
+        load characteristics, degradation and operational alerts.
+
+      Keep these sections in addition to the profile and applicable blocks:
+      - "## Context": current state and constraints only; reference proposal.md for
+        motivation instead of repeating it.
+      - "## Goals / Non-Goals": design-level boundaries, not a copy of the proposal.
+      - "## Decisions": each material decision must include rationale and alternatives
+        considered (why this approach over another).
+      - "## Risks / Trade-offs": every item MUST use "[Risk] -> Mitigation".
+      - "## Migration Plan": deployment order, compatibility, data migration and
+        rollback; explicitly state when no migration is required.
+      - "## Verification": map each applicable surface to a source, command, test or
+        observable behavior. Include focused checks and the full available suite.
+      - "## Open Questions": include only genuinely deferrable questions. If answering
+        one would change specs, architecture or tasks, resolve it before writing.
+
+      Focus on architecture and approach, not line-by-line implementation. Never
+      claim a control, test, transaction, cookie attribute, isolation boundary or
+      fallback that the source does not support. Preserve known gaps explicitly.
+    requires:
+      - proposal
+
+  - id: tasks
+    generates: tasks.md
+    description: Implementation checklist with trackable tasks
+    template: tasks.md
+    instruction: |
+      Create the task list that breaks down the implementation work.
+
+      Before writing tasks, check design.md for Open Questions. If any of them
+      would change what gets built, resolve them with the user first - do not
+      bake an unstated assumption into the task list.
+
+      **IMPORTANT: Follow the template below exactly.** The apply phase parses
+      checkbox format to track progress. Tasks not using `- [ ]` won't be tracked.
+
+      Guidelines:
+      - Group related tasks under ## numbered headings
+      - Each task MUST be a checkbox: `- [ ] X.Y Task description`
+      - Tasks should be small enough to complete in one session
+      - Order tasks by dependency (what must be done first?)
+      - Each task MUST state how to verify completion (a test, command,
+        observable behavior, or delivered artifact). Put the verification in
+        that task's checkbox description. Use a separate verification task only
+        when it checks broader integration or system behavior that spans
+        multiple implementation tasks.
+
+      Example:
+      ```
+      ## 1. Setup
+
+      - [ ] 1.1 Create new module structure and verify expected files are present
+      - [ ] 1.2 Add dependencies to package.json and verify package installation succeeds
+
+      ## 2. Core Implementation
+
+      - [ ] 2.1 Implement data export function and verify the export test passes
+      - [ ] 2.2 Add CSV formatting utilities and verify unit tests cover quoting and delimiters
+      ```
+
+      Reference specs for what needs to be built, design for how to build it.
+    requires:
+      - specs
+      - design
+
+apply:
+  requires: [tasks]
+  tracks: tasks.md
+  instruction: |
+    Read context files, work through pending tasks, mark complete as you go.
+    Pause if you hit blockers or need clarification.
