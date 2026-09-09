@@ -27,6 +27,21 @@
 | Security/Privacy          | Yes/No  | proposal.md, SECURITY.md, src/...             |
 | Observability/Performance | Yes/No  | proposal.md, src/...                          |
 
+## File Plan
+
+<!-- List every affected file in a tree. Mark each path with [NEW], [MOD], [DELETE] or [MOVE], and give every entry a short reason. Use concrete repository-relative paths. Exclude dist/, node_modules/ and generated outputs. -->
+
+```text
+<repository-root>/
+├── src/
+│   └── <affected-path>  [MOD]  # <reason>
+└── <new-or-affected-path>  [NEW]  # <reason>
+```
+
+| Action                       | Path                              | Reason                             |
+| ---------------------------- | --------------------------------- | ---------------------------------- |
+| <!-- NEW/MOD/DELETE/MOVE --> | <!-- Repository-relative path --> | <!-- Why this file is affected --> |
+
 <!-- IF: API/HTTP -->
 
 ## API/HTTP
@@ -156,9 +171,28 @@
 
 ## Verification
 
-| Surface                     | Source or check                             | Expected result            |
-| --------------------------- | ------------------------------------------- | -------------------------- |
-| <!-- Applicable surface --> | <!-- File, command, test or smoke check --> | <!-- Observable result --> |
+### Test Strategy
+
+- **Current test architecture:** <!-- Existing runner, test directories, fixtures, mocks and CI. State "none" when absent. -->
+- **Available checks:** <!-- Build, typecheck, lint, OpenSpec, manual smoke checks or existing test commands. -->
+- **Unavailable checks:** <!-- Unit, integration, HTTP, E2E or other levels that cannot run. Explain why. -->
+- **Test levels selected:** <!-- Levels used by this change and reason for each. -->
+- **Dependencies and isolation:** <!-- PostgreSQL, Redis, external providers, test data and cleanup. -->
+- **Full available suite:** <!-- Exact command(s), or explicit statement that no suite exists. -->
+
+### Verification Matrix
+
+<!-- Add one row for every scenario in each changed or added spec. For skip_specs: true, reference the affected artifact or risk instead. Add cross-cutting cases for validation, authentication, ownership, failure handling, rollback, retries, idempotency, concurrency and data isolation when applicable. Use repository-relative paths and exact commands. -->
+<!-- Status MUST be one of: AUTOMATED, MANUAL, STATIC, BLOCKED. -->
+
+| ID    | Source requirement / scenario / artifact | Surface           | Level                                            | Preconditions / fixtures | Action / input     | Expected observable result | Command / source                | Status                                   |
+| ----- | ---------------------------------------- | ----------------- | ------------------------------------------------ | ------------------------ | ------------------ | -------------------------- | ------------------------------- | ---------------------------------------- |
+| V-001 | <!-- Concrete source reference -->       | <!-- API/HTTP --> | <!-- unit/integration/HTTP/E2E/manual/static --> | <!-- Required state -->  | <!-- Operation --> | <!-- Concrete result -->   | <!-- Command or source path --> | <!-- AUTOMATED/MANUAL/STATIC/BLOCKED --> |
+
+### Coverage Gaps
+
+- <!-- Missing runner, service, fixture, environment or other limitation. -->
+- <!-- Future work needed to move a MANUAL, STATIC or BLOCKED row to AUTOMATED. -->
 
 ## Open Questions
 

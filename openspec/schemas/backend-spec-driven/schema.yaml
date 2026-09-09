@@ -161,6 +161,16 @@ artifacts:
       behavior or verification. If a surface is No but could reasonably be confused
       with an affected surface, explain why in the profile or Context.
 
+      After the profile, add a required "## File Plan" section. Show a tree of every
+      file affected by the change, including files to create, modify, delete or move.
+      Mark each file with exactly one action: [NEW], [MOD], [DELETE] or [MOVE]. Add a
+      short reason for every file, either beside the path or in a companion table.
+      Use concrete repository-relative paths; do not leave placeholders such as
+      <module> or <file>. Exclude dist/, node_modules/ and other generated outputs.
+      Keep the tree synchronized with the applicable surface blocks and the final
+      task list. For a surface with no file changes, say so instead of inventing a
+      path.
+
       The template contains conditional blocks delimited by HTML comments such as
       "<!-- IF: API/HTTP -->" and "<!-- END IF: API/HTTP -->". These are authoring
       markers, not a renderer. Keep a block only when its profile row is Yes, remove
@@ -205,8 +215,33 @@ artifacts:
       - "## Risks / Trade-offs": every item MUST use "[Risk] -> Mitigation".
       - "## Migration Plan": deployment order, compatibility, data migration and
         rollback; explicitly state when no migration is required.
-      - "## Verification": map each applicable surface to a source, command, test or
-        observable behavior. Include focused checks and the full available suite.
+      - "## Verification": include "### Test Strategy", "### Verification Matrix"
+        and "### Coverage Gaps". State the test architecture that actually exists,
+        the available checks, unavailable levels and external dependency setup.
+        Do not describe a proposed runner, fixture layout or CI pipeline as if it
+        already existed.
+      - The verification matrix MUST contain one row for every scenario in each
+        changed or added spec, plus cross-cutting cases required by applicable
+        surfaces: validation, authentication, ownership, failure handling,
+        rollback, retries, idempotency, concurrency or data isolation as relevant.
+        A change with skip_specs: true MUST derive rows from its observable behavior,
+        affected risks and delivered artifacts instead of inventing a requirement.
+      - Every matrix row MUST include a stable ID, source requirement, scenario or
+        affected artifact/risk, applicable surface, verification level,
+        preconditions or fixtures, action or input, observable expected result,
+        command or source, and status. Use only these statuses: AUTOMATED, MANUAL,
+        STATIC or BLOCKED.
+      - AUTOMATED requires an existing test file and executable command. MANUAL
+        requires reproducible steps and an observable result. STATIC is limited to
+        checks such as build, typecheck, lint, OpenAPI, SQL or source inspection.
+        BLOCKED MUST state why it cannot run and what infrastructure is needed.
+      - Every applicable surface block MUST reference its verification matrix IDs.
+        Include focused checks and the full available suite; explicitly state when
+        no automated suite exists.
+      - Replace the example matrix row and all template placeholders with concrete
+        values in the final design. If a field is not applicable, write N/A and
+        explain why; never leave a placeholder-only row or an empty verification
+        strategy.
       - "## Open Questions": include only genuinely deferrable questions. If answering
         one would change specs, architecture or tasks, resolve it before writing.
 
@@ -237,9 +272,13 @@ artifacts:
       - Order tasks by dependency (what must be done first?)
       - Each task MUST state how to verify completion (a test, command,
         observable behavior, or delivered artifact). Put the verification in
-        that task's checkbox description. Use a separate verification task only
-        when it checks broader integration or system behavior that spans
-        multiple implementation tasks.
+        that task's checkbox description and reference applicable verification
+        matrix IDs from design.md. Use a separate verification task only when it
+        checks broader integration or system behavior that spans multiple
+        implementation tasks.
+      - Never use "tests pass" as verification unless the referenced matrix row
+        identifies an existing executable test file and command. For manual,
+        static or blocked rows, name the exact check or limitation instead.
 
       Example:
       ```
