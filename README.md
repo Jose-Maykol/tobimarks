@@ -22,32 +22,32 @@ El proyecto está diseñado bajo una arquitectura limpia (**Clean Architecture**
 
 ## 🌟 Características Principales
 
-*   **📥 Captura y Extracción de Metadatos Activa**: Web scraping en segundo plano usando `Cheerio` y `Axios` para extraer de forma automática y asíncrona: Títulos, Descripciones, Imágenes Open Graph (`og:image`), Favicons y URLs canónicas limpias.
-*   **🧠 Inteligencia Artificial con Google Gemini**: Integración nativa con `@google/genai` para generar embeddings de alta dimensión del contenido de los marcadores.
-*   **⚡ Motor de Colas Asíncronas (BullMQ & Redis)**: Arquitectura de tareas desacoplada para evitar bloqueos del hilo principal de Express. Procesa de manera resiliente:
-    *   `ai-tags-generation`: Generación automática de etiquetas basadas en la similitud semántica del contenido con las etiquetas existentes del usuario (mediante embeddings y distancia coseno).
-    *   `ai-collections-generation`: Clasificación y auto-asignación sugerida de colecciones.
-*   **📂 Organización Dinámica**: Creación de colecciones personalizadas, asociación múltiple de etiquetas (tags), marcadores favoritos y soporte para archivado de enlaces.
-*   **🔐 Autenticación Robusta**: Autenticación segura mediante JSON Web Tokens (JWT) y soporte para Google OAuth. Gestión segura de sesiones activas y Refresh Tokens por dispositivo.
-*   **📊 Estadísticas Avanzadas**: Endpoint dedicado para obtener resúmenes cuantitativos de uso, favoritos y distribución de etiquetas.
-*   **📖 Documentación de Nueva Generación**: Documentación interactiva autogenerada mediante OpenAPI 3.0 con Swagger y visualizada elegantemente a través de la interfaz interactiva de **Scalar** en `/api-docs`.
+- **📥 Captura y Extracción de Metadatos Activa**: Web scraping en segundo plano usando `Cheerio` y `Axios` para extraer de forma automática y asíncrona: Títulos, Descripciones, Imágenes Open Graph (`og:image`), Favicons y URLs canónicas limpias.
+- **🧠 Inteligencia Artificial con Google Gemini**: Integración nativa con `@google/genai` para generar embeddings de alta dimensión del contenido de los marcadores.
+- **⚡ Motor de Colas Asíncronas (BullMQ & Redis)**: Arquitectura de tareas desacoplada para evitar bloqueos del hilo principal de Express. Procesa de manera resiliente:
+  - `ai-tags-generation`: Generación automática de etiquetas basadas en la similitud semántica del contenido con las etiquetas existentes del usuario (mediante embeddings y distancia coseno).
+  - `ai-collections-generation`: Clasificación y auto-asignación sugerida de colecciones.
+- **📂 Organización Dinámica**: Creación de colecciones personalizadas, asociación múltiple de etiquetas (tags), marcadores favoritos y soporte para archivado de enlaces.
+- **🔐 Autenticación Robusta**: Autenticación segura mediante JSON Web Tokens (JWT) y soporte para Google OAuth. Gestión segura de sesiones activas y Refresh Tokens por dispositivo.
+- **📊 Estadísticas Avanzadas**: Endpoint dedicado para obtener resúmenes cuantitativos de uso, favoritos y distribución de etiquetas.
+- **📖 Documentación de Nueva Generación**: Documentación interactiva autogenerada mediante OpenAPI 3.0 con Swagger y visualizada elegantemente a través de la interfaz interactiva de **Scalar** en `/api-docs`.
 
 ---
 
 ## 🛠 Tech Stack
 
-| Capa / Componente | Tecnología Principal | Propósito |
-| :--- | :--- | :--- |
-| **Back-end Core** | TypeScript / Node.js (v20+) | Tipado estático robusto y entorno de ejecución rápido |
-| **Framework Web** | Express 5.1 | Servidor HTTP moderno y flexible con soporte para promesas |
-| **Base de Datos** | PostgreSQL (vía `pg`) | Base de datos relacional para almacenamiento persistente |
-| **Colas de Tareas** | BullMQ & Redis | Procesamiento de trabajos pesados en segundo plano de manera confiable |
-| **Inyección de Dependencias** | `tsyringe` | Inversión de Control (IoC) para desacoplamiento total de clases |
-| **Validación de Datos** | `valibot` | Esquemas de validación de peticiones y variables de entorno rápidos y seguros |
-| **Inteligencia Artificial** | `@google/genai` | Generación de embeddings vectoriales de contenido web |
-| **Scraping / Metadatos** | `cheerio`, `axios`, `tldts` | Extracción de metadatos y normalización de URLs |
-| **Seguridad** | `helmet`, `cors`, `express-rate-limit` | Protección contra vulnerabilidades web comunes y ataques DDoS |
-| **Documentación** | `swagger-jsdoc` & Scalar | Especificación OpenAPI 3.0 y UI interactiva de referencia |
+| Capa / Componente             | Tecnología Principal                   | Propósito                                                                     |
+| :---------------------------- | :------------------------------------- | :---------------------------------------------------------------------------- |
+| **Back-end Core**             | TypeScript / Node.js (v20+)            | Tipado estático robusto y entorno de ejecución rápido                         |
+| **Framework Web**             | Express 5.1                            | Servidor HTTP moderno y flexible con soporte para promesas                    |
+| **Base de Datos**             | PostgreSQL (vía `pg`)                  | Base de datos relacional para almacenamiento persistente                      |
+| **Colas de Tareas**           | BullMQ & Redis                         | Procesamiento de trabajos pesados en segundo plano de manera confiable        |
+| **Inyección de Dependencias** | `tsyringe`                             | Inversión de Control (IoC) para desacoplamiento total de clases               |
+| **Validación de Datos**       | `valibot`                              | Esquemas de validación de peticiones y variables de entorno rápidos y seguros |
+| **Inteligencia Artificial**   | `@google/genai`                        | Generación de embeddings vectoriales de contenido web                         |
+| **Scraping / Metadatos**      | `cheerio`, `axios`, `tldts`            | Extracción de metadatos y normalización de URLs                               |
+| **Seguridad**                 | `helmet`, `cors`, `express-rate-limit` | Protección contra vulnerabilidades web comunes y ataques DDoS                 |
+| **Documentación**             | `swagger-jsdoc` & Scalar               | Especificación OpenAPI 3.0 y UI interactiva de referencia                     |
 
 ---
 
@@ -120,11 +120,11 @@ sequenceDiagram
 
 Antes de comenzar, asegúrate de tener instalados los siguientes componentes:
 
-*   **Node.js**: Versión 20 o superior.
-*   **PostgreSQL**: Versión 15 o superior.
-*   **Redis**: Versión 6 o superior (Requerido para el motor de colas en segundo plano BullMQ).
-*   **Google Gemini**: Una clave de API de Gemini (`GEMINI_API_KEY`) para activar las funcionalidades de IA.
-*   **Google Cloud Console**: Un proyecto configurado para obtener credenciales OAuth (opcional para desarrollo básico).
+- **Node.js**: Versión 20 o superior.
+- **PostgreSQL**: Versión 15 o superior.
+- **Redis**: Versión 6 o superior (Requerido para el motor de colas en segundo plano BullMQ).
+- **Google Gemini**: Una clave de API de Gemini (`GEMINI_API_KEY`) para activar las funcionalidades de IA.
+- **Google Cloud Console**: Un proyecto configurado para obtener credenciales OAuth (opcional para desarrollo básico).
 
 ---
 
@@ -140,43 +140,43 @@ cp .env.example .env
 
 Configura las variables dentro del archivo `.env` según la siguiente tabla:
 
-| Variable | Requerido | Descripción | Ejemplo / Default |
-| :--- | :---: | :--- | :--- |
-| **Servidor y Entorno** | | | |
-| `PORT` | ❌ | Puerto de red de la API (debe estar entre 1000 y 65535) | `3000` |
-| `NODE_ENV` | ❌ | Entorno de ejecución (`DEVELOPMENT`, `PRODUCTION`, `TEST`) | `DEVELOPMENT` |
-| `CORS_ORIGIN` | ❌ | Origen permitido para peticiones CORS | `http://localhost:5173` |
-| `LOG_LEVEL` | ❌ | Nivel mínimo de logging (`fatal`, `error`, `warn`, `info`, `debug`) | `info` |
-| **Base de Datos** | | | |
-| `DB_HOST` |  | Host del servidor PostgreSQL | `localhost` |
-| `DB_PORT` | ❌ | Puerto del servidor PostgreSQL | `5432` |
-| `DB_NAME` |  | Nombre de la base de datos | `tobimarks` |
-| `DB_USER` |  | Nombre del usuario de PostgreSQL | `postgres` |
-| `DB_PASSWORD` |  | Contraseña del usuario de la base de datos | `tu_contraseña` |
-| **Redis Cache** | | | |
-| `REDIS_HOST` | ❌ | Host del servidor Redis principal | `localhost` |
-| `REDIS_PORT` | ❌ | Puerto del servidor Redis principal | `6379` |
-| `REDIS_PASSWORD` | ❌ | Contraseña de autenticación de Redis | `(Vacio)` |
-| `REDIS_DB` | ❌ | Número de base de datos de Redis para caché | `0` |
-| `REDIS_USE_TLS` | ❌ | Habilitar conexión SSL/TLS (`true`/`false`) | `false` |
-| **Redis Queue (BullMQ)** | | | |
-| `REDIS_QUEUE_HOST` | ❌ | Host de Redis dedicado a colas de BullMQ | `localhost` |
-| `REDIS_QUEUE_PORT` | ❌ | Puerto de Redis dedicado a colas de BullMQ | `6380` |
-| `REDIS_QUEUE_PASSWORD` | ❌ | Contraseña de Redis para colas | `(Vacio)` |
-| `REDIS_QUEUE_DB` | ❌ | Número de base de datos de Redis para colas | `0` |
-| `REDIS_QUEUE_USE_TLS`| ❌ | Habilitar SSL/TLS para la conexión de la cola | `false` |
-| **Google OAuth** | | | |
-| `GOOGLE_CLIENT_ID` |  | Client ID de Google Web Application | `your_client_id.apps.googleusercontent.com` |
-| `GOOGLE_CLIENT_SECRET`|  | Client Secret de la aplicación de Google | `your_client_secret` |
-| **Seguridad JWT** | | | |
-| `JWT_SECRET` |  | Frase secreta robusta para firmar los tokens de acceso | `una_clave_muy_segura_y_larga` |
-| `JWT_EXPIRES_IN` |  | Tiempo de expiración del token JWT en segundos | `3600` |
-| **Inteligencia Artificial**| | | |
-| `GEMINI_API_KEY` |  | API Key de Google Gemini AI | `AIzaSy...` |
-| **Feature Flags** | | | |
-| `ENABLE_EMAIL_WHITELIST`| ❌ | Restringir el registro a una lista blanca de correos | `false` |
+| Variable                    | Requerido | Descripción                                                         | Ejemplo / Default                           |
+| :-------------------------- | :-------: | :------------------------------------------------------------------ | :------------------------------------------ |
+| **Servidor y Entorno**      |           |                                                                     |                                             |
+| `PORT`                      |    ❌     | Puerto de red de la API (debe estar entre 1000 y 65535)             | `3000`                                      |
+| `NODE_ENV`                  |    ❌     | Entorno de ejecución (`DEVELOPMENT`, `PRODUCTION`, `TEST`)          | `DEVELOPMENT`                               |
+| `CORS_ORIGIN`               |    ❌     | Origen permitido para peticiones CORS                               | `http://localhost:5173`                     |
+| `LOG_LEVEL`                 |    ❌     | Nivel mínimo de logging (`fatal`, `error`, `warn`, `info`, `debug`) | `info`                                      |
+| **Base de Datos**           |           |                                                                     |                                             |
+| `DB_HOST`                   |           | Host del servidor PostgreSQL                                        | `localhost`                                 |
+| `DB_PORT`                   |    ❌     | Puerto del servidor PostgreSQL                                      | `5432`                                      |
+| `DB_NAME`                   |           | Nombre de la base de datos                                          | `tobimarks`                                 |
+| `DB_USER`                   |           | Nombre del usuario de PostgreSQL                                    | `postgres`                                  |
+| `DB_PASSWORD`               |           | Contraseña del usuario de la base de datos                          | `tu_contraseña`                             |
+| **Redis Cache**             |           |                                                                     |                                             |
+| `REDIS_HOST`                |    ❌     | Host del servidor Redis principal                                   | `localhost`                                 |
+| `REDIS_PORT`                |    ❌     | Puerto del servidor Redis principal                                 | `6379`                                      |
+| `REDIS_PASSWORD`            |    ❌     | Contraseña de autenticación de Redis                                | `(Vacio)`                                   |
+| `REDIS_DB`                  |    ❌     | Número de base de datos de Redis para caché                         | `0`                                         |
+| `REDIS_USE_TLS`             |    ❌     | Habilitar conexión SSL/TLS (`true`/`false`)                         | `false`                                     |
+| **Redis Queue (BullMQ)**    |           |                                                                     |                                             |
+| `REDIS_QUEUE_HOST`          |    ❌     | Host de Redis dedicado a colas de BullMQ                            | `localhost`                                 |
+| `REDIS_QUEUE_PORT`          |    ❌     | Puerto de Redis dedicado a colas de BullMQ                          | `6380`                                      |
+| `REDIS_QUEUE_PASSWORD`      |    ❌     | Contraseña de Redis para colas                                      | `(Vacio)`                                   |
+| `REDIS_QUEUE_DB`            |    ❌     | Número de base de datos de Redis para colas                         | `0`                                         |
+| `REDIS_QUEUE_USE_TLS`       |    ❌     | Habilitar SSL/TLS para la conexión de la cola                       | `false`                                     |
+| **Google OAuth**            |           |                                                                     |                                             |
+| `GOOGLE_CLIENT_ID`          |           | Client ID de Google Web Application                                 | `your_client_id.apps.googleusercontent.com` |
+| `GOOGLE_CLIENT_SECRET`      |           | Client Secret de la aplicación de Google                            | `your_client_secret`                        |
+| **Seguridad JWT**           |           |                                                                     |                                             |
+| `JWT_SECRET`                |           | Frase secreta robusta para firmar los tokens de acceso              | `una_clave_muy_segura_y_larga`              |
+| `JWT_EXPIRES_IN`            |           | Tiempo de expiración del token JWT en segundos                      | `3600`                                      |
+| **Inteligencia Artificial** |           |                                                                     |                                             |
+| `GEMINI_API_KEY`            |           | API Key de Google Gemini AI                                         | `AIzaSy...`                                 |
+| **Feature Flags**           |           |                                                                     |                                             |
+| `ENABLE_EMAIL_WHITELIST`    |    ❌     | Restringir el registro a una lista blanca de correos                | `false`                                     |
 
-> *Nota: Las variables sin la marca ❌ son **estrictamente obligatorias**.*
+> _Nota: Las variables sin la marca ❌ son **estrictamente obligatorias**._
 
 ---
 
@@ -217,7 +217,7 @@ npm run db:migrate
 npm run db:reset
 ```
 
-> *Tip: El comando de migraciones admite el parámetro `--files=001,002` para aplicar scripts específicos de forma manual si es necesario.*
+> _Tip: El comando de migraciones admite el parámetro `--files=001,002` para aplicar scripts específicos de forma manual si es necesario._
 
 ### 5. Iniciar el Servidor de Desarrollo
 
@@ -247,32 +247,34 @@ Para explorar la documentación OpenAPI interactiva detallada con ejemplos prác
 
 A continuación se muestra un resumen rápido de las rutas disponibles:
 
-| Módulo | Endpoint | Método | Descripción |
-| :--- | :--- | :---: | :--- |
-| **Auth** | `/api/auth/google` | `POST` | Iniciar sesión / registrarse mediante Google OAuth |
-| | `/api/auth/refresh` | `POST` | Renovar el Access Token usando un Refresh Token |
-| | `/api/auth/logout` | `POST` | Cerrar sesión y revocar el Refresh Token activo |
-| **Bookmarks** | `/api/bookmarks` | `POST` | Crear un marcador (Scraping y embeddings en 2do plano) |
-| | `/api/bookmarks` | `GET` | Obtener marcadores paginados, filtrados y buscados |
-| | `/api/bookmarks/:id` | `PATCH` | Actualizar título, descripción o metadatos de un marcador |
-| | `/api/bookmarks/:id` | `DELETE` | Eliminar permanentemente un marcador |
-| | `/api/bookmarks/:id/collection`| `PATCH` | Asignar un marcador a una colección específica |
-| | `/api/bookmarks/:id/collection`| `DELETE`| Remover un marcador de su colección |
-| | `/api/bookmarks/:id/favorite` | `PATCH` | Marcar como favorito |
-| | `/api/bookmarks/:id/favorite` | `DELETE`| Quitar de favoritos |
-| | `/api/bookmarks/:id/access` | `PATCH` | Registrar un acceso directo al marcador (incrementa visitas) |
-| **Collections**| `/api/collections` | `POST` | Crear una nueva colección |
-| | `/api/collections` | `GET` | Listar todas las colecciones del usuario |
-| | `/api/collections/:id` | `GET` | Obtener detalles de una colección |
-| | `/api/collections/:id` | `PATCH` | Actualizar nombre o descripción de una colección |
-| **Tags** | `/api/tags` | `GET` | Listar las etiquetas creadas por el usuario |
-| | `/api/tags` | `POST` | Crear una etiqueta de manera manual |
-| | `/api/tags/:id` | `PATCH` | Actualizar el nombre o color de una etiqueta |
-| | `/api/tags/:id` | `DELETE` | Eliminar una etiqueta |
-| **Websites** | `/api/websites` | `GET` | Obtener sitios web únicos consolidados del usuario |
-| **User** | `/api/users/me` | `GET` | Obtener perfil del usuario autenticado |
-| | `/api/users/me/settings` | `PATCH` | Actualizar preferencias y configuraciones del usuario |
-| **Statistics** | `/api/statistics/summary` | `GET` | Obtener dashboard de uso (totales, favoritos, tags más usados) |
+| Módulo          | Endpoint                        |  Método  | Descripción                                                    |
+| :-------------- | :------------------------------ | :------: | :------------------------------------------------------------- |
+| **Auth**        | `/api/auth/google`              |  `POST`  | Iniciar sesión / registrarse mediante Google OAuth             |
+|                 | `/api/auth/refresh`             |  `POST`  | Renovar el Access Token usando un Refresh Token                |
+|                 | `/api/auth/logout`              |  `POST`  | Cerrar sesión y revocar el Refresh Token activo                |
+| **Bookmarks**   | `/api/bookmarks`                |  `POST`  | Crear un marcador (Scraping y embeddings en 2do plano)         |
+|                 | `/api/bookmarks`                |  `GET`   | Obtener marcadores paginados, filtrados y buscados             |
+|                 | `/api/bookmarks/:id`            | `PATCH`  | Actualizar título, descripción o metadatos de un marcador      |
+|                 | `/api/bookmarks/:id/archive`    | `PATCH`  | Archivar un marcador                                           |
+|                 | `/api/bookmarks/:id`            | `DELETE` | Eliminar permanentemente un marcador                           |
+|                 | `/api/bookmarks/:id/collection` | `PATCH`  | Asignar un marcador a una colección específica                 |
+|                 | `/api/bookmarks/:id/collection` | `DELETE` | Remover un marcador de su colección                            |
+|                 | `/api/bookmarks/:id/favorite`   | `PATCH`  | Marcar como favorito                                           |
+|                 | `/api/bookmarks/:id/favorite`   | `DELETE` | Quitar de favoritos                                            |
+|                 | `/api/bookmarks/:id/access`     | `PATCH`  | Registrar un acceso directo al marcador (incrementa visitas)   |
+| **Collections** | `/api/collections`              |  `POST`  | Crear una nueva colección                                      |
+|                 | `/api/collections`              |  `GET`   | Listar todas las colecciones del usuario                       |
+|                 | `/api/collections/:id`          |  `GET`   | Obtener detalles de una colección                              |
+|                 | `/api/collections/:id`          | `PATCH`  | Actualizar nombre o descripción de una colección               |
+|                 | `/api/collections/:id`          | `DELETE` | Eliminar una colección y liberar sus marcadores asociados      |
+| **Tags**        | `/api/tags`                     |  `GET`   | Listar las etiquetas creadas por el usuario                    |
+|                 | `/api/tags`                     |  `POST`  | Crear una etiqueta de manera manual                            |
+|                 | `/api/tags/:id`                 | `PATCH`  | Actualizar el nombre o color de una etiqueta                   |
+|                 | `/api/tags/:id`                 | `DELETE` | Eliminar una etiqueta                                          |
+| **Websites**    | `/api/websites`                 |  `GET`   | Obtener sitios web únicos consolidados del usuario             |
+| **User**        | `/api/users/me`                 |  `GET`   | Obtener perfil del usuario autenticado                         |
+|                 | `/api/users/me/settings`        | `PATCH`  | Actualizar preferencias y configuraciones del usuario          |
+| **Statistics**  | `/api/statistics/summary`       |  `GET`   | Obtener dashboard de uso (totales, favoritos, tags más usados) |
 
 ---
 
@@ -280,28 +282,32 @@ A continuación se muestra un resumen rápido de las rutas disponibles:
 
 En el directorio raíz, puedes ejecutar los siguientes comandos:
 
-*   `npm run dev`: Inicia el servidor de desarrollo utilizando `tsx watch` que recarga el código al guardar cambios.
-*   `npm run build`: Compila el código TypeScript a JavaScript de alta fidelidad y optimizado en la carpeta `/dist` utilizando `tsup`.
-*   `npm run start`: Inicia el servidor optimizado para producción corriendo sobre Node.js. (Requiere haber ejecutado `npm run build` primero).
-*   `npm run db:migrate`: Aplica las migraciones de esquemas SQL pendientes a PostgreSQL.
-*   `npm run db:reset`: Ejecuta una reversión completa de las tablas del esquema e inicializa todo de nuevo.
+- `npm run dev`: Inicia el servidor de desarrollo utilizando `tsx watch` que recarga el código al guardar cambios.
+- `npm run build`: Compila el código TypeScript a JavaScript de alta fidelidad y optimizado en la carpeta `/dist` utilizando `tsup`.
+- `npm run start`: Inicia el servidor optimizado para producción corriendo sobre Node.js. (Requiere haber ejecutado `npm run build` primero).
+- `npm run db:migrate`: Aplica las migraciones de esquemas SQL pendientes a PostgreSQL.
+- `npm run db:reset`: Ejecuta una reversión completa de las tablas del esquema e inicializa todo de nuevo.
 
 ---
 
 ## ⚠️ Solución de Problemas (Troubleshooting)
 
 ### Error `ECONNREFUSED` hacia la Base de Datos
-*   **Causa**: La aplicación no logra conectar con PostgreSQL.
-*   **Solución**: Verifica que tu servidor de base de datos PostgreSQL esté activo. Comprueba que las credenciales (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASSWORD`) en tu archivo `.env` coincidan exactamente con tu servidor.
+
+- **Causa**: La aplicación no logra conectar con PostgreSQL.
+- **Solución**: Verifica que tu servidor de base de datos PostgreSQL esté activo. Comprueba que las credenciales (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASSWORD`) en tu archivo `.env` coincidan exactamente con tu servidor.
 
 ### Inyección de Dependencias no Resuelta (`tsyringe`)
-*   **Causa**: Error al arrancar la aplicación (`Cannot inject the dependency...`).
-*   **Solución**: Asegúrate de que las clases decoradas tengan `@injectable()` y estén debidamente registradas en `src/container.ts`. Asegúrate de que los tokens utilizados correspondan a los tokens inyectables correctos en `src/core/di/tokens.ts` o similares.
+
+- **Causa**: Error al arrancar la aplicación (`Cannot inject the dependency...`).
+- **Solución**: Asegúrate de que las clases decoradas tengan `@injectable()` y estén debidamente registradas en `src/container.ts`. Asegúrate de que los tokens utilizados correspondan a los tokens inyectables correctos en `src/core/di/tokens.ts` o similares.
 
 ### Las colas de BullMQ no avanzan o se quedan estancadas
-*   **Causa**: No hay conexión activa a Redis o el worker de colas no está inicializado.
-*   **Solución**: Verifica que tu servidor Redis esté activo ejecutando `redis-cli ping` (debe responder `PONG`). Asegúrate de configurar correctamente los puertos y hosts de Redis para la cola (`REDIS_QUEUE_HOST` y `REDIS_QUEUE_PORT`).
+
+- **Causa**: No hay conexión activa a Redis o el worker de colas no está inicializado.
+- **Solución**: Verifica que tu servidor Redis esté activo ejecutando `redis-cli ping` (debe responder `PONG`). Asegúrate de configurar correctamente los puertos y hosts de Redis para la cola (`REDIS_QUEUE_HOST` y `REDIS_QUEUE_PORT`).
 
 ### Error de validación de variables de entorno al iniciar
-*   **Causa**: La aplicación arroja un log de nivel `fatal` indicando que la validación de entorno falló.
-*   **Solución**: Esto ocurre gracias a las validaciones estrictas de **Valibot**. Verifica la consola para saber exactamente qué variable falta o tiene un tipo incorrecto. Asegúrate de no tener comillas innecesarias o puertos fuera de los rangos válidos.
+
+- **Causa**: La aplicación arroja un log de nivel `fatal` indicando que la validación de entorno falló.
+- **Solución**: Esto ocurre gracias a las validaciones estrictas de **Valibot**. Verifica la consola para saber exactamente qué variable falta o tiene un tipo incorrecto. Asegúrate de no tener comillas innecesarias o puertos fuera de los rangos válidos.
