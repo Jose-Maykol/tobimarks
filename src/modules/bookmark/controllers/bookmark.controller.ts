@@ -6,6 +6,7 @@ import {
 	CREATE_BOOKMARK_USE_CASE,
 	GET_BOOKMARKS_USE_CASE,
 	DELETE_BOOKMARK_USE_CASE,
+	ARCHIVE_BOOKMARK_USE_CASE,
 	MARK_BOOKMARK_AS_FAVORITE_USE_CASE,
 	UNMARK_BOOKMARK_AS_FAVORITE_USE_CASE,
 	UPDATE_BOOKMARK_USE_CASE,
@@ -29,6 +30,7 @@ import type {
 	UpdateBookmarkRequestBody,
 	UpdateBookmarkCollectionRequestBody
 } from '../types/bookmark.types'
+import type { ArchiveBookmarkUseCase } from '../use-cases/archive-bookmark.use-case'
 import type { CreateBookmarkUseCase } from '../use-cases/create-bookmark.use-case'
 import type { DeleteBookmarkUseCase } from '../use-cases/delete-bookmark.use-case'
 import type { GetBookmarksUseCase } from '../use-cases/get-bookmarks.use-case'
@@ -52,6 +54,7 @@ export class BookmarkController {
 		@inject(CREATE_BOOKMARK_USE_CASE) private createBookmarkUseCase: CreateBookmarkUseCase,
 		@inject(GET_BOOKMARKS_USE_CASE) private getBookmarksUseCase: GetBookmarksUseCase,
 		@inject(DELETE_BOOKMARK_USE_CASE) private deleteBookmarkUseCase: DeleteBookmarkUseCase,
+		@inject(ARCHIVE_BOOKMARK_USE_CASE) private archiveBookmarkUseCase: ArchiveBookmarkUseCase,
 		@inject(MARK_BOOKMARK_AS_FAVORITE_USE_CASE)
 		private markAsFavoriteUseCase: MarkBookmarkAsFavoriteUseCase,
 		@inject(UNMARK_BOOKMARK_AS_FAVORITE_USE_CASE)
@@ -119,6 +122,44 @@ export class BookmarkController {
 			if (error instanceof BookmarkAlreadyExistsError) {
 				return res
 					.status(StatusCodes.CONFLICT)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
+			next(error)
+		}
+	}
+
+	/**
+	 * Archiva un marcador activo del usuario autenticado.
+	 *
+	 * @param req - La solicitud HTTP que contiene el usuario autenticado y el ID del marcador.
+	 * @param res - La respuesta HTTP para confirmar el archivado.
+	 * @param next - La siguiente función de middleware para el manejo de errores.
+	 * @returns Una respuesta JSON con el estado archivado del marcador.
+	 */
+	async archive(
+		req: Request<{ id: string }, Record<string, never>, Record<string, never>>,
+		res: Response,
+		next: NextFunction
+	) {
+		try {
+			const user = req.user!
+			const { id } = req.params
+			const result = await this.archiveBookmarkUseCase.execute(user, id)
+			return res.status(StatusCodes.OK).json(
+				ApiResponseBuilder.success(
+					{
+						bookmark: {
+							id: result.id,
+							isArchived: result.isArchived
+						}
+					},
+					'Bookmark archived successfully'
+				)
+			)
+		} catch (error) {
+			if (error instanceof BookmarkNotFoundError) {
+				return res
+					.status(StatusCodes.NOT_FOUND)
 					.json(ApiResponseBuilder.error(error.message, error.code))
 			}
 			next(error)

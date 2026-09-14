@@ -11,6 +11,7 @@ import {
 	GET_BOOKMARKS_USE_CASE,
 	UPDATE_BOOKMARK_USE_CASE,
 	DELETE_BOOKMARK_USE_CASE,
+	ARCHIVE_BOOKMARK_USE_CASE,
 	MARK_BOOKMARK_AS_FAVORITE_USE_CASE,
 	UNMARK_BOOKMARK_AS_FAVORITE_USE_CASE,
 	REGISTER_BOOKMARK_ACCESS_USE_CASE,
@@ -25,6 +26,7 @@ import { BookmarkRepository } from '../repositories/bookmark.repository'
 import { WebsiteRepository } from '../repositories/websites.repository'
 import { MetadataExtractorService } from '../services/metadata-extractor.service'
 import { WebsiteService } from '../services/website.service'
+import { ArchiveBookmarkUseCase } from '../use-cases/archive-bookmark.use-case'
 import { CreateBookmarkUseCase } from '../use-cases/create-bookmark.use-case'
 import { DeleteBookmarkUseCase } from '../use-cases/delete-bookmark.use-case'
 import { GetBookmarksUseCase } from '../use-cases/get-bookmarks.use-case'
@@ -48,6 +50,7 @@ export const registerBookmarkDependencies = () => {
 	container.register(GET_BOOKMARKS_USE_CASE, { useClass: GetBookmarksUseCase })
 	container.register(UPDATE_BOOKMARK_USE_CASE, { useClass: UpdateBookmarkUseCase })
 	container.register(DELETE_BOOKMARK_USE_CASE, { useClass: DeleteBookmarkUseCase })
+	container.register(ARCHIVE_BOOKMARK_USE_CASE, { useClass: ArchiveBookmarkUseCase })
 	container.register(MARK_BOOKMARK_AS_FAVORITE_USE_CASE, {
 		useClass: MarkBookmarkAsFavoriteUseCase
 	})

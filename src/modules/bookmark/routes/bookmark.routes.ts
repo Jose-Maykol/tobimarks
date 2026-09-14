@@ -28,6 +28,32 @@ router.get(
 )
 router.delete('/:id', bookmarkController.delete.bind(bookmarkController))
 router.patch('/:id', bookmarkController.update.bind(bookmarkController))
+/**
+ * @openapi
+ * /bookmarks/{id}/archive:
+ *   patch:
+ *     summary: Archive a bookmark
+ *     tags: [Bookmarks]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Bookmark archived successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
+router.patch('/:id/archive', bookmarkController.archive.bind(bookmarkController))
 router.patch(
 	'/:id/collection',
 	validateRequest({ body: UpdateBookmarkCollectionSchema }),
@@ -37,6 +63,5 @@ router.delete('/:id/collection', bookmarkController.removeCollection.bind(bookma
 router.patch('/:id/access', bookmarkController.registerAccess.bind(bookmarkController))
 router.patch('/:id/favorite', bookmarkController.markAsFavorite.bind(bookmarkController))
 router.delete('/:id/favorite', bookmarkController.unmarkAsFavorite.bind(bookmarkController))
-router.delete('/:id', bookmarkController.delete.bind(bookmarkController))
 
 export const bookmarkRoutes = router

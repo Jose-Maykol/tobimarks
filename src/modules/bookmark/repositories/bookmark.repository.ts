@@ -25,6 +25,7 @@ export interface IBookmarkRepository {
 	existsByIdAndUserId(id: string, userId: string): Promise<boolean>
 	create(params: CreateBookmarkDto, queryRunner?: IQueryRunner): Promise<Partial<Bookmark>>
 	softDelete(id: string): Promise<Pick<Bookmark, 'id'>>
+	archive(id: string, userId: string): Promise<Pick<Bookmark, 'id' | 'isArchived'> | null>
 	updateFavoriteStatus(
 		id: string,
 		isFavorite: boolean
@@ -273,6 +274,20 @@ export class BookmarkRepository implements IBookmarkRepository {
     `
 		const result = await this.dbContext.query<Pick<Bookmark, 'id'>>(query, [id])
 		return result.rows[0]!
+	}
+
+	async archive(id: string, userId: string): Promise<Pick<Bookmark, 'id' | 'isArchived'> | null> {
+		const query = `
+      UPDATE bookmarks
+      SET is_archived = TRUE, updated_at = NOW()
+      WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
+      RETURNING id, is_archived AS "isArchived"
+    `
+		const result = await this.dbContext.query<Pick<Bookmark, 'id' | 'isArchived'>>(query, [
+			id,
+			userId
+		])
+		return result.rows[0] || null
 	}
 
 	async updateFavoriteStatus(
