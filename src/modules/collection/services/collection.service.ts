@@ -197,6 +197,25 @@ export class CollectionService {
 	}
 
 	/**
+	 * Elimina una colección del usuario autenticado.
+	 * Los bookmarks asociados conservan su información y quedan sin colección
+	 * mediante la restricción ON DELETE SET NULL de PostgreSQL.
+	 *
+	 * @param user - Información del usuario autenticado (payload del token).
+	 * @param collectionId - Identificador único de la colección.
+	 * @throws CollectionNotFoundError - Si la colección no existe o no pertenece al usuario.
+	 */
+	async delete(user: AccessTokenPayload, collectionId: string): Promise<void> {
+		this.logger.info('Deleting collection', { collectionId, userId: user.sub })
+		const deleted = await this.collectionRepository.delete(collectionId, user.sub)
+		if (!deleted) {
+			this.logger.warn('Collection not found for deletion', { collectionId, userId: user.sub })
+			throw new CollectionNotFoundError()
+		}
+		this.logger.info('Collection deleted successfully', { collectionId, userId: user.sub })
+	}
+
+	/**
 	 * Busca colecciones similares a un texto dado utilizando embeddings vectoriales.
 	 *
 	 * @param userId - El ID del usuario cuyas colecciones se buscarán.

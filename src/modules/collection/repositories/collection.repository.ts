@@ -18,6 +18,7 @@ export interface ICollectionRepository {
 	findByUserId(userId: string, options: PaginationOptions): Promise<PaginatedResult<Collection>>
 	findByIdAndUserId(id: string, userId: string): Promise<Collection | null>
 	update(id: string, data: UpdateCollectionDto): Promise<Collection>
+	delete(id: string, userId: string): Promise<boolean>
 	updateBookmarkCount(id: string, increment: number, queryRunner?: IQueryRunner): Promise<void>
 	findSimilar(userId: string, embedding: number[], threshold?: number): Promise<string[]>
 }
@@ -140,6 +141,15 @@ export class CollectionRepository implements ICollectionRepository {
 
 		const result = await this.dbContext.query<Collection>(query, values)
 		return result.rows[0]!
+	}
+
+	async delete(id: string, userId: string): Promise<boolean> {
+		const query = `
+			DELETE FROM collections
+			WHERE id = $1 AND user_id = $2
+		`
+		const result = await this.dbContext.query(query, [id, userId])
+		return result.rowCount > 0
 	}
 
 	async updateBookmarkCount(

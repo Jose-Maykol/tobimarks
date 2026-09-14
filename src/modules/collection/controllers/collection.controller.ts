@@ -185,4 +185,39 @@ export class CollectionController {
 			next(error)
 		}
 	}
+
+	/**
+	 * Elimina una colección del usuario autenticado.
+	 * Los bookmarks asociados permanecen disponibles sin una colección asignada.
+	 *
+	 * @param req - La solicitud HTTP con el identificador de la colección.
+	 * @param res - La respuesta HTTP que confirma la eliminación.
+	 * @param next - La siguiente función de middleware para el manejo de errores.
+	 */
+	async delete(
+		req: Request<{ id: string }, Record<string, never>, Record<string, never>>,
+		res: Response,
+		next: NextFunction
+	) {
+		try {
+			const user = req.user!
+			const { id } = req.params
+			await this.collectionService.delete(user, id)
+			return res.status(StatusCodes.OK).json(
+				ApiResponseBuilder.success(
+					{
+						collection: { id }
+					},
+					'Collection deleted successfully'
+				)
+			)
+		} catch (error) {
+			if (error instanceof CollectionNotFoundError) {
+				return res
+					.status(StatusCodes.NOT_FOUND)
+					.json(ApiResponseBuilder.error(error.message, error.code))
+			}
+			next(error)
+		}
+	}
 }
